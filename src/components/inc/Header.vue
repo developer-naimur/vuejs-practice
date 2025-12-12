@@ -1,5 +1,5 @@
 <template>
-	<div class="fixed top-0 left-0 w-screen flex items-center gap-10 bg-purple-100 p-2" id="__header">
+	<div class="fixed top-0 left-0 w-screen flex items-center gap-10 bg-gray-100 p-2 border-b border-gray-200" id="__header">
 		 <div class="flex-none">
 		 	<img class="w-24" src="/public/logo.png" alt="logo" />
 		 </div>

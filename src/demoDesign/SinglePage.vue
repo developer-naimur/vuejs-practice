@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-semibold text-gray-700">User Details</h2>
       <button
-        class="bg-purple-500 text-white px-4 py-2 rounded-md hover:bg-purple-600 transition">
+        class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition">
         Edit
       </button>
     </div>

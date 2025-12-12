@@ -1,6 +1,6 @@
 <template>
   <!-- Sidebar (fixed) -->
-  <div class="fixed top-[55px] left-0 h-screen bg-purple-100 flex flex-col justify-between items-center p-2">
+  <div class="fixed top-[57px] left-0 h-screen bg-gray-100 flex flex-col justify-between items-center p-2 border-r border-gray-200">
 
     <!-- Menu icons vertically centered -->
     <div class="flex-1 flex flex-col justify-center items-center gap-4 overflow-y-auto">

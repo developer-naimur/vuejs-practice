@@ -9,21 +9,21 @@
       <div>
         <label class="block text-gray-700 font-medium mb-1">Full Name</label>
         <input type="text" placeholder="Enter full name"
-          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
+          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
       </div>
 
       <!-- Email -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Email</label>
         <input type="email" placeholder="Enter email"
-          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
+          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
       </div>
 
       <!-- Password -->
       <div>
         <label class="block text-gray-700 font-medium mb-1">Password</label>
         <input type="password" placeholder="Enter password"
-          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
+          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
       </div>
 
       <!-- Age & Date -->
@@ -31,12 +31,12 @@
         <div>
           <label class="block text-gray-700 font-medium mb-1">Age</label>
           <input type="number" placeholder="Enter age"
-            class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
+            class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
         </div>
         <div>
           <label class="block text-gray-700 font-medium mb-1">Date of Birth</label>
           <input type="date"
-            class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition" />
+            class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
         </div>
       </div>
 
@@ -45,7 +45,7 @@
         <div>
           <label class="block text-gray-700 font-medium mb-1">Gender</label>
           <select
-            class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition">
+            class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
             <option value="">Select Gender</option>
             <option>Male</option>
             <option>Female</option>
@@ -57,11 +57,11 @@
           <span class="block text-gray-700 font-medium mb-1">Marital Status</span>
           <div class="flex gap-4 mt-1">
             <label class="flex items-center gap-2">
-              <input type="radio" name="marital" class="form-radio text-purple-500" />
+              <input type="radio" name="marital" class="form-radio text-gray-500" />
               Single
             </label>
             <label class="flex items-center gap-2">
-              <input type="radio" name="marital" class="form-radio text-purple-500" />
+              <input type="radio" name="marital" class="form-radio text-gray-500" />
               Married
             </label>
           </div>
@@ -72,7 +72,7 @@
       <div>
         <label class="block text-gray-700 font-medium mb-1">Address</label>
         <textarea placeholder="Enter address"
-          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-purple-500 focus:outline-none transition resize-none"></textarea>
+          class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition resize-none"></textarea>
       </div>
 
       <!-- File Upload -->
@@ -84,20 +84,20 @@
       <!-- Terms & Notifications -->
       <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <label class="flex items-center gap-2">
-          <input type="checkbox" class="form-checkbox text-purple-500" />
+          <input type="checkbox" class="form-checkbox text-gray-500" />
           Accept Terms and Conditions
         </label>
 
         <div class="flex items-center gap-2">
           <span class="text-gray-700">Enable Notifications</span>
-          <input type="checkbox" class="toggle toggle-purple" />
+          <input type="checkbox" class="toggle toggle-gray" />
         </div>
       </div>
 
       <!-- Submit -->
       <div>
         <button type="submit"
-          class="w-full bg-purple-500 text-white font-semibold p-3 hover:bg-purple-600 transition shadow-sm">Submit</button>
+          class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm">Submit</button>
       </div>
     </form>
   </div>
@@ -117,7 +117,7 @@
   transition: background 0.3s;
 }
 .toggle:checked {
-  background: #7c3aed; /* purple-500 */
+  background: #7c3aed; /* gray-500 */
 }
 .toggle::after {
   content: "";

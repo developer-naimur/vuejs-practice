@@ -1,10 +1,33 @@
+<script setup lang="ts">
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import Header from '@/components/inc/Header.vue'
+import MainSidebar from '@/components/inc/MainSidebar.vue'
+import DemoForm from '@/demoDesign/Form.vue'
+import Table from '@/demoDesign/Table.vue'
+import SinglePage from '@/demoDesign/SinglePage.vue'
+import Modal from '@/demoDesign/Modal.vue'
+import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+  
+</script>
+
+
 <template>
-  <div id="app" class="min-h-screen bg-gray-100 flex flex-col items-center justify-center">
-    <nav class="mb-6 text-lg font-medium">
-      <router-link to="/" class="text-blue-600 hover:text-blue-800">Home</router-link>
-      <span> | </span>
-      <router-link to="/about" class="text-blue-600 hover:text-blue-800">About</router-link>
-    </nav>
-    <router-view />
+  <div class="">
+    <Header />
+
+    <div class="flex gap-4" id="__Main">
+      <div class="flex-none">
+        <MainSidebar />
+      </div>
+      <div class="flex-1 ml-12 mt-12 p-4">
+        <Breadcrumb />
+        <DemoForm />
+        <Table />
+        <SinglePage />
+        <Modal />
+          <!-- <RouterView /> -->
+      </div>
+    </div>
+    
   </div>
 </template>

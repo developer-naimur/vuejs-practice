@@ -2,7 +2,7 @@
   <div>
     <!-- Button to open modal -->
     <button @click="open = true"
-      class="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition">
+      class="px-4 py-2 bg-gray-500 text-white hover:bg-gray-600 transition">
       Open Details
     </button>
 
@@ -51,19 +51,19 @@
             <div>
               <label class="block text-gray-600 mb-1">Update Name</label>
               <input type="text" placeholder="Enter new name"
-                class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
+                class="w-full border border-gray-300 p-2 focus:ring-2 focus:ring-gray-400 focus:outline-none" />
             </div>
             <div>
               <label class="block text-gray-600 mb-1">Update Role</label>
               <select
-                class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-gray-400 focus:outline-none">
+                class="w-full border border-gray-300 p-2 focus:ring-2 focus:ring-gray-400 focus:outline-none">
                 <option>Admin</option>
                 <option>User</option>
                 <option>Manager</option>
               </select>
             </div>
             <button type="submit"
-              class="w-full bg-gray-500 text-white p-2 rounded-md hover:bg-gray-600 transition mt-2">
+              class="w-full bg-gray-500 text-white p-2 hover:bg-gray-600 transition mt-2">
               Save Changes
             </button>
           </form>

@@ -10,16 +10,16 @@
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-center">
       <input type="text" placeholder="Search by name or email"
-        class="border border-gray-300 rounded-md p-2 w-full md:w-1/3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
+        class="border border-gray-300 p-2 w-full md:w-1/3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
 
-      <select class="border border-gray-300 rounded-md p-2 w-full md:w-1/5 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
+      <select class="border border-gray-300 p-2 w-full md:w-1/5 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
         <option value="">Select Role</option>
         <option>Admin</option>
         <option>User</option>
         <option>Manager</option>
       </select>
 
-      <select class="border border-gray-300 rounded-md p-2 w-full md:w-1/5 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
+      <select class="border border-gray-300 p-2 w-full md:w-1/5 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
         <option value="">Status</option>
         <option>Active</option>
         <option>Inactive</option>
@@ -27,7 +27,7 @@
       </select>
 
       <input type="date"
-        class="border border-gray-300 rounded-md p-2 w-full md:w-1/5 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
+        class="border border-gray-300 p-2 w-full md:w-1/5 focus:ring-2 focus:ring-gray-500 focus:outline-none transition" />
     </div>
 
     <!-- Table -->

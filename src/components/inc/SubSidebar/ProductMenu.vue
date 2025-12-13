@@ -41,7 +41,7 @@ import { onMounted } from 'vue'
       </router-link>
 
       <router-link 
-        to=""
+        to="/product/unit"
         class="uppercase flex items-center gap-3 p-3 hover:bg-gray-200 hover:text-gray-800 transition-colors duration-200"
       >
         <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

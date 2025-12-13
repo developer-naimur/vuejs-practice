@@ -70,26 +70,3 @@ const handleMenuSelected = (menu: string) => {
   </div>
 </template>
 
-
-<style>
-/* Slide + fade animation */
-.slide-fade-enter-active, .slide-fade-leave-active {
-  transition: all 0.3s ease;
-}
-.slide-fade-enter-from {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-.slide-fade-enter-to {
-  opacity: 1;
-  transform: translateX(0);
-}
-.slide-fade-leave-from {
-  opacity: 1;
-  transform: translateX(0);
-}
-.slide-fade-leave-to {
-  opacity: 0;
-  transform: translateX(-10px);
-}
-</style>

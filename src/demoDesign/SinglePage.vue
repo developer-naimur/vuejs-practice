@@ -4,7 +4,7 @@
     <div class="flex justify-between items-center mb-6">
       <h2 class="text-2xl font-semibold text-gray-700">User Details</h2>
       <button
-        class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600 transition">
+        class="bg-gray-500 text-white px-4 py-2 hover:bg-gray-600 transition">
         Edit
       </button>
     </div>
@@ -52,7 +52,7 @@
     <!-- Additional Info / Activity -->
     <div>
       <h3 class="text-xl font-semibold mb-3 text-gray-700">Activity Log</h3>
-      <ul class="border border-gray-200 rounded-md divide-y divide-gray-200">
+      <ul class="border border-gray-200 divide-y divide-gray-200">
         <li class="px-4 py-2 flex justify-between hover:bg-gray-50 transition">
           <span>Logged in</span>
           <span class="text-gray-500 text-sm">2025-12-11 10:30 AM</span>

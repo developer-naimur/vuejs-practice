@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import About from '../views/About.vue'
 
 const routes = [
+
   {
     path: '/',
     name: 'Home',

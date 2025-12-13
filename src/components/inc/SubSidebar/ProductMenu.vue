@@ -1,6 +1,10 @@
+<script setup lang="ts">
+import { onMounted } from 'vue'
+</script>
+
 <template>
   <!-- Sidebar (fixed) -->
-  <div class="fixed top-[57px] left-[57px] h-screen bg-white flex flex-col p-6 w-[280px] border-r border-gray-200">
+  <div class="fixed top-[57px] left-[57px] h-screen bg-white flex flex-col p-6 w-[280px] border-r border-gray-200 z-50">
 
     <!-- Menu icons vertically centered -->
     <div class="flex-1 flex flex-col overflow-y-auto gap-1">

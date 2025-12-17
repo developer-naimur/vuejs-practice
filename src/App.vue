@@ -7,6 +7,8 @@ import MainSidebar from '@/components/inc/MainSidebar.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 
+import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
+
 
 import DemoForm from '@/demoDesign/Form.vue'
 import Table from '@/demoDesign/Table.vue'
@@ -36,6 +38,10 @@ const handleMenuSelected = (menu: string) => {
 
         <Transition name="slide-fade">
           <SalesMenu v-if="currentMenu == 'sales'" />
+        </Transition>
+
+        <Transition name="slide-fade">
+          <ContactMenu v-if="currentMenu == 'contact'" />
         </Transition>
       </div>
 

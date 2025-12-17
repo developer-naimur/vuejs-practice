@@ -52,6 +52,14 @@ const OpenSubMenu = (menu: string) => {
           <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Stock</span>
         </div>
 
+      <!-- Contacts Button -->
+      <div class="relative group">
+        <button class="cursor-pointer" @click="OpenSubMenu('contact')">
+          <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/icons/contact.png" alt="contact" />
+        </button>
+        <span class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Contacts</span>
+      </div>
+
         <!-- Reports Button -->
         <div class="relative flex flex-col items-center group overflow-visible">
           <button class="cursor-pointer" @click="OpenSubMenu('reports')">

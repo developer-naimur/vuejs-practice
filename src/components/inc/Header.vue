@@ -57,12 +57,12 @@ const OpenSubMenu = (menu: string) => {
         <button class="cursor-pointer" @click="OpenSubMenu('contact')">
           <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/icons/contact.png" alt="contact" />
         </button>
-        <span class="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Contacts</span>
+        <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Contacts</span>
       </div>
 
         <!-- Reports Button -->
         <div class="relative flex flex-col items-center group overflow-visible">
-          <button class="cursor-pointer" @click="OpenSubMenu('reports')">
+          <button class="cursor-pointer" @click="OpenSubMenu('report')">
             <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/icons/reports.png" alt="reports" />
           </button>
           <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Reports</span>
@@ -70,7 +70,7 @@ const OpenSubMenu = (menu: string) => {
 
         <!-- Accounts Button -->
         <div class="relative flex flex-col items-center group overflow-visible">
-          <button class="cursor-pointer" @click="OpenSubMenu('accounts')">
+          <button class="cursor-pointer" @click="OpenSubMenu('account')">
             <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/icons/accounts.png" alt="accounts" />
           </button>
           <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Accounts</span>
@@ -78,7 +78,7 @@ const OpenSubMenu = (menu: string) => {
 
         <!-- Settings Button -->
         <div class="relative flex flex-col items-center group overflow-visible">
-          <button class="cursor-pointer" @click="OpenSubMenu('settings')">
+          <button class="cursor-pointer" @click="OpenSubMenu('setting')">
             <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/icons/settings.png" alt="settings" />
           </button>
           <span class="absolute top-full mt-2 left-1/2 -translate-x-1/2 px-2 py-1 text-xs text-white bg-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-[9999]">Settings</span>

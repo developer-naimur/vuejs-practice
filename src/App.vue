@@ -8,6 +8,7 @@ import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
+import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 
 
 import DemoForm from '@/demoDesign/Form.vue'
@@ -43,6 +44,11 @@ const handleMenuSelected = (menu: string) => {
         <Transition name="slide-fade">
           <ContactMenu v-if="currentMenu == 'contact'" />
         </Transition>
+
+        <Transition name="slide-fade">
+          <AccountMenu v-if="currentMenu == 'account'" />
+        </Transition>
+        
       </div>
 
 

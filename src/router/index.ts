@@ -32,6 +32,7 @@ import CustomerCreate from '../views/Contact/Customer/Create.vue'
 import CustomerEdit from '../views/Contact/Customer/Edit.vue'
 import CustomerShow from '../views/Contact/Customer/Show.vue'
 import CustomerTrashed from '../views/Contact/Customer/Trashed.vue'
+import getCustomer from '../views/Contact/Customer/getCustomer.vue'
 //Supplier
 import SupplierIndex from '../views/Contact/Supplier/Index.vue'
 import SupplierCreate from '../views/Contact/Supplier/Create.vue'
@@ -250,6 +251,11 @@ const routes = [
       name: 'customer.show',
       component: CustomerShow
     },
+    {
+      path: '/get-customer',
+      name: 'customer.get-customer',
+      component: getCustomer
+    },
 
   // =============================
   // Supplier (under contact)
@@ -291,7 +297,7 @@ const routes = [
       component: RetailSaleIndex
     },
     {
-      path: '/sale/retail-sale/create',
+      path: '/sale/retail-sale/create/:customer_id',
       name: 'retail-sale.create',
       component: RetailSaleCreate
     },

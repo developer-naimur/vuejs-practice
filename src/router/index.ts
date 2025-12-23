@@ -39,6 +39,7 @@ import SupplierCreate from '../views/Contact/Supplier/Create.vue'
 import SupplierEdit from '../views/Contact/Supplier/Edit.vue'
 import SupplierShow from '../views/Contact/Supplier/Show.vue'
 import SupplierTrashed from '../views/Contact/Supplier/Trashed.vue'
+import getSupplier from '../views/Contact/Supplier/getSupplier.vue'
 
 //---------------------------------------------------
 // Sales
@@ -285,7 +286,11 @@ const routes = [
       name: 'supplier.show',
       component: SupplierShow
     },
-
+    {
+      path: '/get-supplier',
+      name: 'supplier.get-supplier',
+      component: getSupplier
+    },
 
 
   //-------------------------------------------------------
@@ -352,7 +357,7 @@ const routes = [
       component: PurchaseIndex
     },
     {
-      path: '/purchase/create',
+      path: '/purchase/create/:supplier_id',
       name: 'purchase.create',
       component: PurchaseCreate
     },

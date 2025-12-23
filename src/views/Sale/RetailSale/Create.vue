@@ -188,7 +188,7 @@ const paymentNote = ref('')
     </div>
 
     <!-- Customer Info -->
-    <div v-if="customer" class="border  bg-gray-50 p-4 space-y-3">
+    <div v-if="customer" class="border border-gray-200 bg-gray-50 p-4 space-y-3">
       <div class="flex justify-between items-center">
         <h3 class="text-lg font-semibold text-gray-700">Customer Information</h3>
         <div class="flex items-center gap-2">
@@ -213,72 +213,88 @@ const paymentNote = ref('')
       </div>
     </div>
     <!-- ================= CUSTOMER MODAL ================= -->
-    <div v-if="modalOpen" class="fixed inset-0 bg-black/50 flex justify-center items-center z-100">
-      <div class="bg-white rounded-lg shadow-lg max-w-3xl w-full p-6">
+    <div v-if="modalOpen" class="fixed inset-0 bg-black/60 flex items-center justify-center z-100">
 
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[70vh] flex flex-col">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-4">
-          <h3 class="text-xl font-semibold">Select Customer</h3>
-          <button @click="modalOpen = false" class="text-gray-500 hover:text-red-600 text-2xl cursor-pointer">✕</button>
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-700">Select Customer</h3>
+          <button @click="modalOpen = false" class="text-gray-500 hover:text-red-600 text-2xl">✕</button>
+        </div>
+        <!-- Filters -->
+        <div class="px-4 py-3 border border-gray-200 bg-gray-50 flex gap-3">
+          <div class="w-full md:w-1/3">
+            <input v-model="searchQuery" type="text" placeholder="Search..."
+                   class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+          </div>
+          <div class="flex gap-2 w-full md:w-auto">
+            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
+              </svg>
+              Search
+            </button>
+            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                    @click="resetFilters">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancel
+            </button>
+          </div>
         </div>
 
-        <!-- Search -->
-        <div class="mb-4 flex gap-2">
-          <input
-            v-model="searchQuery"
-            type="text"
-            placeholder="Search by name"
-            class="border rounded px-3 py-2 w-full focus:ring-2 focus:ring-blue-400 outline-none"
-          />
-          <button @click="resetFilters" class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300 cursor-pointer">Reset</button>
-        </div>
+        <!-- Body -->
+        <div class="p-4 overflow-hidden">
+          <!-- Table -->
+          <div class="overflow-x-auto max-h-64">
+            <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
+              <thead class="bg-gray-100">
+                <tr>
+                  <th class="px-4 py-2 text-left">#</th>
+                  <th class="px-4 py-2 text-left">Name</th>
+                  <th class="px-4 py-2 text-left">Phone</th>
+                  <th class="px-4 py-2 text-left">Address</th>
+                  <th class="px-4 py-2 text-center">Select</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-200">
+                <tr v-for="(c, index) in filteredCustomers" :key="c.id" class="hover:bg-gray-50">
+                  <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
+                  <td class="px-4 py-2">{{ c.name }}</td>
+                  <td class="px-4 py-2">{{ c.phone }}</td>
+                  <td class="px-4 py-2">{{ c.address }}</td>
+                  <td class="px-4 py-2 text-center">
+                  	<button @click="selectCustomer(c)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
+                        title="Go">
+  		                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+  		                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+  		                  <path stroke-linecap="round" stroke-linejoin="round"
+  		                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
+  		                  <circle cx="9" cy="7" r="4" />
+  		                  <path stroke-linecap="round" stroke-linejoin="round"
+  		                        d="M19 8l4 4m0 0l-4 4m4-4H12" />
+  		                </svg>
+  	              	</button>
 
-        <!-- Table -->
-        <div class="overflow-x-auto max-h-64">
-          <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-            <thead class="bg-gray-100">
-              <tr>
-                <th class="px-4 py-2 text-left">#</th>
-                <th class="px-4 py-2 text-left">Name</th>
-                <th class="px-4 py-2 text-left">Phone</th>
-                <th class="px-4 py-2 text-left">Address</th>
-                <th class="px-4 py-2 text-center">Select</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="(c, index) in filteredCustomers" :key="c.id" class="hover:bg-gray-50">
-                <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-                <td class="px-4 py-2">{{ c.name }}</td>
-                <td class="px-4 py-2">{{ c.phone }}</td>
-                <td class="px-4 py-2">{{ c.address }}</td>
-                <td class="px-4 py-2 text-center">
-                	<button @click="selectCustomer(c)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-                      title="Go">
-		                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-		                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-		                  <path stroke-linecap="round" stroke-linejoin="round"
-		                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-		                  <circle cx="9" cy="7" r="4" />
-		                  <path stroke-linecap="round" stroke-linejoin="round"
-		                        d="M19 8l4 4m0 0l-4 4m4-4H12" />
-		                </svg>
-	              	</button>
+                  </td>
+                </tr>
+                <tr v-if="filteredCustomers.length === 0">
+                  <td colspan="5" class="text-center py-6 text-gray-400">No customer found</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-                </td>
-              </tr>
-              <tr v-if="filteredCustomers.length === 0">
-                <td colspan="5" class="text-center py-6 text-gray-400">No customer found</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Pagination -->
-        <div class="flex justify-end gap-2 mt-4">
-          <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-          <button v-for="n in Math.ceil(customers.length/perPage)" :key="n" class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage=n">{{ n }}</button>
-          <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(customers.length/perPage))">&raquo;</button>
-        </div>
+          <!-- Pagination -->
+          <div class="flex justify-end gap-2 mt-4">
+            <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
+            <button v-for="n in Math.ceil(customers.length/perPage)" :key="n" class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage=n">{{ n }}</button>
+            <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(customers.length/perPage))">&raquo;</button>
+          </div>
+        </div><!-- end body -->
 
       </div>
     </div>
@@ -295,7 +311,7 @@ const paymentNote = ref('')
     </button>
 
     <!-- Selected Products Table -->
-    <div v-if="selectedProducts.length" class="border  p-4 bg-white space-y-4">
+    <div v-if="selectedProducts.length" class="border border-gray-200 p-4 bg-white space-y-4 mb-0">
       <h3 class="text-lg font-semibold text-gray-700">Selected Products</h3>
       <div class="overflow-x-auto">
         <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
@@ -373,7 +389,7 @@ const paymentNote = ref('')
     </div>
 
     <!-- Grand Total Section -->
-    <div class="border  p-4 bg-gray-50 space-y-3">
+    <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
       <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal.toFixed(2) }}</strong></div>
       <div class="flex gap-2 items-center">
         <span>Tax %</span>
@@ -396,13 +412,13 @@ const paymentNote = ref('')
     </div>
 
     <!-- Invoice Note -->
-    <div class="border  p-4">
+    <div class="border border-gray-200 p-4 mb-0">
       <label class="block font-medium mb-1">Invoice Note</label>
       <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
     </div>
 
     <!-- Payment Section -->
-    <div class="border  p-4 space-y-3">
+    <div class="border border-gray-200 p-4 space-y-3 mb">
       <div>
         <label class="block font-medium mb-1">Payment Method</label>
         <select v-model="paymentMethod" class="w-full border p-2 focus:ring-2 focus:ring-gray-500">
@@ -432,28 +448,47 @@ const paymentNote = ref('')
       v-if="open"
       class="fixed inset-0 bg-black/60 flex items-center justify-center z-100"
     >
-      <div class="bg-white rounded-xl shadow-xl max-w-6xl w-full h-[85vh] flex flex-col">
+      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[70vh] flex flex-col">
         <!-- Header -->
-        <div class="flex justify-between items-center px-6 py-4 border-b">
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
           <h3 class="text-xl font-semibold text-gray-700">Select Products</h3>
           <button @click="open = false" class="text-gray-500 hover:text-red-600 text-2xl">✕</button>
         </div>
         <!-- Filters -->
-        <div class="px-6 py-3 border-b bg-gray-50 flex gap-3">
-          <input
-            v-model="search"
-            placeholder="Search by product name"
-            class="border rounded px-3 py-2 w-full focus:ring-2 focus:ring-yellow-400 outline-none"
-          />
-          <select v-model="brand" class="border rounded px-3 py-2 w-48 focus:ring-2 focus:ring-yellow-400 outline-none">
+        <div class="px-4 py-3 border border-gray-200 bg-gray-50 flex gap-3">
+          <div class="w-full md:w-1/3">
+            <input v-model="searchQuery" type="text" placeholder="Search..."
+                   class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+          </div>
+          <div class="w-full md:w-1/5">
+            <select v-model="brand" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
             <option value="">All Brands</option>
             <option v-for="b in brands" :key="b" :value="b">{{ b }}</option>
-          </select>
+            </select>
+          </div>
+          <div class="flex gap-2 w-full md:w-auto">
+            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
+              </svg>
+              Search
+            </button>
+            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+                    @click="resetFilters">
+              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+              Cancel
+            </button>
+          </div>
         </div>
+
         <!-- Body -->
         <div class="flex-1 grid grid-cols-3 gap-4 p-4 overflow-hidden">
           <!-- Products -->
-          <div class="col-span-2 border  overflow-hidden flex flex-col">
+          <div class="col-span-2 border border-gray-200 overflow-hidden flex flex-col">
             <div class="px-4 py-2 font-semibold">Products</div>
             <div class="flex-1 overflow-y-auto">
               <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
@@ -482,7 +517,7 @@ const paymentNote = ref('')
             </div>
           </div>
           <!-- Selected Products in Popup -->
-          <div class="border  overflow-hidden flex flex-col">
+          <div class="border border-gray-200 overflow-hidden flex flex-col">
             <div class="bg-gray-100 px-4 py-2 font-semibold flex justify-between">
               <span>Selected</span>
               <span class="text-sm text-gray-600">{{ selectedProducts.length }} items</span>
@@ -499,10 +534,20 @@ const paymentNote = ref('')
             </div>
           </div>
         </div>
+
         <!-- Footer -->
-        <div class="border-t px-6 py-3 flex justify-end bg-gray-50">
-          <button @click="open = false" class="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 cursor-pointer">Done</button>
+        <div class="border-t border-gray-200 px-6 py-3 flex justify-end">
+          <button @click="open = false"
+                  class="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-2 cursor-pointer">
+            <!-- Icon (checkmark) -->
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none"
+                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+            Done
+          </button>
         </div>
+
       </div>
     </div>
 

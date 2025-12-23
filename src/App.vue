@@ -6,6 +6,7 @@ import Header from '@/components/inc/Header.vue'
 import MainSidebar from '@/components/inc/MainSidebar.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
+import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
 
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
@@ -39,6 +40,10 @@ const handleMenuSelected = (menu: string) => {
 
         <Transition name="slide-fade">
           <SalesMenu v-if="currentMenu == 'sales'" />
+        </Transition>
+
+        <Transition name="slide-fade">
+          <PurchaseMenu v-if="currentMenu == 'purchase'" />
         </Transition>
 
         <Transition name="slide-fade">

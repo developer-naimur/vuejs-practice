@@ -81,6 +81,13 @@ import AccountEdit from '../views/Account/Edit.vue'
 import AccountShow from '../views/Account/Show.vue'
 import AccountTrashed from '../views/Account/Trashed.vue'
 
+// FundTransfer 
+import FundTransferIndex from '../views/Account/FundTransfer/Index.vue'
+import FundTransferCreate from '../views/Account/FundTransfer/Create.vue'
+import FundTransferEdit from '../views/Account/FundTransfer/Edit.vue'
+import FundTransferShow from '../views/Account/FundTransfer/Show.vue'
+import FundTransferTrashed from '../views/Account/FundTransfer/Trashed.vue'
+
 // IncomeExpense 
 import IncomeExpenseIndex from '../views/Account/IncomeExpense/Index.vue'
 import IncomeExpenseCreate from '../views/Account/IncomeExpense/Create.vue'
@@ -120,6 +127,12 @@ import StockAdjustmentCreate from '../views/Stock/Adjustment/Create.vue'
 import StockAdjustmentEdit from '../views/Stock/Adjustment/Edit.vue'
 import StockAdjustmentShow from '../views/Stock/Adjustment/Show.vue'
 import StockAdjustmentTrashed from '../views/Stock/Adjustment/Trashed.vue'
+
+//---------------------------------------------------
+// Settings
+//---------------------------------------------------
+// General Settings 
+import GeneralSetting from '../views/Setting/GeneralSetting.vue'
 
 
 
@@ -431,6 +444,32 @@ const routes = [
       name: 'account.show',
       component: AccountShow
     },
+    //Fund Transfer
+    {
+      path: '/account/fund-transfer',
+      name: 'account-fund-transfer.index',
+      component: FundTransferIndex
+    },
+    {
+      path: '/account/fund-transfer/create',
+      name: 'account-fund-transfer.create',
+      component: FundTransferCreate
+    },
+    {
+      path: '/account/fund-transfer/trashed',
+      name: 'account-fund-transfer.trashed',
+      component: FundTransferTrashed
+    },
+    {
+      path: '/account/fund-transfer/:id/edit',
+      name: 'account-fund-transfer.edit',
+      component: FundTransferEdit
+    },
+    {
+      path: '/account/fund-transfer/:id',
+      name: 'account-fund-transfer.show',
+      component: FundTransferShow
+    },
     //IncomeExpense
     {
       path: '/account/income-expense',
@@ -572,6 +611,18 @@ const routes = [
       name: 'stock-adjustment.show',
       component: StockAdjustmentShow
     },
+
+
+  //-------------------------------------------------------
+  // Settings 
+  //-------------------------------------------------------
+    //General Setting
+    {
+      path: '/setting/general',
+      name: 'general-setting.index',
+      component: GeneralSetting
+    },
+    
 
 ]
 

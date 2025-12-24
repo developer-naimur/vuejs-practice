@@ -13,10 +13,10 @@ const OpenSubMenu = (menu: string) => {
 </script>
 
 <template>
-  <div class="fixed top-0 left-0 w-screen flex items-center gap-10 bg-gray-100 p-2 border-b border-gray-200 z-50 overflow-visible" id="__header">
-    <div class="flex-none">
+  <div class="fixed top-0 left-0 w-screen flex items-center gap-10 bg-gray-200 p-2 border-b border-gray-200 z-50 overflow-visible" id="__header">
+    <!-- <div class="flex-none">
       <img class="w-24" src="/public/logo.png" alt="logo" />
-    </div>
+    </div> -->
     <div class="flex-1 text-center overflow-visible">
       <div class="flex gap-4 items-center justify-end">
 

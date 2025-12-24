@@ -14,7 +14,15 @@ const OpenSubMenu = (menu: string) => {
 
 <template>
   <!-- Sidebar (fixed) -->
-  <div class="fixed top-[57px] left-0 h-screen bg-gray-100 flex flex-col justify-between items-center p-2 border-r border-gray-200 z-100">
+  <div class="fixed top-[0px] left-0 h-screen bg-gray-200 flex flex-col justify-between items-center p-2 border-r border-gray-200 z-100">
+
+
+      <!-- Logo -->
+      <div class="relative group">
+        <button class="cursor-pointer">
+          <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/logo.png" alt="logo" />
+        </button>
+      </div>
 
     <!-- Menu icons vertically centered -->
     <div class="flex-1 flex flex-col justify-center items-center gap-4 overflow-visible">

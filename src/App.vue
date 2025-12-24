@@ -7,9 +7,12 @@ import MainSidebar from '@/components/inc/MainSidebar.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
+import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
+
+import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 
 
 import DemoForm from '@/demoDesign/Form.vue'
@@ -53,13 +56,21 @@ const handleMenuSelected = (menu: string) => {
         <Transition name="slide-fade">
           <AccountMenu v-if="currentMenu == 'account'" />
         </Transition>
+
+        <Transition name="slide-fade">
+          <StockMenu v-if="currentMenu == 'stock'" />
+        </Transition>
+
+        <Transition name="slide-fade">
+          <SettingsMenu v-if="currentMenu == 'setting'" />
+        </Transition>
         
       </div>
 
 
       <Transition name="slide-fade">
         <template v-if="currentMenu">
-          <div class="flex-1 ml-[340px] mt-[70px] p-4">
+          <div class="flex-1 ml-[380px] mt-[50px] p-4">
             <!-- <Breadcrumb />
             <DemoForm />
             <Table />

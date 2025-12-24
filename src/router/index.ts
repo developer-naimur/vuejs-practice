@@ -131,8 +131,15 @@ import StockAdjustmentTrashed from '../views/Stock/Adjustment/Trashed.vue'
 //---------------------------------------------------
 // Settings
 //---------------------------------------------------
-// General Settings 
 import GeneralSetting from '../views/Setting/GeneralSetting.vue'
+
+import InventorySetting from '../views/Setting/InventorySetting.vue'
+import SalesSetting from '../views/Setting/SalesSetting.vue'
+import AccountingSetting from '../views/Setting/AccountingSetting.vue'
+import PurchaseSetting from '../views/Setting/PurchaseSetting.vue'
+
+import NotificationSetting from '../views/Setting/NotificationSetting.vue'
+import SystemSetting from '../views/Setting/SystemSetting.vue'
 
 
 
@@ -616,11 +623,41 @@ const routes = [
   //-------------------------------------------------------
   // Settings 
   //-------------------------------------------------------
-    //General Setting
     {
       path: '/setting/general',
       name: 'general-setting.index',
       component: GeneralSetting
+    },
+    {
+      path: '/setting/inventory-product',
+      name: 'inventory-product-setting.index',
+      component: InventorySetting
+    },
+    {
+      path: '/setting/sale-transaction',
+      name: 'sales-transaction-setting.index',
+      component: SalesSetting
+    },
+    {
+      path: '/setting/accounting-finance',
+      name: 'accounting-finance-setting.index',
+      component: AccountingSetting
+    },
+    {
+      path: '/setting/purchase-supplier',
+      name: 'purchase-supplier-setting.index',
+      component: PurchaseSetting
+    },
+
+    {
+      path: '/setting/notification',
+      name: 'notification-setting.index',
+      component: NotificationSetting
+    },
+    {
+      path: '/setting/system',
+      name: 'system-setting.index',
+      component: SystemSetting
     },
     
 

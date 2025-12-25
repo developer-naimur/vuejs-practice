@@ -1,7 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
-import About from '../views/About.vue'
 
+
+//---------------------------------------------------------------
+  //Frontend Part
+//---------------------------------------------------------------
+import Home from '../views/Frontend/Home.vue'
+
+
+//---------------------------------------------------------------
+  //Backend Part
+//---------------------------------------------------------------
+import Dashboard from '../views/Dashboard.vue'
 // Product
 import ProductIndex from '../views/Product/Index.vue'
 import ProductCreate from '../views/Product/Create.vue'
@@ -147,8 +156,18 @@ const routes = [
 
   {
     path: '/',
-    name: 'Home',
+    name: 'home',
     component: Home
+  },
+
+
+
+
+
+  {
+    path: '/dashboard',
+    name: 'dashboard',
+    component: Dashboard
   },
 
   //-------------------------------------------------------

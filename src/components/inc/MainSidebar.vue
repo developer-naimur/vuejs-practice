@@ -19,9 +19,9 @@ const OpenSubMenu = (menu: string) => {
 
       <!-- Logo -->
       <div class="relative group">
-        <button class="cursor-pointer">
+        <router-link to="/dashboard" class="cursor-pointer">
           <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/logo.png" alt="logo" />
-        </button>
+        </router-link>
       </div>
 
     <!-- Menu icons vertically centered -->

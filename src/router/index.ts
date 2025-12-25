@@ -594,28 +594,28 @@ const routes = [
 
     //Stock Adjustment
     {
-      path: '/stock/adjustment',
-      name: 'stock-adjustment.index',
+      path: '/stock/operation',
+      name: 'stock-operation.index',
       component: StockAdjustmentIndex
     },
     {
-      path: '/stock/adjustment/create',
-      name: 'stock-adjustment.create',
+      path: '/stock/operation/create',
+      name: 'stock-operation.create',
       component: StockAdjustmentCreate
     },
     {
-      path: '/stock/adjustment/trashed',
-      name: 'stock-adjustment.trashed',
+      path: '/stock/operation/trashed',
+      name: 'stock-operation.trashed',
       component: StockAdjustmentTrashed
     },
     {
-      path: '/stock/adjustment/:id/edit',
-      name: 'stock-adjustment.edit',
+      path: '/stock/operation/:id/edit',
+      name: 'stock-operation.edit',
       component: StockAdjustmentEdit
     },
     {
-      path: '/stock/adjustment/:id',
-      name: 'stock-adjustment.show',
+      path: '/stock/operation/:id',
+      name: 'stock-operation.show',
       component: StockAdjustmentShow
     },
 

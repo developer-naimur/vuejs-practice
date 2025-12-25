@@ -12,6 +12,8 @@ import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 
+import ReportMenu from '@/components/inc/SubSidebar/ReportMenu.vue'
+
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 
 
@@ -59,6 +61,10 @@ const handleMenuSelected = (menu: string) => {
 
         <Transition name="slide-fade">
           <StockMenu v-if="currentMenu == 'stock'" />
+        </Transition>
+
+        <Transition name="slide-fade">
+          <ReportMenu v-if="currentMenu == 'report'" />
         </Transition>
 
         <Transition name="slide-fade">

@@ -150,7 +150,19 @@ import PurchaseSetting from '../views/Setting/PurchaseSetting.vue'
 import NotificationSetting from '../views/Setting/NotificationSetting.vue'
 import SystemSetting from '../views/Setting/SystemSetting.vue'
 
-
+//User&Role Permission
+// User 
+import UserIndex from '../views/Setting/User/Index.vue'
+import UserCreate from '../views/Setting/User/Create.vue'
+import UserEdit from '../views/Setting/User/Edit.vue'
+import UserShow from '../views/Setting/User/Show.vue'
+import UserTrashed from '../views/Setting/User/Trashed.vue'
+// Role 
+import RoleIndex from '../views/Setting/User/Role/Index.vue'
+import RoleCreate from '../views/Setting/User/Role/Create.vue'
+import RoleEdit from '../views/Setting/User/Role/Edit.vue'
+import RoleShow from '../views/Setting/User/Role/Show.vue'
+import RoleTrashed from '../views/Setting/User/Role/Trashed.vue'
 
 const routes = [
 
@@ -677,6 +689,61 @@ const routes = [
       path: '/setting/system',
       name: 'system-setting.index',
       component: SystemSetting
+    },
+
+
+    //User
+    {
+      path: '/setting/user',
+      name: 'user.index',
+      component: UserIndex
+    },
+    {
+      path: '/setting/user/create',
+      name: 'user.create',
+      component: UserCreate
+    },
+    {
+      path: '/setting/user/trashed',
+      name: 'user.trashed',
+      component: UserTrashed
+    },
+    {
+      path: '/setting/user/:id/edit',
+      name: 'user.edit',
+      component: UserEdit
+    },
+    {
+      path: '/setting/user/:id',
+      name: 'user.show',
+      component: UserShow
+    },
+
+    //Role
+    {
+      path: '/setting/user/role',
+      name: 'user.role.index',
+      component: RoleIndex
+    },
+    {
+      path: '/setting/user/role/create',
+      name: 'user.role.create',
+      component: RoleCreate
+    },
+    {
+      path: '/setting/user/role/trashed',
+      name: 'user.role.trashed',
+      component: RoleTrashed
+    },
+    {
+      path: '/setting/user/role/:id/edit',
+      name: 'user.role.edit',
+      component: RoleEdit
+    },
+    {
+      path: '/setting/user/role/:id',
+      name: 'user.role.show',
+      component: RoleShow
     },
     
 

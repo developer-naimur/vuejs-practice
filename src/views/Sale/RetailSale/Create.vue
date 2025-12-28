@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
@@ -154,7 +155,13 @@ const paymentNote = ref('')
 </script>
 
 <template>
-  <div class="p-6 space-y-4">
+  <div class="flex gap-4">
+
+  <div class="flex-none">
+    <SalesMenu />
+  </div>
+
+  <div class="flex-1 ml-[320px] p-4 space-y-6">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
@@ -552,4 +559,6 @@ const paymentNote = ref('')
     </div>
 
   </div>
+  
+</div>
 </template>

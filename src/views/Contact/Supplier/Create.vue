@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 const breadcrumbs = [
@@ -45,7 +46,13 @@ const submitSuppliers = () => console.log('Submitted suppliers:', newSuppliers.v
 </script>
 
 <template>
-  <div class="p-6 space-y-6">
+  <div class="flex gap-4">
+
+  <div class="flex-none">
+    <ContactMenu />
+  </div>
+
+  <div class="flex-1 ml-[320px] p-4 space-y-6">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
@@ -252,4 +259,6 @@ const submitSuppliers = () => console.log('Submitted suppliers:', newSuppliers.v
 </form>
 
   </div>
+  
+</div>
 </template>

@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 const breadcrumbs = [
@@ -25,7 +26,15 @@ const submitSalesSettings = () => {
 </script>
 
 <template>
-  <div class="p-6 max-w-4xl mx-auto space-y-8">
+
+<div class="flex gap-4">
+
+  <div class="flex-none">
+    <SettingsMenu />
+  </div>
+
+  <div class="flex-1 ml-[320px] p-4 max-w-4xl mx-auto space-y-8">
+
     <Breadcrumb :items="breadcrumbs" />
     <h1 class="text-3xl font-semibold text-gray-700 mb-6">Sales / Transaction Settings</h1>
 
@@ -105,6 +114,8 @@ const submitSalesSettings = () => {
       </button>
     </form>
   </div>
+  
+</div>
 </template>
 
 <style>

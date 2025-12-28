@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 // ------------------------
@@ -122,7 +123,14 @@ const importBrands = (event) => {
 </script>
 
 <template>
-  <div class="p-4">
+
+<div class="flex gap-4">
+
+  <div class="flex-none">
+    <ProductMenu />
+  </div>
+
+  <div class="flex-1 ml-[320px] p-4">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
@@ -268,4 +276,6 @@ const importBrands = (event) => {
     </div>
 
   </div>
+  
+</div>
 </template>

@@ -12,6 +12,7 @@ import Home from '../views/Frontend/Home.vue'
 //---------------------------------------------------------------
 import Dashboard from '../views/Dashboard.vue'
 // Product
+import ProductHome from '../views/Product/Home.vue'
 import ProductIndex from '../views/Product/Index.vue'
 import ProductCreate from '../views/Product/Create.vue'
 import ProductEdit from '../views/Product/Edit.vue'
@@ -35,6 +36,7 @@ import UnitTrashed from '../views/Product/Unit/Trashed.vue'
 //---------------------------------------------------
 // Contact
 //---------------------------------------------------
+import ContactHome from '../views/Contact/Home.vue'
 //Customer
 import CustomerIndex from '../views/Contact/Customer/Index.vue'
 import CustomerCreate from '../views/Contact/Customer/Create.vue'
@@ -53,6 +55,7 @@ import getSupplier from '../views/Contact/Supplier/getSupplier.vue'
 //---------------------------------------------------
 // Sales
 //---------------------------------------------------
+import SaleHome from '../views/Sale/Home.vue'
 // Retail Sale
 import RetailSaleIndex from '../views/Sale/RetailSale/Index.vue'
 import RetailSaleCreate from '../views/Sale/RetailSale/Create.vue'
@@ -69,6 +72,8 @@ import RetailSaleReturnTrashed from '../views/Sale/RetailSale/Return/Trashed.vue
 //---------------------------------------------------
 // Purchase
 //---------------------------------------------------
+import PurchaseHome from '../views/Purchase/Home.vue'
+
 import PurchaseIndex from '../views/Purchase/Index.vue'
 import PurchaseCreate from '../views/Purchase/Create.vue'
 import PurchaseEdit from '../views/Purchase/Edit.vue'
@@ -84,6 +89,8 @@ import PurchaseReturnTrashed from '../views/Purchase/Return/Trashed.vue'
 //---------------------------------------------------
 // Accounts
 //---------------------------------------------------
+import AccountHome from '../views/Account/Home.vue'
+
 import AccountIndex from '../views/Account/Index.vue'
 import AccountCreate from '../views/Account/Create.vue'
 import AccountEdit from '../views/Account/Edit.vue'
@@ -130,6 +137,8 @@ import PaymentSupplierTrashed from '../views/Payment/Supplier/Trashed.vue'
 //---------------------------------------------------
 // Stock
 //---------------------------------------------------
+import StockHome from '../views/Stock/Home.vue'
+
 // Stock Adjustment 
 import StockAdjustmentIndex from '../views/Stock/Adjustment/Index.vue'
 import StockAdjustmentCreate from '../views/Stock/Adjustment/Create.vue'
@@ -138,8 +147,16 @@ import StockAdjustmentShow from '../views/Stock/Adjustment/Show.vue'
 import StockAdjustmentTrashed from '../views/Stock/Adjustment/Trashed.vue'
 
 //---------------------------------------------------
+// Reports
+//---------------------------------------------------
+import ReportHome from '../views/Report/Home.vue'
+
+
+
+//---------------------------------------------------
 // Settings
 //---------------------------------------------------
+import SettingHome from '../views/Setting/Home.vue'
 import GeneralSetting from '../views/Setting/GeneralSetting.vue'
 
 import InventorySetting from '../views/Setting/InventorySetting.vue'
@@ -185,6 +202,12 @@ const routes = [
   //-------------------------------------------------------
   // Product 
   //-------------------------------------------------------
+
+    {
+      path: '/product/home',
+      name: 'product-home',
+      component: ProductHome
+    },
 
     {
       path: '/product',
@@ -275,6 +298,13 @@ const routes = [
   //-------------------------------------------------------
   // Contact 
   //-------------------------------------------------------
+
+    {
+      path: '/contact/home',
+      name: 'contact-home',
+      component: ContactHome
+    },
+
     // =============================
   // Customer (under contact)
   // =============================
@@ -348,6 +378,11 @@ const routes = [
   // Sale 
   //-------------------------------------------------------
     {
+      path: '/sale/home',
+      name: 'sale-home',
+      component: SaleHome
+    },
+    {
       path: '/sale/retail-sale',
       name: 'retail-sale.index',
       component: RetailSaleIndex
@@ -403,6 +438,11 @@ const routes = [
   // Purchase 
   //-------------------------------------------------------
     {
+      path: '/purchase/home',
+      name: 'purchase-home',
+      component: PurchaseHome
+    },
+    {
       path: '/purchase',
       name: 'purchase.index',
       component: PurchaseIndex
@@ -457,6 +497,11 @@ const routes = [
   //-------------------------------------------------------
   // Account 
   //-------------------------------------------------------
+    {
+      path: '/account/home',
+      name: 'account-home',
+      component: AccountHome
+    },
     {
       path: '/account',
       name: 'account.index',
@@ -564,7 +609,6 @@ const routes = [
   //-------------------------------------------------------
   // Payment 
   //-------------------------------------------------------
-
     //PaymentCustomer
     {
       path: '/payment/customer',
@@ -623,6 +667,12 @@ const routes = [
   // Stock 
   //-------------------------------------------------------
 
+    {
+      path: '/stock/home',
+      name: 'stock-home',
+      component: StockHome
+    },
+
     //Stock Adjustment
     {
       path: '/stock/operation',
@@ -652,8 +702,22 @@ const routes = [
 
 
   //-------------------------------------------------------
+  // Reports 
+  //-------------------------------------------------------
+    {
+      path: '/report/home',
+      name: 'report-home',
+      component: ReportHome
+    },
+
+  //-------------------------------------------------------
   // Settings 
   //-------------------------------------------------------
+    {
+      path: '/setting/home',
+      name: 'setting-home',
+      component: SettingHome
+    },
     {
       path: '/setting/general',
       name: 'general-setting.index',

@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import { useRouter } from 'vue-router'
 
@@ -120,7 +121,13 @@ const resetFilters = () => {
 </script>
 
 <template>
-  <div class="p-4">
+  <div class="flex gap-4">
+
+  <div class="flex-none">
+    <StockMenu />
+  </div>
+
+  <div class="flex-1 ml-[320px] p-4">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
@@ -305,4 +312,6 @@ const resetFilters = () => {
     </div>
 
   </div>
+  
+</div>
 </template>

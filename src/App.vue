@@ -1,27 +1,23 @@
 <script setup lang="ts">
-// import { RouterView, useRoute, useRouter } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
 import { ref } from 'vue'
 
 import Header from '@/components/inc/Header.vue'
 import MainSidebar from '@/components/inc/MainSidebar.vue'
-import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
-import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
-import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
-import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
-
-import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
-import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
-
-import ReportMenu from '@/components/inc/SubSidebar/ReportMenu.vue'
-
-import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 
 
-import DemoForm from '@/demoDesign/Form.vue'
-import Table from '@/demoDesign/Table.vue'
-import SinglePage from '@/demoDesign/SinglePage.vue'
-import Modal from '@/demoDesign/Modal.vue'
-import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+// import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
+// import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
+// import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
+// import ReportMenu from '@/components/inc/SubSidebar/ReportMenu.vue'
+// import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
+
+
+// import DemoForm from '@/demoDesign/Form.vue'
+// import Table from '@/demoDesign/Table.vue'
+// import SinglePage from '@/demoDesign/SinglePage.vue'
+// import Modal from '@/demoDesign/Modal.vue'
+// import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 const currentMenu = ref('') // store current submenu
 const handleMenuSelected = (menu: string) => {
@@ -39,10 +35,7 @@ const handleMenuSelected = (menu: string) => {
       <div class="flex-none">
         <MainSidebar @menu-selected="handleMenuSelected"/>
 
-        <Transition name="slide-fade">
-          <ProductMenu v-if="currentMenu == 'product'" />
-        </Transition>
-
+        <!-- 
         <Transition name="slide-fade">
           <SalesMenu v-if="currentMenu == 'sales'" />
         </Transition>
@@ -69,34 +62,27 @@ const handleMenuSelected = (menu: string) => {
 
         <Transition name="slide-fade">
           <SettingsMenu v-if="currentMenu == 'setting'" />
-        </Transition>
+        </Transition> -->
         
       </div>
 
+      <div class="flex-1 ml-[60px] mt-[70px] p-4">
+        <RouterView />
+      </div>
 
-      <Transition name="slide-fade">
+<!--       <Transition name="slide-fade">
         <template v-if="currentMenu">
           <div class="flex-1 ml-[380px] mt-[50px] p-4">
-            <!-- <Breadcrumb />
-            <DemoForm />
-            <Table />
-            <SinglePage />
-            <Modal /> -->
               <RouterView />
           </div>
         </template>
 
         <template v-else>
           <div class="flex-1 ml-[60px] mt-[70px] p-4">
-            <!-- <Breadcrumb />
-            <DemoForm />
-            <Table />
-            <SinglePage />
-            <Modal /> -->
               <RouterView />
           </div>
         </template>
-      </Transition>
+      </Transition> -->
 
 
     </div>

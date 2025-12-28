@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 const breadcrumbs = [
@@ -64,7 +65,15 @@ const submitProducts = () => {
 </script>
 
 <template>
-  <div class="p-6 space-y-6">
+
+
+<div class="flex gap-4">
+
+  <div class="flex-none">
+    <ProductMenu />
+  </div>
+
+  <div class="flex-1 ml-[320px] p-4 space-y-6">
 
     <Breadcrumb :items="breadcrumbs" />
 
@@ -217,4 +226,6 @@ const submitProducts = () => {
 
     </form>
   </div>
+
+</div>
 </template>

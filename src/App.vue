@@ -34,56 +34,11 @@ const handleMenuSelected = (menu: string) => {
     <div class="flex gap-4" id="__Main">
       <div class="flex-none">
         <MainSidebar @menu-selected="handleMenuSelected"/>
-
-        <!-- 
-        <Transition name="slide-fade">
-          <SalesMenu v-if="currentMenu == 'sales'" />
-        </Transition>
-
-        <Transition name="slide-fade">
-          <PurchaseMenu v-if="currentMenu == 'purchase'" />
-        </Transition>
-
-        <Transition name="slide-fade">
-          <ContactMenu v-if="currentMenu == 'contact'" />
-        </Transition>
-
-        <Transition name="slide-fade">
-          <AccountMenu v-if="currentMenu == 'account'" />
-        </Transition>
-
-        <Transition name="slide-fade">
-          <StockMenu v-if="currentMenu == 'stock'" />
-        </Transition>
-
-        <Transition name="slide-fade">
-          <ReportMenu v-if="currentMenu == 'report'" />
-        </Transition>
-
-        <Transition name="slide-fade">
-          <SettingsMenu v-if="currentMenu == 'setting'" />
-        </Transition> -->
-        
       </div>
 
-      <div class="flex-1 ml-[60px] mt-[70px] p-4">
+      <div class="flex-1 ml-[40px] mt-[50px] lg:ml-[60px] lg:mt-[70px] lg:p-4">
         <RouterView />
       </div>
-
-<!--       <Transition name="slide-fade">
-        <template v-if="currentMenu">
-          <div class="flex-1 ml-[380px] mt-[50px] p-4">
-              <RouterView />
-          </div>
-        </template>
-
-        <template v-else>
-          <div class="flex-1 ml-[60px] mt-[70px] p-4">
-              <RouterView />
-          </div>
-        </template>
-      </Transition> -->
-
 
     </div>
     

@@ -47,13 +47,13 @@ const submitItems = () => {
 </script>
 
 <template>
-<div class="flex gap-4">
+<div class="hidden lg:block flex gap-4">
 
   <div class="flex-none">
     <AccountMenu />
   </div>
 
-  <div class="flex-1 ml-[320px] p-4 space-y-6">
+  <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />

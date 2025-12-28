@@ -6,7 +6,7 @@
     <!-- <div class="flex-none">
       <img class="w-24" src="/public/logo.png" alt="logo" />
     </div> -->
-    <div class="flex-1 text-center overflow-visible">
+    <div class="hidden lg:block flex-1 text-center overflow-visible">
       <div class="flex gap-4 items-center justify-end">
 
         <!-- Sales Button -->
@@ -76,9 +76,13 @@
       </div>
     </div>
 
+
+    <div class="block lg:hidden flex-1 text-center overflow-visible">
+    </div>
     <div class="flex-none pr-3">
       <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/profile.png" alt="profile" />
     </div>
+    
   </div>
 </template>
 

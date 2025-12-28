@@ -123,11 +123,11 @@ const resetFilters = () => {
 <template>
   <div class="flex gap-4">
 
-  <div class="flex-none">
+  <div class="hidden lg:block flex-none">
     <StockMenu />
   </div>
 
-  <div class="flex-1 ml-[320px] p-4">
+  <div class="flex-1 lg:ml-[320px] p-4">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
@@ -216,7 +216,7 @@ const resetFilters = () => {
 
     <!-- Table -->
     <div class="overflow-x-auto">
-      <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
+      <table class="w-full border border-gray-200 divide-y divide-gray-200">
         <thead class="bg-gray-100">
           <tr>
             <th class="px-4 py-2 text-left">#</th>

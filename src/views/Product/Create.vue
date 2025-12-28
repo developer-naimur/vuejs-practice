@@ -69,11 +69,11 @@ const submitProducts = () => {
 
 <div class="flex gap-4">
 
-  <div class="flex-none">
+  <div class="hidden lg:block flex-none">
     <ProductMenu />
   </div>
 
-  <div class="flex-1 ml-[320px] p-4 space-y-6">
+  <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
 
     <Breadcrumb :items="breadcrumbs" />
 

@@ -124,11 +124,11 @@ const importSuppliers = (event) => {
 <template>
   <div class="flex gap-4">
 
-  <div class="flex-none">
+  <div class="hidden lg:block flex-none">
     <ContactMenu />
   </div>
 
-  <div class="flex-1 ml-[320px] p-4">
+  <div class="flex-1 lg:ml-[320px] p-4">
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />

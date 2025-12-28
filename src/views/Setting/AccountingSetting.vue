@@ -25,11 +25,11 @@ const submitAccountingSettings = () => {
 
 <div class="flex gap-4">
 
-  <div class="flex-none">
+  <div class="hidden lg:block flex-none">
     <SettingsMenu />
   </div>
 
-  <div class="flex-1 ml-[320px] p-4 max-w-4xl mx-auto space-y-8">
+  <div class="flex-1 lg:ml-[320px] p-4 max-w-4xl mx-auto space-y-8">
 
     <Breadcrumb :items="breadcrumbs" />
     <h1 class="text-3xl font-semibold text-gray-700 mb-6">Accounting / Financial Settings</h1>

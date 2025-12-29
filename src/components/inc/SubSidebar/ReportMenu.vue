@@ -93,7 +93,7 @@ const toggleParent = (label: string) => {
 
 <template>
   <!-- Sidebar (fixed) -->
-  <div class="fixed top-[62px] left-[57px] h-screen bg-gray-50 flex flex-col p-6 w-[350px] border-r border-gray-200 z-50">
+  <div class="fixed top-[57px] left-[57px] h-screen bg-gray-50 flex flex-col p-6 w-[350px] border-r border-gray-200 z-50">
 
     <!-- Menu icons vertically centered -->
     <div class="flex-1 flex flex-col overflow-y-auto gap-1">

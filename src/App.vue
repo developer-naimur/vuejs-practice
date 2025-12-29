@@ -31,15 +31,14 @@ const handleMenuSelected = (menu: string) => {
   <div class="">
     <Header @menu-selected="handleMenuSelected" />
 
-    <div class="flex gap-4" id="__Main">
+    <div class="flex lg:gap-4" id="__Main">
       <div class="flex-none">
         <MainSidebar @menu-selected="handleMenuSelected"/>
       </div>
 
-      <div class="flex-1 ml-[40px] mt-[50px] lg:ml-[60px] lg:mt-[70px] lg:p-4">
+      <div class="flex-1 mt-[55px] lg:mt-[50px] lg:ml-[40px] lg:mt-[40px] lg:p-4">
         <RouterView />
       </div>
-
     </div>
     
   </div>

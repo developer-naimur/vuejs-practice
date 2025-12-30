@@ -2,17 +2,25 @@
 import { ref } from 'vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import { $routes, $labels } from '@/constants/product'
 
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Product', to: '/product' },
-  { label: 'Add New Product' }
+  { label: $labels.plural_name, to: $routes.index },
+  { label: 'Add New ' + $labels.singular_name, }
 ]
 
+
+/* =====================================================
+   Add Row
+===================================================== */
 const brands = ['Apple', 'Samsung', 'Sony']
 const units = ['PCS', 'KG', 'Litre']
-
-const newProducts = ref([
+const newRows = ref([
   {
     name: '',
     brand: '',
@@ -27,9 +35,8 @@ const newProducts = ref([
     status: ''
   }
 ])
-
-const addProductField = () => {
-  newProducts.value.push({
+const addRowField = () => {
+  newRows.value.push({
     name: '',
     brand: '',
     cost_price: '',
@@ -44,23 +51,36 @@ const addProductField = () => {
   })
 }
 
-const copyProductField = index => {
-  const productToCopy = { ...newProducts.value[index] }
-  newProducts.value.splice(index + 1, 0, productToCopy)
+/* =====================================================
+   Copy Row
+===================================================== */
+const copyRowField = index => {
+  const rowToCopy = { ...newRows.value[index] }
+  newRows.value.splice(index + 1, 0, rowToCopy)
 }
 
-const removeProductField = index => {
-  if (newProducts.value.length > 1) {
-    newProducts.value.splice(index, 1)
+/* =====================================================
+   Remove Row
+===================================================== */
+const removeRowField = index => {
+  if (newRows.value.length > 1) {
+    newRows.value.splice(index, 1)
   }
 }
 
+/* =====================================================
+   File Handle
+===================================================== */
 const handleFile = (e, index) => {
-  newProducts.value[index].file = e.target.files[0]
+  newRows.value[index].file = e.target.files[0]
 }
 
-const submitProducts = () => {
-  console.log(newProducts.value)
+
+/* =====================================================
+   Submit Rows
+===================================================== */
+const submitRows = () => {
+  console.log(newRows.value)
 }
 </script>
 
@@ -82,12 +102,12 @@ const submitProducts = () => {
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Add New Unit</h2>
+        <h2 class="text-2xl font-semibold text-gray-700">Add New {{ $labels.singular_name }}</h2>
       </div>
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/product" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
             <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
@@ -97,7 +117,7 @@ const submitProducts = () => {
           View All
         </router-link>
 
-        <router-link to="/product/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -108,41 +128,32 @@ const submitProducts = () => {
           Trash
         </router-link>
 
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" />
-        </label>
       </div>
     </div>
 
-    <form @submit.prevent="submitProducts" class="space-y-4">
+    <form @submit.prevent="submitRows" class="space-y-4">
 
       <div
-        v-for="(product, index) in newProducts"
+        v-for="(row, index) in newRows"
         :key="index"
         class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4"
       >
 
         <!-- Row 1 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input v-model="product.name" placeholder="Product Name" class="border p-3" />
+          <input v-model="row.name" placeholder="Name" class="border p-3" />
 
-          <select v-model="product.brand" class="border p-3">
+          <select v-model="row.brand" class="border p-3">
             <option value="">Select Brand</option>
             <option v-for="b in brands" :key="b">{{ b }}</option>
           </select>
 
-          <select v-model="product.unit" class="border p-3">
+          <select v-model="row.unit" class="border p-3">
             <option value="">Select Unit</option>
             <option v-for="u in units" :key="u">{{ u }}</option>
           </select>
 
-          <select v-model="product.status" class="border p-3">
+          <select v-model="row.status" class="border p-3">
             <option value="">Status</option>
             <option>Active</option>
             <option>Inactive</option>
@@ -151,15 +162,15 @@ const submitProducts = () => {
 
         <!-- Row 2 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="number" v-model="product.cost_price" placeholder="Cost Price" class="border p-3" />
-          <input type="number" v-model="product.sold_price" placeholder="Sold Price" class="border p-3" />
-          <input type="number" v-model="product.vat" placeholder="VAT" class="border p-3" />
-          <input type="number" v-model="product.discount" placeholder="Discount" class="border p-3" />
+          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
+          <input type="number" v-model="row.sold_price" placeholder="Sold Price" class="border p-3" />
+          <input type="number" v-model="row.vat" placeholder="VAT" class="border p-3" />
+          <input type="number" v-model="row.discount" placeholder="Discount" class="border p-3" />
         </div>
 
         <!-- Row 3 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <select v-model="product.discount_type" class="border p-3">
+          <select v-model="row.discount_type" class="border p-3">
             <option>Flat</option>
             <option>Percent</option>
           </select>
@@ -171,7 +182,7 @@ const submitProducts = () => {
 
         <!-- Description -->
         <textarea
-          v-model="product.description"
+          v-model="row.description"
           placeholder="Description"
           rows="3"
           class="w-full border p-3"></textarea>
@@ -180,8 +191,8 @@ const submitProducts = () => {
         <div class="w-36 flex gap-2">
 
           <!-- Remove -->
-          <button type="button" @click="removeProductField(index)"
-            :disabled="newProducts.length === 1"
+          <button type="button" @click="removeRowField(index)"
+            :disabled="newRows.length === 1"
             class="w-12 h-12 flex items-center justify-center rounded-md
                    bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                    transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer">
@@ -192,8 +203,8 @@ const submitProducts = () => {
           </button>
 
           <!-- Copy -->
-          <button v-if="index === newProducts.length - 1"
-            type="button" @click="copyProductField(index)"
+          <button v-if="index === newRows.length - 1"
+            type="button" @click="copyRowField(index)"
             class="w-12 h-12 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-600 cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -205,8 +216,8 @@ const submitProducts = () => {
           </button>
 
           <!-- Add -->
-          <button v-if="index === newProducts.length - 1"
-            type="button" @click="addProductField"
+          <button v-if="index === newRows.length - 1"
+            type="button" @click="addRowField"
             class="w-12 h-12 flex items-center justify-center rounded-md bg-green-500 text-white cursor-pointer">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -221,7 +232,7 @@ const submitProducts = () => {
       <button
         type="submit"
         class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition">
-        Submit All Products
+        Submit All {{ $labels.plural_name }}
       </button>
 
     </form>

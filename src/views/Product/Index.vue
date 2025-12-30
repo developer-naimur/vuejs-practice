@@ -1,130 +1,120 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import { $routes, $labels } from '@/constants/product'
 
-// ------------------------
-// Breadcrumb
-// ------------------------
-const breadcrumbs = [
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+const $breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Product Lists' }
+  { label: $labels.singular_name + ' Lists' }
 ]
 
-// ------------------------
-// Products Data
-// ------------------------
-const products = ref([
-  { id: 1, name: 'John Doe', status: 'Active' },
-  { id: 2, name: 'Jane Smith', status: 'Pending' },
-  { id: 3, name: 'Alex Brown', status: 'Inactive' },
-  { id: 4, name: 'Mary Jane', status: 'Active' },
-  { id: 5, name: 'Peter Parker', status: 'Pending' }
-])
+/* =====================================================
+   TABLE STATE
+===================================================== */
+const $currentPage = ref(1)
+const $perPage = ref(5)
 
-const trashProducts = ref([]) // soft deleted Products
+/* =====================================================
+   FILTERS
+===================================================== */
+const $searchText = ref('')
+const $statusValue = ref('')
 
-// ------------------------
-// Filters
-// ------------------------
-const searchQuery = ref('')
-const statusFilter = ref('')
+/* =====================================================
+   DATA (API READY)
+===================================================== */
+const $rows = ref([])
 
-// ------------------------
-// Pagination
-// ------------------------
-const currentPage = ref(1)
-const perPage = ref(5)
+/* future API loader */
+const loadData = async () => {
+  // replace with axios later
+  $rows.value = [
+  { 
+      id: 1, 
+      name: 'Piece', 
+      brand: 'Brand A',
+      cost_price: 100,
+      sold_price: 120,
+      vat: 5,
+      discount: 10,
+      discount_type: 'Flat',
+      unit: 'pcs',
+      status: 'Active'
+    },
+    { 
+      id: 2, 
+      name: 'Carton', 
+      brand: 'Brand B',
+      cost_price: 1000,
+      sold_price: 1200,
+      vat: 50,
+      discount: 5,
+      discount_type: '%',
+      unit: 'ctn',
+      status: 'Pending'
+    },
+    { 
+      id: 3, 
+      name: 'Box', 
+      brand: 'Brand C',
+      cost_price: 500,
+      sold_price: 600,
+      vat: 25,
+      discount: 0,
+      discount_type: 'Flat',
+      unit: 'box',
+      status: 'Inactive'
+    }
+  ]
+}
+onMounted(loadData)
 
-// Filtered & Paginated Products
-const filteredProducts = computed(() => {
-  return products.value
-    .filter(Product => {
-      const matchesSearch = Product.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      const matchesStatus = statusFilter.value ? Product.status === statusFilter.value : true
-      return matchesSearch && matchesStatus
-    })
-    .slice((currentPage.value - 1) * perPage.value, currentPage.value * perPage.value)
+/* =====================================================
+   COMPUTED
+===================================================== */
+const $rowsFiltered = computed(() => {
+  return $rows.value.filter(r => {
+    const matchSearch =
+      r.name.toLowerCase().includes($searchText.value.toLowerCase())
+    const matchStatus =
+      $statusValue.value ? r.status === $statusValue.value : true
+    return matchSearch && matchStatus
+  })
 })
 
-const totalProducts = computed(() => products.value.length)
-const totalPages = computed(() => Math.ceil(filteredProducts.value.length / perPage.value))
+const $rowsPaginated = computed(() => {
+  const start = ($currentPage.value - 1) * $perPage.value
+  return $rowsFiltered.value.slice(start, start + $perPage.value)
+})
 
-// ------------------------
-// Status Classes
-// ------------------------
-const statusClass = status => {
-  if (status === 'Active') return 'bg-green-500'
-  if (status === 'Pending') return 'bg-yellow-500'
-  return 'bg-red-500'
-}
+const $totalItems = computed(() => $rows.value.length)
+const $totalPages = computed(() =>
+  Math.ceil($rowsFiltered.value.length / $perPage.value)
+)
 
-// ------------------------
-// Actions
-// ------------------------
-const editProduct = product => alert(`Edit ${product.name}`)
-const deleteProduct = product => {
-  if (confirm(`Are you sure you want to delete ${product.name}?`)) {
-    trashProducts.value.push(product)
-    products.value = products.value.filter(u => u.id !== product.id)
+/* =====================================================
+   ACTIONS
+===================================================== */
+const editItem = item => alert(`Edit ${item.name}`)
+const deleteItem = item => {
+  if (confirm(`Delete ${item.name}?`)) {
+    $rows.value = $rows.value.filter(r => r.id !== item.id)
   }
 }
-const createProduct = () => alert('Create new product')
-const viewTrash = () => alert('Soft deleted Products: ' + trashProducts.value.map(u => u.name).join(', '))
 
-// ------------------------
-// Filters
-// ------------------------
 const resetFilters = () => {
-  searchQuery.value = ''
-  statusFilter.value = ''
-  currentPage.value = 1
-}
-
-// ------------------------
-// Export CSV
-// ------------------------
-const exportProducts = () => {
-  const headers = ['ID', 'Name', 'Status']
-  const csvRows = [headers.join(',')]
-
-  products.value.forEach(u => {
-    csvRows.push([u.id, u.name, u.status].join(','))
-  })
-
-  const csvString = csvRows.join('\n')
-  const blob = new Blob([csvString], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'products.csv'
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
-// ------------------------
-// Import CSV
-// ------------------------
-const importProducts = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = e => {
-    const lines = e.target.result.split('\n')
-    lines.slice(1).forEach(line => {
-      const [id, name, status] = line.split(',')
-      if (id && name && status) {
-        products.value.push({ id: Number(id), name, status })
-      }
-    })
-  }
-  reader.readAsText(file)
+  $searchText.value = ''
+  $statusValue.value = ''
+  $currentPage.value = 1
 }
 </script>
 
 <template>
-
-
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
@@ -133,29 +123,29 @@ const importProducts = (event) => {
 
   <div class="flex-1 lg:ml-[320px] p-4">
 
-    <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
+    <Breadcrumb :items="$breadcrumbs" />
 
-    <!-- Top Bar -->
+    <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Product Lists</h2>
-        <span class="text-gray-600 font-medium">Total Products: {{ totalProducts }}</span>
+        <h2 class="text-2xl font-semibold text-gray-700">{{ $labels.singular_name }} Lists</h2>
+        <span class="text-gray-600 font-medium">Total {{ $labels.plural_name }}: {{ $totalItems }}</span>
       </div>
 
-      <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/product/create" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        <router-link :to="$routes.create" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition cursor-pointer">
+
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
           </svg>
+
           Create
         </router-link>
 
-        <router-link to="/product/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -165,36 +155,17 @@ const importProducts = (event) => {
           </svg>
           Trash
         </router-link>
-
-        <button @click="exportProducts" class="flex items-center gap-2 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Export
-        </button>
-
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" @change="importProducts" />
-        </label>
       </div>
     </div>
 
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="searchQuery" type="text" placeholder="Search..."
-               class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+        <input v-model="$searchText" placeholder="Search..." class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+
       </div>
       <div class="w-full md:w-1/5">
-        <select v-model="statusFilter" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+        <select v-model="$statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
           <option value="">Status</option>
           <option>Active</option>
           <option>Inactive</option>
@@ -220,42 +191,83 @@ const importProducts = (event) => {
       </div>
     </div>
 
+
     <!-- Table -->
     <div class="overflow-x-auto">
       <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead class="bg-gray-100">
           <tr>
-            <th class="px-4 py-2 text-left">#</th>
-            <th class="px-4 py-2 text-left">Name</th>
-            <th class="px-4 py-2 text-left">Status</th>
-            <th class="px-4 py-2 text-center">Actions</th>
+              <th class="px-4 py-2 text-left">#</th>
+              <th class="px-4 py-2 text-left">Name</th>
+              <th class="px-4 py-2 text-left">Brand</th>
+              <th class="px-4 py-2 text-left">Cost Price</th>
+              <th class="px-4 py-2 text-left">Sold Price</th>
+              <th class="px-4 py-2 text-left">VAT%</th>
+              <th class="px-4 py-2 text-left">Discount</th>
+              <th class="px-4 py-2 text-left">Unit</th>
+              <th class="px-4 py-2 text-left">Status</th>
+              <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
+
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="(product, index) in filteredProducts" :key="product.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-            <td class="px-4 py-2">{{ product.name }}</td>
+          <tr v-for="(row, i) in $rowsPaginated" :key="row.id" class="hover:bg-gray-50">
+              <!-- Serial -->
+              <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
+
+              <!-- Name -->
+              <td class="px-4 py-2">{{ row.name }}</td>
+
+              <!-- Brand -->
+              <td class="px-4 py-2">{{ row.brand }}</td>
+
+              <!-- Cost Price -->
+              <td class="px-4 py-2">{{ row.cost_price }}</td>
+
+              <!-- Sold Price -->
+              <td class="px-4 py-2">{{ row.sold_price }}</td>
+
+              <!-- VAT -->
+              <td class="px-4 py-2">{{ row.vat }}</td>
+
+              <!-- Discount -->
+              <td class="px-4 py-2">
+                {{ row.discount }} {{ row.discount_type }}
+              </td>
+
+              <!-- Unit -->
+              <td class="px-4 py-2">{{ row.unit }}</td>
+
+            <!-- Status -->
             <td class="px-4 py-2">
-              <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(product.status)">
-                {{ product.status }}
+              <span
+                class="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full"
+                :class="{
+                  'bg-green-500': row.status === 'Active',
+                  'bg-yellow-500': row.status === 'Pending',
+                  'bg-red-500': row.status === 'Inactive'
+                }"
+              >
+                {{ row.status }}
               </span>
             </td>
-            <td class="px-4 py-2">
+
+            <td class="px-4 py-2 text-center">
               <div class="flex justify-center gap-2">
-                <button @click="editProduct(product)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
-                  </svg>
-                </button>
-                <button @click="deleteProduct(product)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                  </svg>
-                </button>
-              </div>
+                <button @click="editItem(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
+                    </svg>
+                  </button>
+                  <button @click="deleteItem(row)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                    </svg>
+                  </button>
+                </div>
             </td>
           </tr>
         </tbody>
@@ -264,19 +276,14 @@ const importProducts = (event) => {
 
     <!-- Pagination -->
     <div class="flex justify-between items-center mt-4">
-      <div>
-        Showing <span class="font-semibold">{{ (currentPage-1)*perPage + 1 }}</span> to
-        <span class="font-semibold">{{ Math.min(currentPage*perPage, filteredProducts.length) }}</span> of
-        <span class="font-semibold">{{ totalProducts }}</span> entries
-      </div>
+      <span>Page {{ $currentPage }} of {{ $totalPages }}</span>
       <div class="flex gap-2">
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" v-for="n in Math.ceil(totalProducts/perPage)" :key="n" @click="currentPage=n">{{ n }}</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(totalProducts/perPage))">&raquo;</button>
+        <button @click="$currentPage--" :disabled="$currentPage===1">«</button>
+        <button v-for="n in $totalPages" :key="n" @click="$currentPage=n">{{ n }}</button>
+        <button @click="$currentPage++" :disabled="$currentPage===$totalPages">»</button>
       </div>
     </div>
 
   </div>
-
 </div>
 </template>

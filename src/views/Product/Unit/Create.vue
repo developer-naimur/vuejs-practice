@@ -39,7 +39,7 @@ const removeRowField = (index) => {
 }
 
 /* =====================================================
-   Sumit Rows
+   Submit Rows
 ===================================================== */
 
 const submitRows = () => console.log('Submitted rows:', newRows.value)

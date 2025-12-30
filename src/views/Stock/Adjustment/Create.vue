@@ -3,28 +3,33 @@ import { ref, computed } from 'vue'
 import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-
+import { $routes, $labels } from '@/constants/stockAdjustment'
 const router = useRouter()
 
-/* ================= BREADCRUMB ================= */
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Stock Operation', to: '/stock/operation' },
-  { label: 'Add New Operation' }
+  { label: $labels.plural_name, to: $routes.index },
+  { label: 'Add New ' + $labels.singular_name, }
 ]
 
-// ------------------------
-// Filters & Pagination
-// ------------------------
+/* =====================================================
+   Filters & Pagination
+===================================================== */
 const searchQuery = ref('')
-
 const resetFilters = () => searchQuery.value = ''
 
-
-/* ================= MODAL STATE ================= */
+/* =====================================================
+   MODAL STATE
+===================================================== */
 const open = ref(false)
 
-/* ================= PRODUCTS DATA (demo) ================= */
+/* =====================================================
+   PRODUCTS DATA
+===================================================== */
 const allProducts = ref([
   { id: 1, name: 'Apple', brand: 'Fruit' },
   { id: 2, name: 'Banana', brand: 'Fruit' },
@@ -33,13 +38,13 @@ const allProducts = ref([
   { id: 5, name: 'Keyboard', brand: 'Electronics' }
 ])
 
+/* =====================================================
+   Filters
+===================================================== */
 const selectedProducts = ref([])
-
-/* ================= FILTERS ================= */
 const search = ref('')
 const brand = ref('')
 const brands = computed(() => [...new Set(allProducts.value.map(p => p.brand))])
-
 const products = computed(() => {
   return allProducts.value.filter(p => {
     const matchName = p.name.toLowerCase().includes(search.value.toLowerCase())
@@ -49,42 +54,44 @@ const products = computed(() => {
   })
 })
 
-/* ================= ACTIONS ================= */
+/* =====================================================
+   ACTIONS
+===================================================== */
 const addProduct = (product) => {
   selectedProducts.value.push({ ...product, qty: 1})
 }
-
 const removeProduct = (product) => {
   selectedProducts.value = selectedProducts.value.filter(p => p.id !== product.id)
 }
-
 const updateQty = (p, type) => {
   if (type === 'plus') p.qty++
   if (type === 'minus' && p.qty > 1) p.qty--
 }
 
-/* ================= OPERATION META ================= */
-const operationDate = ref(new Date().toISOString().slice(0, 10))
 
+/* =====================================================
+   OPERATION META
+===================================================== */
+const operationDate = ref(new Date().toISOString().slice(0, 10))
 const operationType = ref('')
 const direction = ref('')
 const note = ref('')
-
 const partyType = ref('system')
 const partyId = ref(null)
 
-/* Demo parties (later API theke ashbe) */
 const customers = ref([
   { id: 1, name: 'Rahim' },
   { id: 2, name: 'Karim' }
 ])
-
 const suppliers = ref([
   { id: 1, name: 'ABC Supplier' },
   { id: 2, name: 'XYZ Supplier' }
 ])
 
-/* Reset party when type changes */
+
+/* =====================================================
+   Reset party when type changes
+===================================================== */
 const onPartyTypeChange = () => {
   partyId.value = null
 }
@@ -104,10 +111,10 @@ const onPartyTypeChange = () => {
 
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-      <h2 class="text-2xl font-semibold text-gray-700">Add Operation</h2>
+      <h2 class="text-2xl font-semibold text-gray-700">Add {{ $labels.singular_name }}</h2>
 
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/stock/operation" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
             <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
@@ -117,7 +124,7 @@ const onPartyTypeChange = () => {
           View All
         </router-link>
 
-        <router-link to="/stock/operation/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"

@@ -1,15 +1,23 @@
 <script setup>
 import { ref } from 'vue'
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
+import { $routes, $labels } from '@/constants/customer'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
+/* =====================================================
+   BREADCRUMB
+===================================================== */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Customer', to: '/customer' },
-  { label: 'Add New Customer' }
+  { label: $labels.plural_name, to: $routes.index },
+  { label: 'Add New ' + $labels.singular_name, }
 ]
 
-const newCustomers = ref([
+
+/* =====================================================
+   Add Row
+===================================================== */
+const newRows = ref([
   {
     name: '',
     status: '',
@@ -19,9 +27,8 @@ const newCustomers = ref([
     description: ''
   }
 ])
-
-const addCustomerField = () =>
-  newCustomers.value.push({
+const addRowField = () =>
+  newRows.value.push({
     name: '',
     status: '',
     phone: '',
@@ -30,19 +37,28 @@ const addCustomerField = () =>
     description: ''
   })
 
-const copyCustomerField = (index) => {
-  const customerToCopy = { ...newCustomers.value[index] }
-  newCustomers.value.splice(index + 1, 0, customerToCopy)
+
+/* =====================================================
+   Copy Row
+===================================================== */
+const copyRowField = (index) => {
+  const rowToCopy = { ...newRows.value[index] }
+  newRows.value.splice(index + 1, 0, rowToCopy)
 }
 
-// Remove row only if more than 1 row exists
-const removeCustomerField = (index) => {
-  if (newCustomers.value.length > 1) {
-    newCustomers.value.splice(index, 1)
+/* =====================================================
+   Remove Row
+===================================================== */
+const removeRowField = (index) => {
+  if (newRows.value.length > 1) {
+    newRows.value.splice(index, 1)
   }
 }
 
-const submitCustomers = () => console.log('Submitted customers:', newCustomers.value)
+/* =====================================================
+   Submit Rows
+===================================================== */
+const submitRows = () => console.log('Submitted rows:', newRows.value)
 </script>
 
 <template>
@@ -62,12 +78,12 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Add New Customer</h2>
+        <h2 class="text-2xl font-semibold text-gray-700">Add New {{ $labels.singular_name }}</h2>
       </div>
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/customer" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
 		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
@@ -77,7 +93,7 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           View All
         </router-link>
 
-        <router-link to="/customer/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -88,23 +104,14 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           Trash
         </router-link>
 
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" />
-        </label>
       </div>
     </div>
 
    
-   <form @submit.prevent="submitCustomers" class="space-y-4">
+   <form @submit.prevent="submitRows" class="space-y-4">
 
   <div
-    v-for="(customer, index) in newCustomers"
+    v-for="(row, index) in newRows"
     :key="index"
     class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4"
   >
@@ -113,12 +120,12 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm text-gray-600 mb-1">
-          Customer Name <span class="text-red-600">*</span>
+        Name <span class="text-red-600">*</span>
         </label>
         <input
-          v-model="customer.name"
+          v-model="row.name"
           type="text"
-          placeholder="Customer name"
+          placeholder="Name"
           class="w-full border p-3 focus:ring-2 focus:ring-gray-500"
         />
       </div>
@@ -128,7 +135,7 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           Phone
         </label>
         <input
-          v-model="customer.phone"
+          v-model="row.phone"
           type="text"
           placeholder="Phone number"
           class="w-full border p-3"
@@ -140,7 +147,7 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           Opening Balance
         </label>
         <input
-          v-model="customer.opening_balance"
+          v-model="row.opening_balance"
           type="number"
           placeholder="0.00"
           class="w-full border p-3"
@@ -152,7 +159,7 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           Status <span class="text-red-600">*</span>
         </label>
         <select
-          v-model="customer.status"
+          v-model="row.status"
           class="w-full border p-3"
         >
           <option value="">Select</option>
@@ -169,9 +176,9 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           Address
         </label>
         <input
-          v-model="customer.address"
+          v-model="row.address"
           type="text"
-          placeholder="Customer address"
+          placeholder="row address"
           class="w-full border p-3"
         />
       </div>
@@ -181,7 +188,7 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
           Description
         </label>
         <textarea
-          v-model="customer.description"
+          v-model="row.description"
           rows="2"
           placeholder="Optional notes"
           class="w-full border p-3"
@@ -195,8 +202,8 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
       <!-- Remove -->
       <button
         type="button"
-        @click="removeCustomerField(index)"
-        :disabled="newCustomers.length === 1"
+        @click="removeRowField(index)"
+        :disabled="newRows.length === 1"
         class="w-12 h-12 flex items-center justify-center rounded-md
                bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
@@ -211,9 +218,9 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
 
       <!-- Copy -->
       <button
-        v-if="index === newCustomers.length - 1"
+        v-if="index === newRows.length - 1"
         type="button"
-        @click="copyCustomerField(index)"
+        @click="copyRowField(index)"
         class="w-12 h-12 flex items-center justify-center rounded-md
                bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
         title="Copy & Add"
@@ -230,12 +237,12 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
 
       <!-- Add -->
       <button
-        v-if="index === newCustomers.length - 1"
+        v-if="index === newRows.length - 1"
         type="button"
-        @click="addCustomerField"
+        @click="addRowField"
         class="w-12 h-12 flex items-center justify-center rounded-md
                bg-green-500 text-white cursor-pointer"
-        title="Add Customer"
+        title="Add row"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -253,7 +260,7 @@ const submitCustomers = () => console.log('Submitted customers:', newCustomers.v
     type="submit"
     class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition"
   >
-    Submit All Customers
+    Submit All {{ $labels.plural_name }}
   </button>
 
 </form>

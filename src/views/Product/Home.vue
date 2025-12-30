@@ -1,6 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
+import { $routes, $labels } from '@/constants/unit'
 </script>
 
 <template>

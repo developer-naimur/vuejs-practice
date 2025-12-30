@@ -67,15 +67,6 @@ const $totalPages = computed(() =>
 )
 
 /* =====================================================
-   HELPERS
-===================================================== */
-const $statusClass = status => ({
-  Active: 'bg-green-500',
-  Pending: 'bg-yellow-500',
-  Inactive: 'bg-red-500'
-}[status])
-
-/* =====================================================
    ACTIONS
 ===================================================== */
 const editItem = item => alert(`Edit ${item.name}`)
@@ -187,8 +178,14 @@ const resetFilters = () => {
             <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
             <td class="px-4 py-2">{{ row.name }}</td>
             <td class="px-4 py-2">
-              <span class="px-3 py-1 text-white rounded"
-                    :class="$statusClass(row.status)">
+              <span
+                class="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full"
+                :class="{
+                  'bg-green-500': row.status === 'Active',
+                  'bg-yellow-500': row.status === 'Pending',
+                  'bg-red-500': row.status === 'Inactive'
+                }"
+              >
                 {{ row.status }}
               </span>
             </td>

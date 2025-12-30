@@ -1,124 +1,92 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
+import { $routes, $labels } from '@/constants/account'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
-// ------------------------
-// Breadcrumb
-// ------------------------
-const breadcrumbs = [
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+const $breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Account Lists' }
+  { label: $labels.singular_name + ' Trash Lists' }
 ]
 
-// ------------------------
-// accounts Data
-// ------------------------
-const accounts = ref([
-  { id: 1, name: 'John Doe', status: 'Active' },
-  { id: 2, name: 'Jane Smith', status: 'Pending' },
-  { id: 3, name: 'Alex Brown', status: 'Inactive' },
-  { id: 4, name: 'Mary Jane', status: 'Active' },
-  { id: 5, name: 'Peter Parker', status: 'Pending' }
-])
+/* =====================================================
+   TABLE STATE
+===================================================== */
+const $currentPage = ref(1)
+const $perPage = ref(5)
 
-const trashaccounts = ref([]) // soft deleted accounts
+/* =====================================================
+   FILTERS
+===================================================== */
+const $searchText = ref('')
+const $statusValue = ref('')
 
-// ------------------------
-// Filters
-// ------------------------
-const searchQuery = ref('')
-const statusFilter = ref('')
+/* =====================================================
+   DATA (API READY)
+===================================================== */
+const $rows = ref([])
 
-// ------------------------
-// Pagination
-// ------------------------
-const currentPage = ref(1)
-const perPage = ref(5)
+/* future API loader */
+const loadData = async () => {
+  // replace with axios later
+  $rows.value = [
+    {
+      id: 1,
+      account_name: 'Cash Account',
+      account_number: '',
+      opening_amount: 5000,
+      note: 'Main cash',
+    },
+    {
+      id: 2,
+      account_name: 'Bank Account',
+      account_number: '123456789',
+      opening_amount: 20000,
+      note: '',
+    },
+  ]
+}
+onMounted(loadData)
 
-// Filtered & Paginated accounts
-const filteredaccounts = computed(() => {
-  return accounts.value
-    .filter(account => {
-      const matchesSearch = account.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      const matchesStatus = statusFilter.value ? account.status === statusFilter.value : true
-      return matchesSearch && matchesStatus
-    })
-    .slice((currentPage.value - 1) * perPage.value, currentPage.value * perPage.value)
+/* =====================================================
+   COMPUTED
+===================================================== */
+const $rowsFiltered = computed(() => {
+  return $rows.value.filter(r => {
+    const matchSearch =
+      r.account_name.toLowerCase().includes($searchText.value.toLowerCase())
+    return matchSearch
+  })
 })
 
-const totalaccounts = computed(() => accounts.value.length)
-const totalPages = computed(() => Math.ceil(filteredaccounts.value.length / perPage.value))
+const $rowsPaginated = computed(() => {
+  const start = ($currentPage.value - 1) * $perPage.value
+  return $rowsFiltered.value.slice(start, start + $perPage.value)
+})
 
-// ------------------------
-// Status Classes
-// ------------------------
-const statusClass = status => {
-  if (status === 'Active') return 'bg-green-500'
-  if (status === 'Pending') return 'bg-yellow-500'
-  return 'bg-red-500'
-}
+const $totalItems = computed(() => $rows.value.length)
+const $totalPages = computed(() =>
+  Math.ceil($rowsFiltered.value.length / $perPage.value)
+)
 
-// ------------------------
-// Actions
-// ------------------------
-const editaccount = account => alert(`Edit ${account.name}`)
-const deleteaccount = account => {
-  if (confirm(`Are you sure you want to delete ${account.name}?`)) {
-    trashaccounts.value.push(account)
-    accounts.value = accounts.value.filter(u => u.id !== account.id)
+/* =====================================================
+   ACTIONS
+===================================================== */
+const editItem = item => alert(`Edit ${item.name}`)
+const deleteItem = item => {
+  if (confirm(`Delete ${item.name}?`)) {
+    $rows.value = $rows.value.filter(r => r.id !== item.id)
   }
 }
-const createaccount = () => alert('Create new account')
-const viewTrash = () => alert('Soft deleted accounts: ' + trashaccounts.value.map(u => u.name).join(', '))
 
-// ------------------------
-// Filters
-// ------------------------
 const resetFilters = () => {
-  searchQuery.value = ''
-  statusFilter.value = ''
-  currentPage.value = 1
-}
-
-// ------------------------
-// Export CSV
-// ------------------------
-const exportaccounts = () => {
-  const headers = ['ID', 'Name', 'Status']
-  const csvRows = [headers.join(',')]
-
-  accounts.value.forEach(u => {
-    csvRows.push([u.id, u.name, u.status].join(','))
-  })
-
-  const csvString = csvRows.join('\n')
-  const blob = new Blob([csvString], { account: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'accounts.csv'
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
-// ------------------------
-// Import CSV
-// ------------------------
-const importaccounts = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = e => {
-    const lines = e.target.result.split('\n')
-    lines.slice(1).forEach(line => {
-      const [id, name, status] = line.split(',')
-      if (id && name && status) {
-        accounts.value.push({ id: Number(id), name, status })
-      }
-    })
-  }
-  reader.readAsText(file)
+  $searchText.value = ''
+  $statusValue.value = ''
+  $currentPage.value = 1
 }
 </script>
 
@@ -131,40 +99,40 @@ const importaccounts = (event) => {
 
   <div class="flex-1 lg:ml-[320px] p-4">
 
-    <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
+    <Breadcrumb :items="$breadcrumbs" />
 
-    <!-- Top Bar -->
+    <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Account Trash Lists</h2>
-        <span class="text-gray-600 font-medium">Total Accounts: {{ totalaccounts }}</span>
+        <h2 class="text-2xl font-semibold text-gray-700">{{ $labels.singular_name }} Trash Lists</h2>
+        <span class="text-gray-600 font-medium">Total {{ $labels.plural_name }}: {{ $totalItems }}</span>
       </div>
 
-      <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/account" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
-		    </svg>
-          View All
+
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
+              <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
+              <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
+              <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
+          </svg>
+          Back to All
         </router-link>
+        
       </div>
     </div>
 
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="searchQuery" account="text" placeholder="Search..."
-               class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+        <input v-model="$searchText" placeholder="Search..." class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+
       </div>
       <div class="w-full md:w-1/5">
-        <select v-model="statusFilter" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+        <select v-model="$statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
           <option value="">Status</option>
           <option>Active</option>
           <option>Inactive</option>
@@ -190,42 +158,52 @@ const importaccounts = (event) => {
       </div>
     </div>
 
+
     <!-- Table -->
     <div class="overflow-x-auto">
       <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead class="bg-gray-100">
           <tr>
-            <th class="px-4 py-2 text-left">#</th>
-            <th class="px-4 py-2 text-left">Name</th>
-            <th class="px-4 py-2 text-left">Status</th>
+            <th class="px-4 py-2 text-left">#</th> 
+            <th class="px-4 py-2 text-left">Account Name</th>
+            <th class="px-4 py-2 text-left">Account No</th>
+            <th class="px-4 py-2 text-right">Opening Amount</th>
+            <th class="px-4 py-2 text-left">Note</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
+
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="(account, index) in filteredaccounts" :key="account.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-            <td class="px-4 py-2">{{ account.name }}</td>
-            <td class="px-4 py-2">
-              <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(account.status)">
-                {{ account.status }}
-              </span>
+          <tr v-for="(row, i) in $rowsPaginated" :key="row.id" class="hover:bg-gray-50">
+
+            <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
+
+            <td class="px-4 py-2 font-medium">{{ row.account_name }}</td>
+
+            <td class="px-4 py-2">{{ row.account_number || '-' }}</td>
+
+            <td class="px-4 py-2 text-right">
+              {{ row.opening_amount }}
             </td>
-            <td class="px-4 py-2">
+
+            <td class="px-4 py-2">{{ row.note || '-' }}</td>
+
+            <td class="px-4 py-2 text-center">
               <div class="flex justify-center gap-2">
-                <button @click="editaccount(account)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
-                  </svg>
-                </button>
-                <button @click="deleteaccount(account)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                  </svg>
-                </button>
-              </div>
+                <button @click="editItem(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
+                    </svg>
+                  </button>
+                  <button @click="deleteItem(row)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                    </svg>
+                  </button>
+                </div>
             </td>
           </tr>
         </tbody>
@@ -234,19 +212,14 @@ const importaccounts = (event) => {
 
     <!-- Pagination -->
     <div class="flex justify-between items-center mt-4">
-      <div>
-        Showing <span class="font-semibold">{{ (currentPage-1)*perPage + 1 }}</span> to
-        <span class="font-semibold">{{ Math.min(currentPage*perPage, filteredaccounts.length) }}</span> of
-        <span class="font-semibold">{{ totalaccounts }}</span> entries
-      </div>
+      <span>Page {{ $currentPage }} of {{ $totalPages }}</span>
       <div class="flex gap-2">
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" v-for="n in Math.ceil(totalaccounts/perPage)" :key="n" @click="currentPage=n">{{ n }}</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(totalaccounts/perPage))">&raquo;</button>
+        <button @click="$currentPage--" :disabled="$currentPage===1">«</button>
+        <button v-for="n in $totalPages" :key="n" @click="$currentPage=n">{{ n }}</button>
+        <button @click="$currentPage++" :disabled="$currentPage===$totalPages">»</button>
       </div>
     </div>
 
   </div>
-  
 </div>
 </template>

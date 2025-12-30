@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import { $routes, $labels } from '@/constants/account'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 </script>
 

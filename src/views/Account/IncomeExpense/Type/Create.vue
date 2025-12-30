@@ -1,32 +1,49 @@
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
+import { $routes, $labels } from '@/constants/accountIncomeExpenseType'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Type', to: '/account/income-expense/type' },
-  { label: 'Add New Type' }
+  { label: $labels.plural_name, to: $routes.index },
+  { label: 'Add New ' + $labels.singular_name, }
 ]
 
-const newtypes = ref([{ name: '', status: '' }])
 
-const addtypeField = () => newtypes.value.push({ name: '', status: '' })
+/* =====================================================
+   Add Row
+===================================================== */
+const newRows = ref([{ name: '', status: '' }])
+const addRowField = () => newRows.value.push({ name: '', status: '' })
 
-// Copy the clicked row and insert as new
-const copytypeField = (index) => {
-  const typeToCopy = { ...newtypes.value[index] }
-  newtypes.value.splice(index + 1, 0, typeToCopy)
+
+/* =====================================================
+   Copy Row
+===================================================== */
+const copyRowField = (index) => {
+  const rowToCopy = { ...newRows.value[index] }
+  newRows.value.splice(index + 1, 0, rowToCopy)
 }
 
-// Remove row only if more than 1 row exists
-const removetypeField = (index) => {
-  if (newtypes.value.length > 1) {
-    newtypes.value.splice(index, 1)
+
+/* =====================================================
+   Remove Row
+===================================================== */
+const removeRowField = (index) => {
+  if (newRows.value.length > 1) {
+    newRows.value.splice(index, 1)
   }
 }
 
-const submittypes = () => console.log('Submitted types:', newtypes.value)
+/* =====================================================
+   Submit Rows
+===================================================== */
+const submitRows = () => console.log('Submitted rows:', newRows.value)
 </script>
 
 <template>
@@ -46,22 +63,27 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Add New Type</h2>
+        <h2 class="text-2xl font-semibold text-gray-700">
+          Add New {{ $labels.singular_name }}
+        </h2>
       </div>
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/account/income-expense/type" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
-		    </svg>
+        <router-link
+          :to="$routes.index"
+          class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1" />
+            <rect x="14" y="3" width="7" height="7" rx="1" />
+            <rect x="3" y="14" width="7" height="7" rx="1" />
+            <rect x="14" y="14" width="7" height="7" rx="1" />
+          </svg>
           View All
         </router-link>
 
-        <router-link to="/account/income-expense/type/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -71,31 +93,21 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
           </svg>
           Trash
         </router-link>
-
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" @change="importtypes" />
-        </label>
       </div>
     </div>
 
     <!-- Form -->
-    <form @submit.prevent="submittypes" class="space-y-4">
+    <form @submit.prevent="submitRows" class="space-y-4">
 
-      <div v-for="(type, index) in newtypes" :key="index"
+      <div v-for="(row, index) in newRows" :key="index"
            class="flex gap-4 items-end bg-white pb-5 border-b border-gray-200 transition relative">
 
-        <!-- type Name -->
+        <!-- row Name -->
         <div class="flex-1">
           <label class="block text-gray-600 font-medium mb-1 text-sm">
-            Type Name <span class="text-red-600">*</span>
+            Name <span class="text-red-600">*</span>
           </label>
-          <input v-model="type.name" type="text" placeholder="Enter type name"
+          <input v-model="row.name" row="text" placeholder="Enter name"
                  class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition"/>
         </div>
 
@@ -104,7 +116,7 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
           <label class="block text-gray-600 font-medium mb-1 text-sm">
             Status <span class="text-red-600">*</span>
           </label>
-          <select v-model="type.status"
+          <select v-model="row.status"
                   class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
             <option value="">Select</option>
             <option>Active</option>
@@ -115,13 +127,13 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
         <!-- Actions -->
         <div class="w-36 flex gap-2">
 
-          <!-- Remove type (icon only) -->
-          <button type="button" @click="removetypeField(index)"
-                  :disabled="newtypes.length === 1"
+          <!-- Remove row (icon only) -->
+          <button row="button" @click="removeRowField(index)"
+                  :disabled="newRows.length === 1"
                   class="w-12 h-12 flex items-center justify-center rounded-md
                          bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                          transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  title="Remove type">
+                  title="Remove row">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -129,7 +141,7 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
           </button>
 
           <!-- Copy & Add Row (icon only) -->
-          <button v-if="index === newtypes.length - 1" type="button" @click="copytypeField(index)"
+          <button v-if="index === newRows.length - 1" row="button" @click="copyRowField(index)"
                   class="w-12 h-12 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
                   title="Copy & Add Row">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -139,10 +151,10 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
 			    </svg>
           </button>
 
-          <!-- Add type Button (only for last row) -->
-          <button v-if="index === newtypes.length - 1" type="button" @click="addtypeField"
+          <!-- Add row Button (only for last row) -->
+          <button v-if="index === newRows.length - 1" row="button" @click="addRowField"
                   class="w-12 h-12 flex items-center justify-center rounded-md bg-green-500 text-white cursor-pointer"
-                  title="Add More types">
+                  title="Add More rows">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -155,9 +167,9 @@ const submittypes = () => console.log('Submitted types:', newtypes.value)
 
       <!-- Submit -->
       <div>
-        <button type="submit"
+        <button row="submit"
                 class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer">
-          Submit All Types
+          Submit All {{ $labels.plural_name }}
         </button>
       </div>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
+import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import { $routes, $labels } from '@/constants/unit'
 
@@ -87,7 +87,7 @@ const resetFilters = () => {
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
-    <ProductMenu />
+    <AccountMenu />
   </div>
 
   <div class="flex-1 lg:ml-[320px] p-4">

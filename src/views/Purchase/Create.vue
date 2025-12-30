@@ -1,17 +1,21 @@
 <script setup>
 import { ref, computed } from 'vue'
 import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
+import { $routes, $labels } from '@/constants/purchase'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 const router = useRouter()
 
-/* ================= BREADCRUMB ================= */
+/* =====================================================
+   BREADCRUMB
+===================================================== */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Purchase', to: '/purchase' },
-  { label: 'Add New Purchase' }
+  { label: $labels.plural_name, to: $routes.index },
+  { label: 'Add New ' + $labels.singular_name, }
 ]
+
 
 /* ================= supplier INFO ================= */
 const supplier = ref({
@@ -168,10 +172,11 @@ const paymentNote = ref('')
 
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-      <h2 class="text-2xl font-semibold text-gray-700">Add New Purchase</h2>
+      <h2 class="text-2xl font-semibold text-gray-700">Add New {{ $labels.singular_name }}</h2>
 
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/purchase" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
             <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
@@ -181,7 +186,7 @@ const paymentNote = ref('')
           View All
         </router-link>
 
-        <router-link to="/purchase/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -191,6 +196,7 @@ const paymentNote = ref('')
           </svg>
           Trash
         </router-link>
+        
       </div>
     </div>
 

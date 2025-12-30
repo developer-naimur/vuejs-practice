@@ -1,90 +1,90 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import { $routes, $labels } from '@/constants/retailSale'
 
-import { useRouter } from 'vue-router'
-const router = useRouter()
 
-// ------------------------
-// Breadcrumb
-// ------------------------
-const breadcrumbs = [
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+const $breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Sales Trash Lists' }
+  { label: $labels.singular_name + ' Trash Lists' }
 ]
 
-// ------------------------
-// Sales Data
-// ------------------------
-const sales = ref([
-  { id: 1, reference: 'S-1001', customer: 'John Doe', total: 250, date: '2025-12-20', status: 'Completed' },
-  { id: 2, reference: 'S-1002', customer: 'Jane Smith', total: 150, date: '2025-12-21', status: 'Pending' },
-  { id: 3, reference: 'S-1003', customer: 'Alex Brown', total: 300, date: '2025-12-21', status: 'Cancelled' },
-  { id: 4, reference: 'S-1004', customer: 'Mary Jane', total: 400, date: '2025-12-22', status: 'Completed' },
-  { id: 5, reference: 'S-1005', customer: 'Peter Parker', total: 500, date: '2025-12-22', status: 'Pending' }
-])
+/* =====================================================
+   TABLE STATE
+===================================================== */
+const $currentPage = ref(1)
+const $perPage = ref(5)
 
-// ------------------------
-// Filters
-// ------------------------
-const searchQuery = ref('')
-const statusFilter = ref('')
+/* =====================================================
+   FILTERS
+===================================================== */
+const $searchText = ref('')
+const $statusValue = ref('')
 
-// ------------------------
-// Pagination
-// ------------------------
-const currentPage = ref(1)
-const perPage = ref(5)
+/* =====================================================
+   DATA (API READY)
+===================================================== */
+const $rows = ref([])
 
-const filteredSales = computed(() => {
-  return sales.value
-    .filter(s => {
-      const matchesSearch =
-        s.reference.toLowerCase().includes(searchQuery.value.toLowerCase()) ||
-        s.customer.toLowerCase().includes(searchQuery.value.toLowerCase())
-      const matchesStatus = statusFilter.value ? s.status === statusFilter.value : true
-      return matchesSearch && matchesStatus
-    })
-    .slice((currentPage.value - 1) * perPage.value, currentPage.value * perPage.value)
+/* future API loader */
+const loadData = async () => {
+  // replace with axios later
+  $rows.value = [
+    { id: 1, reference: 'S-1001', customer: 'John Doe', total: 250, date: '2025-12-20', status: 'Completed' },
+    { id: 2, reference: 'S-1002', customer: 'Jane Smith', total: 150, date: '2025-12-21', status: 'Pending' },
+    { id: 3, reference: 'S-1003', customer: 'Alex Brown', total: 300, date: '2025-12-21', status: 'Cancelled' },
+    { id: 4, reference: 'S-1004', customer: 'Mary Jane', total: 400, date: '2025-12-22', status: 'Completed' },
+    { id: 5, reference: 'S-1005', customer: 'Peter Parker', total: 500, date: '2025-12-22', status: 'Pending' }
+  ]
+}
+onMounted(loadData)
+
+/* =====================================================
+   COMPUTED
+===================================================== */
+const $rowsFiltered = computed(() => {
+  return $rows.value.filter(r => {
+    const matchSearch =
+      r.reference.toLowerCase().includes($searchText.value.toLowerCase())
+    const matchStatus =
+      $statusValue.value ? r.status === $statusValue.value : true
+    return matchSearch && matchStatus
+  })
 })
 
-const totalSales = computed(() => sales.value.length)
+const $rowsPaginated = computed(() => {
+  const start = ($currentPage.value - 1) * $perPage.value
+  return $rowsFiltered.value.slice(start, start + $perPage.value)
+})
 
-// ------------------------
-// Status Classes
-// ------------------------
-const statusClass = status => {
-  if (status === 'Completed') return 'bg-green-500'
-  if (status === 'Pending') return 'bg-yellow-500'
-  return 'bg-red-500'
-}
+const $totalItems = computed(() => $rows.value.length)
+const $totalPages = computed(() =>
+  Math.ceil($rowsFiltered.value.length / $perPage.value)
+)
 
-// ------------------------
-// Actions
-// ------------------------
-const viewSale = (sale) => {
-  router.push(`/sale/retail-sale/${sale.id}`)
-}
-const editSale = sale => alert(`Edit ${sale.reference}`)
-const trashSale = sale => {
-  if (confirm(`Move ${sale.reference} to trash?`)) {
-    sales.value = sales.value.filter(s => s.id !== sale.id)
+/* =====================================================
+   ACTIONS
+===================================================== */
+const editItem = item => alert(`Edit ${item.name}`)
+const deleteItem = item => {
+  if (confirm(`Delete ${item.name}?`)) {
+    $rows.value = $rows.value.filter(r => r.id !== item.id)
   }
 }
 
-// ------------------------
-// Reset Filters
-// ------------------------
 const resetFilters = () => {
-  searchQuery.value = ''
-  statusFilter.value = ''
-  currentPage.value = 1
+  $searchText.value = ''
+  $statusValue.value = ''
+  $currentPage.value = 1
 }
 </script>
 
 <template>
-  <div class="flex gap-4">
+<div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
     <SalesMenu />
@@ -92,41 +92,45 @@ const resetFilters = () => {
 
   <div class="flex-1 lg:ml-[320px] p-4">
 
-    <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
+    <Breadcrumb :items="$breadcrumbs" />
 
-    <!-- Top Bar -->
+    <!-- Header -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
+
+      <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Sales Trash Lists</h2>
-        <span class="text-gray-600 font-medium">Total Sales: {{ totalSales }}</span>
+        <h2 class="text-2xl font-semibold text-gray-700">{{ $labels.singular_name }} Trash Lists</h2>
+        <span class="text-gray-600 font-medium">Total {{ $labels.plural_name }}: {{ $totalItems }}</span>
       </div>
 
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/sale/retail-sale" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
               <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
               <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
               <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
           </svg>
-          View All
+          Back to All
         </router-link>
+
+        
       </div>
     </div>
 
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="searchQuery" type="text" placeholder="Search by reference or customer..."
-               class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+        <input v-model="$searchText" placeholder="Search..." class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+
       </div>
       <div class="w-full md:w-1/5">
-        <select v-model="statusFilter" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+        <select v-model="$statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
           <option value="">Status</option>
-          <option>Completed</option>
+          <option>Active</option>
+          <option>Inactive</option>
           <option>Pending</option>
-          <option>Cancelled</option>
         </select>
       </div>
       <div class="flex gap-2 w-full md:w-auto">
@@ -148,61 +152,72 @@ const resetFilters = () => {
       </div>
     </div>
 
+
     <!-- Table -->
     <div class="overflow-x-auto">
       <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead class="bg-gray-100">
-          <tr>
+          <tr>    
             <th class="px-4 py-2 text-left">#</th>
             <th class="px-4 py-2 text-left">Reference</th>
             <th class="px-4 py-2 text-left">Customer</th>
-            <th class="px-4 py-2 text-left">Total</th>
+            <th class="px-4 py-2 text-right">Total</th>
             <th class="px-4 py-2 text-left">Date</th>
             <th class="px-4 py-2 text-left">Status</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
+
         <tbody class="divide-y divide-gray-200">
-          <tr v-for="(sale, index) in filteredSales" :key="sale.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-            <td class="px-4 py-2">{{ sale.reference }}</td>
-            <td class="px-4 py-2">{{ sale.customer }}</td>
-            <td class="px-4 py-2">{{ sale.total }}</td>
-            <td class="px-4 py-2">{{ sale.date }}</td>
+          <tr v-for="(row, i) in $rowsPaginated" :key="row.id" class="hover:bg-gray-50">
+            <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
+            
+             <td class="px-4 py-2 font-medium">
+              {{ row.reference }}
+            </td>
+
             <td class="px-4 py-2">
-              <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(sale.status)">
-                {{ sale.status }}
+              {{ row.customer }}
+            </td>
+
+            <td class="px-4 py-2 text-right">
+              ৳ {{ row.total }}
+            </td>
+
+            <td class="px-4 py-2">
+              {{ row.date }}
+            </td>
+
+            <!-- Status -->
+            <td class="px-4 py-2">
+              <span
+                class="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full"
+                :class="{
+                  'bg-green-500': row.status === 'Completed',
+                  'bg-yellow-500': row.status === 'Pending',
+                  'bg-red-500': row.status === 'Cancelled'
+                }"
+              >
+                {{ row.status }}
               </span>
             </td>
-            <td class="px-4 py-2">
+
+            <td class="px-4 py-2 text-center">
               <div class="flex justify-center gap-2">
-                <!-- View -->
-                <button @click="viewSale(sale)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="View">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M15 12H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                </button>
-
-                <!-- Edit -->
-                <button @click="editSale(sale)" class="p-2 rounded-full bg-yellow-100 text-yellow-600 hover:bg-yellow-600 hover:text-white transition" title="Edit">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
-                  </svg>
-                </button>
-
-                <!-- Trash -->
-                <button @click="trashSale(sale)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Trash">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round"
-                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                  </svg>
-                </button>
-              </div>
+                <button @click="editItem(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
+                    </svg>
+                  </button>
+                  <button @click="deleteItem(row)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                      <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
+                    </svg>
+                  </button>
+                </div>
             </td>
           </tr>
         </tbody>
@@ -211,19 +226,14 @@ const resetFilters = () => {
 
     <!-- Pagination -->
     <div class="flex justify-between items-center mt-4">
-      <div>
-        Showing <span class="font-semibold">{{ (currentPage-1)*perPage + 1 }}</span> to
-        <span class="font-semibold">{{ Math.min(currentPage*perPage, filteredSales.length) }}</span> of
-        <span class="font-semibold">{{ totalSales }}</span> entries
-      </div>
+      <span>Page {{ $currentPage }} of {{ $totalPages }}</span>
       <div class="flex gap-2">
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" v-for="n in Math.ceil(totalSales/perPage)" :key="n" @click="currentPage=n">{{ n }}</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(totalSales/perPage))">&raquo;</button>
+        <button @click="$currentPage--" :disabled="$currentPage===1">«</button>
+        <button v-for="n in $totalPages" :key="n" @click="$currentPage=n">{{ n }}</button>
+        <button @click="$currentPage++" :disabled="$currentPage===$totalPages">»</button>
       </div>
     </div>
 
   </div>
-  
 </div>
 </template>

@@ -91,7 +91,7 @@ const getCustomer = (customer) => {
 		        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
 		        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
 		    </svg>
-          View All
+          Back to All
         </router-link>
 
       </div>

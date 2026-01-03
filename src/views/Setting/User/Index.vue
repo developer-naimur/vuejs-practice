@@ -80,45 +80,6 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-// ------------------------
-// Export CSV
-// ------------------------
-const exportRow= () => {
-  const headers = ['ID', 'Name', 'Status']
-  const csvRows = [headers.join(',')]
-
-  rows.value.forEach(u => {
-    csvRows.push([u.id, u.name, u.status].join(','))
-  })
-
-  const csvString = csvRows.join('\n')
-  const blob = new Blob([csvString], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'rows.csv'
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
-// ------------------------
-// Import CSV
-// ------------------------
-const importRow = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = e => {
-    const lines = e.target.result.split('\n')
-    lines.slice(1).forEach(line => {
-      const [id, name, status] = line.split(',')
-      if (id && name && status) {
-        rows.value.push({ id: Number(id), name, status })
-      }
-    })
-  }
-  reader.readAsText(file)
-}
 </script>
 
 <template>
@@ -177,25 +138,7 @@ const importRow = (event) => {
           </svg>
           Trash
         </router-link>
-
-        <button @click="exportRow" class="flex items-center gap-2 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Export
-        </button>
-
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" @change="importRow" />
-        </label>
+        
       </div>
     </div>
 

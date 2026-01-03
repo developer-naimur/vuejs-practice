@@ -167,6 +167,8 @@ import PurchaseSetting from '../views/Setting/PurchaseSetting.vue'
 import NotificationSetting from '../views/Setting/NotificationSetting.vue'
 import SystemSetting from '../views/Setting/SystemSetting.vue'
 
+import Profile from '../views/Setting/Profile.vue'
+
 //User&Role Permission
 // User 
 import UserIndex from '../views/Setting/User/Index.vue'
@@ -180,6 +182,7 @@ import RoleCreate from '../views/Setting/User/Role/Create.vue'
 import RoleEdit from '../views/Setting/User/Role/Edit.vue'
 import RoleShow from '../views/Setting/User/Role/Show.vue'
 import RoleTrashed from '../views/Setting/User/Role/Trashed.vue'
+
 
 const routes = [
 
@@ -753,6 +756,13 @@ const routes = [
       path: '/setting/system',
       name: 'system-setting.index',
       component: SystemSetting
+    },
+
+    // Profile
+    {
+      path: '/setting/profile',
+      name: 'profile-setting.index',
+      component: Profile
     },
 
 

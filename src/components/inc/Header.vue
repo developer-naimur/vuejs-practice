@@ -173,7 +173,7 @@ children: [
               <img
                 :src="menu.icon"
                 :alt="menu.label.toLowerCase()"
-                class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10"
+                class="bg-white border border-gray-300 rounded-lg p-2 w-10 h-10"
               />
             </router-link>
             <span
@@ -209,7 +209,7 @@ children: [
     </div>
     <div class="flex-none lg:pr-3">
       <router-link  @click="hideMobileMenu" class="cursor-pointer" to="/setting/profile">
-        <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/profile.png" alt="profile" />
+        <img class="bg-white border border-gray-300 rounded-lg p-2 w-10 h-10" src="/public/profile.png" alt="profile" />
       </router-link>
     </div>
 

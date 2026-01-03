@@ -77,15 +77,6 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
           Trash
         </router-link>
 
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" />
-        </label>
       </div>
     </div>
 

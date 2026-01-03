@@ -80,45 +80,7 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-// ------------------------
-// Export CSV
-// ------------------------
-const exportRow= () => {
-  const headers = ['ID', 'Name', 'Status']
-  const csvRows = [headers.join(',')]
 
-  rows.value.forEach(u => {
-    csvRows.push([u.id, u.name, u.status].join(','))
-  })
-
-  const csvString = csvRows.join('\n')
-  const blob = new Blob([csvString], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'rows.csv'
-  link.click()
-  URL.revokeObjectURL(url)
-}
-
-// ------------------------
-// Import CSV
-// ------------------------
-const importRow = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = e => {
-    const lines = e.target.result.split('\n')
-    lines.slice(1).forEach(line => {
-      const [id, name, status] = line.split(',')
-      if (id && name && status) {
-        rows.value.push({ id: Number(id), name, status })
-      }
-    })
-  }
-  reader.readAsText(file)
-}
 </script>
 
 <template>

@@ -11,6 +11,102 @@ const breadcrumbs = [
   { label: 'Role Lists' }
 ]
 
+
+// ------------------------
+// Permission Modal
+// ------------------------
+const showPermissionModal = ref(false)
+const selectedRole = ref(null)
+
+const permissions = ref({
+  sales: { c: false, r: false, u: false, d: false },
+  sales_return: { c: false, r: false, u: false, d: false },
+  purchase: { c: false, r: false, u: false, d: false },
+  purchase_return: { c: false, r: false, u: false, d: false },
+
+  products: { c: false, r: false, u: false, d: false },
+  categories: { c: false, r: false, u: false, d: false },
+  brands: { c: false, r: false, u: false, d: false },
+  units: { c: false, r: false, u: false, d: false },
+
+  customer: { c: false, r: false, u: false, d: false },
+  supplier: { c: false, r: false, u: false, d: false },
+
+  stock_operation: { c: false, r: false, u: false, d: false },
+  opening_accounts: { c: false, r: false, u: false, d: false },
+  fund_transfer: { c: false, r: false, u: false, d: false },
+  others_income_expense: { c: false, r: false, u: false, d: false },
+  others_income_expense_type: { c: false, r: false, u: false, d: false },
+
+  // Reports
+  purchase_report: { c: false, r: false, u: false, d: false },
+  sales_report: { c: false, r: false, u: false, d: false },
+  stock_report: { c: false, r: false, u: false, d: false },
+  accounts_report: { c: false, r: false, u: false, d: false },
+  customer_report: { c: false, r: false, u: false, d: false },
+  supplier_report: { c: false, r: false, u: false, d: false }
+})
+
+// ------------------------
+// Modal Actions
+// ------------------------
+const openPermissionModal = (role) => {
+  selectedRole.value = role
+  showPermissionModal.value = true
+}
+
+const closePermissionModal = () => {
+  showPermissionModal.value = false
+}
+
+
+/* ===============================
+   GLOBAL SELECT ALL
+================================ */
+const isGlobalAllChecked = computed(() => {
+  return Object.entries(permissions.value).every(([menu, perms]) => {
+    if (menu.includes('_report')) {
+      // Only consider READ for reports
+      return perms.r === true
+    }
+    // For other menus, check all CRUD
+    return Object.values(perms).every(v => v === true)
+  })
+})
+
+const toggleAllPermissions = (value) => {
+  Object.keys(permissions.value).forEach(menu => {
+    if (menu.includes('_report')) {
+      // For reports, only toggle 'r', leave c/u/d unchanged
+      permissions.value[menu].r = value
+    } else {
+      // For other menus, toggle all CRUD
+      toggleMenuAll(menu, value)
+    }
+  })
+}
+
+/* ===============================
+   MENU-WISE ALL
+================================ */
+const isMenuAllChecked = (menu) => {
+  return Object.values(permissions.value[menu]).every(v => v === true)
+}
+
+const toggleMenuAll = (menu, value) => {
+  Object.keys(permissions.value[menu]).forEach(key => {
+    permissions.value[menu][key] = value
+  })
+}
+
+/* ===============================
+   CRUD ↔ MENU ALL SYNC
+================================ */
+const syncMenuAll = () => {
+  // computed automatically syncs
+}
+
+
 // ------------------------
 // rows
 // ------------------------
@@ -80,45 +176,9 @@ const resetFilters = () => {
   currentPage.value = 1
 }
 
-// ------------------------
-// Export CSV
-// ------------------------
-const exportRow= () => {
-  const headers = ['ID', 'Name', 'Status']
-  const csvRows = [headers.join(',')]
 
-  rows.value.forEach(u => {
-    csvRows.push([u.id, u.name, u.status].join(','))
-  })
 
-  const csvString = csvRows.join('\n')
-  const blob = new Blob([csvString], { type: 'text/csv' })
-  const url = URL.createObjectURL(blob)
-  const link = document.createElement('a')
-  link.href = url
-  link.download = 'rows.csv'
-  link.click()
-  URL.revokeObjectURL(url)
-}
 
-// ------------------------
-// Import CSV
-// ------------------------
-const importRow = (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-  const reader = new FileReader()
-  reader.onload = e => {
-    const lines = e.target.result.split('\n')
-    lines.slice(1).forEach(line => {
-      const [id, name, status] = line.split(',')
-      if (id && name && status) {
-        rows.value.push({ id: Number(id), name, status })
-      }
-    })
-  }
-  reader.readAsText(file)
-}
 </script>
 
 <template>
@@ -177,25 +237,6 @@ const importRow = (event) => {
           </svg>
           Trash
         </router-link>
-
-        <button @click="exportRow" class="flex items-center gap-2 px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Export
-        </button>
-
-        <label class="flex items-center gap-2 px-4 py-2 rounded bg-yellow-400 text-white hover:bg-yellow-500 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M4 16v4h16v-4M12 12v8m0 0l-4-4m4 4l4-4M12 4v8" />
-          </svg>
-          Import
-          <input type="file" class="hidden" accept=".csv" @change="importRow" />
-        </label>
       </div>
     </div>
 
@@ -254,6 +295,24 @@ const importRow = (event) => {
             </td>
             <td class="px-4 py-2">
               <div class="flex justify-center gap-2">
+                <button
+                  @click="openPermissionModal(row)"
+                  class="p-2 rounded-full bg-purple-100 text-purple-600
+                         hover:bg-purple-600 hover:text-white transition cursor-pointer"
+                  title="Set Permission"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5"
+                       fill="none" viewBox="0 0 24 24"
+                       stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M12 11c0 1.657-1.343 3-3 3s-3-1.343-3-3
+                             1.343-3 3-3 3 1.343 3 3zm0 0
+                             c0 1.657 1.343 3 3 3s3-1.343 3-3
+                             -1.343-3-3-3-3 1.343-3 3z"/>
+                  </svg>
+                </button>
+
+
                 <button @click="editRow(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -289,6 +348,186 @@ const importRow = (event) => {
     </div>
 
   </div>
+
+
+
+    <!-- ================= PERMISSION MODAL ================= -->
+    <div v-if="showPermissionModal"
+         class="fixed inset-0 bg-black/60 flex items-center justify-center z-100">
+
+      <div class="bg-white rounded-xl shadow-xl max-w-4xl w-full h-[70vh] flex flex-col">
+
+        <!-- Header -->
+        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
+          <h3 class="text-xl font-semibold text-gray-700">
+            Permissions for: 
+            <span class="text-blue-600 font-bold bg-blue-100 px-1 rounded">
+              {{ selectedRole?.name }}
+            </span>
+          </h3>
+          <button @click="closePermissionModal"
+                  class="text-gray-500 hover:text-red-600 text-2xl font-bold cursor-pointer">
+            ✕
+          </button>
+        </div>
+
+        <!-- Global Select -->
+        <div class="flex items-center gap-2 px-6 py-3 border-b border-gray-200 bg-gray-50">
+          <label class="inline-flex items-center cursor-pointer">
+            <input type="checkbox"
+                   class="sr-only"
+                   :checked="isGlobalAllChecked"
+                   @change="toggleAllPermissions($event.target.checked)">
+            
+            <div :class="['w-5 h-5 flex items-center justify-center rounded-full border-2 transition-all',
+                         isGlobalAllChecked ? 'border-blue-600' : 'border-gray-300',
+                         'bg-white']">
+              <!-- Tick mark controlled by Vue state -->
+              <svg v-if="isGlobalAllChecked"
+                   class="w-3 h-3 text-blue-600"
+                   viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            
+            <span class="ml-2 select-none">Select All Permissions</span>
+          </label>
+        </div>
+
+        <!-- Permission Table -->
+        <div class="flex-1 overflow-auto px-6 py-4">
+          <table class="w-full border-collapse border border-gray-200 text-sm">
+            <thead class="bg-gray-100 sticky top-0 z-10">
+              <tr>
+                <th class="p-2 text-left font-medium text-gray-700">MENU</th>
+                <th class="p-2 text-center font-medium text-gray-700">ALL</th>
+                <th class="p-2 text-center font-medium text-gray-700">CREATE</th>
+                <th class="p-2 text-center font-medium text-gray-700">READ</th>
+                <th class="p-2 text-center font-medium text-gray-700">UPDATE</th>
+                <th class="p-2 text-center font-medium text-gray-700">DELETE</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="(perm, menu) in permissions" :key="menu"
+                  class="border-t hover:bg-gray-50 transition-colors">
+
+                <!-- Menu Name -->
+                <td class="p-2 font-medium capitalize text-gray-700">
+                  {{ menu.replaceAll('_', ' ') }}
+                </td>
+
+                <!-- Menu All -->
+                <td class="p-2 text-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox"
+                           class="sr-only"
+                           :checked="isMenuAllChecked(menu)"
+                           :disabled="menu.includes('_report')" 
+                           @change="toggleMenuAll(menu, $event.target.checked)">
+
+                    <div :class="[
+                          'w-5 h-5 flex items-center justify-center rounded-full border-2 transition-all bg-white',
+                          isMenuAllChecked(menu) ? 'border-blue-600' : 'border-gray-300',
+                          menu.includes('_report') ? 'opacity-50 cursor-not-allowed' : ''
+                        ]">
+                      <svg v-if="isMenuAllChecked(menu)"
+                           class="w-3 h-3 text-blue-600"
+                           viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                  </label>
+                </td>
+
+                <!-- CREATE -->
+                <td class="p-2 text-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only" v-model="perm.c"
+                           :disabled="menu.includes('_report')">
+                    <div :class="[
+                          'w-5 h-5 flex items-center justify-center rounded-full border-2 transition-colors duration-200 bg-white',
+                          perm.c ? 'border-blue-600' : 'border-gray-300',
+                          menu.includes('_report') ? 'opacity-50 cursor-not-allowed' : ''
+                        ]">
+                      <svg v-if="perm.c" class="w-3 h-3 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                  </label>
+                </td>
+
+                <!-- READ -->
+                <td class="p-2 text-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only" v-model="perm.r" @change="syncMenuAll(menu)">
+                    <div :class="[
+                          'w-5 h-5 flex items-center justify-center rounded-full border-2 transition-colors duration-200 bg-white',
+                          perm.r ? 'border-blue-600' : 'border-gray-300'
+                        ]">
+                      <svg v-if="perm.r" class="w-3 h-3 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                  </label>
+                </td>
+
+                <!-- UPDATE -->
+                <td class="p-2 text-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only" v-model="perm.u"
+                           :disabled="menu.includes('_report')">
+                    <div :class="[
+                          'w-5 h-5 flex items-center justify-center rounded-full border-2 transition-colors duration-200 bg-white',
+                          perm.u ? 'border-blue-600' : 'border-gray-300',
+                          menu.includes('_report') ? 'opacity-50 cursor-not-allowed' : ''
+                        ]">
+                      <svg v-if="perm.u" class="w-3 h-3 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                  </label>
+                </td>
+
+                <!-- DELETE -->
+                <td class="p-2 text-center">
+                  <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" class="sr-only" v-model="perm.d"
+                           :disabled="menu.includes('_report')">
+                    <div :class="[
+                          'w-5 h-5 flex items-center justify-center rounded-full border-2 transition-colors duration-200 bg-white',
+                          perm.d ? 'border-blue-600' : 'border-gray-300',
+                          menu.includes('_report') ? 'opacity-50 cursor-not-allowed' : ''
+                        ]">
+                      <svg v-if="perm.d" class="w-3 h-3 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 0 0-1.414 0L8 12.586 4.707 9.293a1 1 0 0 0-1.414 1.414l4 4a1 1 0 0 0 1.414 0l8-8a1 1 0 0 0 0-1.414z" clip-rule="evenodd"/>
+                      </svg>
+                    </div>
+                  </label>
+                </td>
+
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Footer -->
+        <div class="flex justify-end gap-3 px-6 py-4 border-t border-gray-200">
+          <button @click="closePermissionModal"
+                  class="px-5 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition">
+            Cancel
+          </button>
+          <button
+            class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition">
+            Save Permissions
+          </button>
+        </div>
+
+      </div>
+    </div>
+    <!-- ================= END PERMISSION MODAL ================= -->
+
+
 
 </div>
 </template>

@@ -19,7 +19,7 @@
       <!-- Logo -->
       <div class="relative group">
         <router-link to="/dashboard" class="cursor-pointer">
-          <img class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10" src="/public/logo.png" alt="logo" />
+          <img class="bg-white border border-gray-300 rounded-lg p-2 w-10 h-10" src="/public/logo.png" alt="logo" />
         </router-link>
       </div>
 
@@ -35,7 +35,7 @@
           <img
             :src="menu.icon"
             :alt="menu.label.toLowerCase()"
-            class="bg-white border border-gray-300 rounded-full p-2 w-10 h-10"
+            class="bg-white border border-gray-300 rounded-lg p-2 w-10 h-10"
           />
         </router-link>
         <span

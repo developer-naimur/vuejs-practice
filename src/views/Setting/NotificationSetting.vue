@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import Preloader from '@/components/skeleton/Preloader-1.vue'
+import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
@@ -38,7 +40,9 @@ const submitNotifications = () => {
 
     <h1 class="text-3xl font-semibold text-gray-700 mb-6">Notifications / Alerts</h1>
 
-    <form @submit.prevent="submitNotifications" class="space-y-8">
+    <form @submit.prevent="submitNotifications" class="space-y-0 relative">
+    
+     <Preloader />
 
       <!-- Alerts Section -->
       <div class="space-y-4 p-4 rounded-md border border-gray-200">

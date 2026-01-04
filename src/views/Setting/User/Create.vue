@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
@@ -81,6 +82,7 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
     </div>
 
     <!-- Form -->
+    <FormSkeleton rows="2" columns="4"/>
     <form @submit.prevent="submitRows" class="space-y-4">
 
       <div v-for="(row, index) in newRows" :key="index"

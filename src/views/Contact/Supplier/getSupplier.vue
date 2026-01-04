@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
@@ -133,6 +134,9 @@ const getSupplier = (supplier) => {
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
+
+          <TableSkeleton :colspan="100" />
+          
           <tr v-for="(supplier, index) in filteredSuppliers" :key="supplier.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
             <td class="px-4 py-2">{{ supplier.name }}</td>

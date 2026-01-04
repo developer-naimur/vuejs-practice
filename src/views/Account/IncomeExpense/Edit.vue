@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 import { $routes, $labels } from '@/constants/accountIncomeExpense'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
@@ -115,6 +116,7 @@ const submitItems = () => {
     </div>
 
     <!-- FORM -->
+    <FormSkeleton rows="2" columns="4"/>
     <form @submit.prevent="submitItems" class="space-y-4">
 
       <div

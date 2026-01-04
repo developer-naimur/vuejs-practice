@@ -1,5 +1,7 @@
 <script setup>
 import { ref } from 'vue'
+import Preloader from '@/components/skeleton/Preloader-1.vue'
+import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 const breadcrumbs = [

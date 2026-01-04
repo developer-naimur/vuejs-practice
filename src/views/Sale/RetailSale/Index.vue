@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import { $routes, $labels } from '@/constants/retailSale'
@@ -177,6 +178,9 @@ const resetFilters = () => {
         </thead>
 
         <tbody class="divide-y divide-gray-200">
+
+          <TableSkeleton :colspan="100" />
+          
           <tr v-for="(row, i) in $rowsPaginated" :key="row.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
             

@@ -10,6 +10,9 @@ import Home from '../views/Frontend/Home.vue'
 //---------------------------------------------------------------
   //Backend Part
 //---------------------------------------------------------------
+import Login from '../views/Auth/Login.vue'
+import Register from '../views/Auth/Register.vue'
+
 import Dashboard from '../views/Dashboard.vue'
 // Product
 import ProductHome from '../views/Product/Home.vue'
@@ -193,6 +196,20 @@ const routes = [
   },
 
 
+
+
+
+  {
+    path: '/login',
+    name: 'login',
+    component: Login
+  },
+
+  {
+    path: '/register',
+    name: 'register',
+    component: Register
+  },
 
 
 

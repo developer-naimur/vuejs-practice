@@ -1,46 +1,39 @@
 <script setup lang="ts">
-import { RouterView, useRoute, useRouter } from 'vue-router'
-import { ref } from 'vue'
+import { RouterView, useRoute } from 'vue-router'
+import { ref, computed, watchEffect } from 'vue'
 
 import Header from '@/components/inc/Header.vue'
 import MainSidebar from '@/components/inc/MainSidebar.vue'
 
-
-// import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
-// import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
-// import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
-// import ReportMenu from '@/components/inc/SubSidebar/ReportMenu.vue'
-// import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
-
-
-// import DemoForm from '@/demoDesign/Form.vue'
-// import Table from '@/demoDesign/Table.vue'
-// import SinglePage from '@/demoDesign/SinglePage.vue'
-// import Modal from '@/demoDesign/Modal.vue'
-// import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-
-const currentMenu = ref('') // store current submenu
+const currentMenu = ref('')
 const handleMenuSelected = (menu: string) => {
   currentMenu.value = menu
 }
-  
+
+const route = useRoute()
+const authRoutes = ['/login', '/register']
+const isAuthRoute = computed(() => authRoutes.includes(route.path))
+
 </script>
 
-
 <template>
-  <div class="">
-    <Header @menu-selected="handleMenuSelected" />
+  <div>
+    <!-- Only show header/sidebar if not auth route -->
+    <Header v-if="!isAuthRoute" @menu-selected="handleMenuSelected" />
 
     <div class="flex lg:gap-4" id="__Main">
-      <div class="flex-none">
+      <div class="flex-none" v-if="!isAuthRoute">
         <MainSidebar @menu-selected="handleMenuSelected"/>
       </div>
 
-      <div class="flex-1 mt-[55px] lg:mt-[50px] lg:ml-[40px] lg:mt-[40px] lg:p-4">
+      <div
+        :class="[
+          'flex-1',
+          !isAuthRoute ? 'mt-[55px] lg:mt-[50px] lg:ml-[40px] lg:mt-[40px] lg:p-4' : 'bg-gray-100 flex items-center justify-center h-screen'
+        ]"
+      >
         <RouterView />
       </div>
     </div>
-    
   </div>
 </template>
-

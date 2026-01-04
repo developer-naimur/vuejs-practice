@@ -1,5 +1,6 @@
 <script setup>
 import { ref, computed } from 'vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
 import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
 import { $routes, $labels } from '@/constants/purchase'
 import { useRouter } from 'vue-router'
@@ -274,6 +275,9 @@ const paymentNote = ref('')
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200">
+
+                <TableSkeleton :colspan="100" />
+
                 <tr v-for="(c, index) in filteredSuppliers" :key="c.id" class="hover:bg-gray-50">
                   <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
                   <td class="px-4 py-2">{{ c.name }}</td>
@@ -341,6 +345,9 @@ const paymentNote = ref('')
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
+
+            <TableSkeleton :colspan="100" />
+
             <tr v-for="p in selectedProducts" :key="p.id" class="hover:bg-gray-50">
               <td class="px-4 py-2">{{ p.name }}</td>
               <td class="px-4 py-2 text-center">
@@ -514,6 +521,9 @@ const paymentNote = ref('')
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+                  
+                  <TableSkeleton :colspan="100" />
+
                   <tr v-for="p in products" :key="p.id" class="hover:bg-gray-50">
                     <td class="px-4 py-2 font-medium">{{ p.name }}</td>
                     <td class="px-4 py-2 text-gray-500">{{ p.brand }}</td>

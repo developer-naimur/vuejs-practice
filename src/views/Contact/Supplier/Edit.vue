@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue'
+import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import { $routes, $labels } from '@/constants/supplier'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
@@ -109,6 +110,7 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
     </div>
 
    
+    <FormSkeleton rows="2" columns="4"/>
    <form @submit.prevent="submitRows" class="space-y-4">
 
   <div

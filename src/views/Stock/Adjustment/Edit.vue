@@ -1,5 +1,7 @@
 <script setup>
 import { ref, computed } from 'vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
+import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
@@ -137,6 +139,7 @@ const onPartyTypeChange = () => {
       </div>
     </div>
 
+
 	<!-- ================= OPERATION INFO ================= -->
 	<div class="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-200 p-4 bg-white">
 
@@ -230,6 +233,9 @@ const onPartyTypeChange = () => {
             </tr>
           </thead>
           <tbody class="divide-y divide-gray-200">
+
+            <TableSkeleton :colspan="100" />
+
             <tr v-for="p in selectedProducts" :key="p.id" class="hover:bg-gray-50">
               <td class="px-4 py-2">{{ p.name }}</td>
               <td class="px-4 py-2 text-center">
@@ -346,6 +352,9 @@ const onPartyTypeChange = () => {
                   </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200">
+
+                  <TableSkeleton :colspan="100" />
+
                   <tr v-for="p in products" :key="p.id" class="hover:bg-gray-50">
                     <td class="px-4 py-2 font-medium">{{ p.name }}</td>
                     <td class="px-4 py-2 text-gray-500">{{ p.brand }}</td>

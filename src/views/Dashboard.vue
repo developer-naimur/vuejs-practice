@@ -38,11 +38,15 @@
 
     <!-- ================= KPI CARDS (TOP) ================= -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div v-for="(card, index) in kpiCards" :key="index"
+      <!-- <div v-for="(card, index) in kpiCards" :key="index"
            :class="['relative p-5 rounded-lg shadow hover:shadow-lg transition cursor-pointer', card.bg, card.border]">
         <p class="text-sm text-gray-500">{{ card.title }}</p>
         <h2 :class="['text-2xl font-bold mt-1', card.text]">{{ card.value }}</h2>
-      </div>
+      </div> -->
+
+      <!-- card skeleton -->
+      <DashboardCardSkeleton :cardNumber="8" />
+
     </div>
 
     <!-- ================= CHARTS ================= -->
@@ -59,6 +63,7 @@
 
       <div class="bg-white p-5 rounded-lg shadow hover:shadow-lg transition">
         <h3 class="font-semibold mb-4 text-gray-700">Profit vs Loss</h3>
+
         <apexchart
           type="line"
           height="300"
@@ -81,6 +86,9 @@
           </tr>
         </thead>
         <tbody>
+
+          <TableSkeleton :colspan="100" />
+
           <tr class="border-b hover:bg-gray-50 transition" v-for="(item, i) in lowStock" :key="i">
             <td class="p-3">{{ item.name }}</td>
             <td class="p-3 text-center">{{ item.qty }}</td>
@@ -95,6 +103,10 @@
 </template>
 
 <script setup lang="ts">
+
+import TableSkeleton from '@/components/Skeleton/Table.vue'
+import DashboardCardSkeleton from '@/components/Skeleton/SmCard.vue'
+
 import ApexChart from 'vue3-apexcharts'
 import { ref } from 'vue'
 

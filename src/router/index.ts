@@ -200,12 +200,11 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: Home
+    component: Home,
+    meta: {
+      guestOnly: true
+    }
   },
-
-
-
-
 
   {
     path: '/login',
@@ -245,8 +244,7 @@ const routes = [
       name: 'product-home',
       component: ProductHome,
       meta: {
-        requiresAuth: true, 
-        permission: 'product.*'
+        requiresAuth: true
       }
     },
 
@@ -454,8 +452,7 @@ const routes = [
       name: 'contact-home',
       component: ContactHome,
       meta: {
-        requiresAuth: true, 
-        permission: 'contact.*'
+        requiresAuth: true
       }
     },
 
@@ -584,8 +581,7 @@ const routes = [
       name: 'sale-home',
       component: SaleHome,
       meta: {
-        requiresAuth: true, 
-        permission: 'sale.*'
+        requiresAuth: true
       }
     },
     {
@@ -688,8 +684,7 @@ const routes = [
       name: 'purchase-home',
       component: PurchaseHome,
       meta: {
-        requiresAuth: true, 
-        permission: 'purchase.*'
+        requiresAuth: true
       }
     },
     {
@@ -792,8 +787,7 @@ const routes = [
       name: 'account-home',
       component: AccountHome,
       meta: {
-        requiresAuth: true, 
-        permission: 'account.*'
+        requiresAuth: true
       }
     },
     {
@@ -989,8 +983,7 @@ const routes = [
       name: 'payment-customer.index',
       component: PaymentCustomerIndex,
       meta: {
-        requiresAuth: true, 
-        permission: ''
+        requiresAuth: true
       }
     },
     {
@@ -999,7 +992,7 @@ const routes = [
       component: PaymentCustomerCreate,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'customer_payment.create'
       }
     },
     {
@@ -1008,7 +1001,7 @@ const routes = [
       component: PaymentCustomerTrashed,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'customer_payment.read'
       }
     },
     {
@@ -1017,7 +1010,7 @@ const routes = [
       component: PaymentCustomerEdit,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'customer_payment.update'
       }
     },
     {
@@ -1026,7 +1019,7 @@ const routes = [
       component: PaymentCustomerShow,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'customer_payment.read'
       }
     },
 
@@ -1037,7 +1030,7 @@ const routes = [
       component: PaymentSupplierIndex,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'supplier_payment.read'
       }
     },
     {
@@ -1046,7 +1039,7 @@ const routes = [
       component: PaymentSupplierCreate,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'supplier_payment.create'
       }
     },
     {
@@ -1055,7 +1048,7 @@ const routes = [
       component: PaymentSupplierTrashed,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'supplier_payment.read'
       }
     },
     {
@@ -1064,7 +1057,7 @@ const routes = [
       component: PaymentSupplierEdit,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'supplier_payment.update'
       }
     },
     {
@@ -1073,7 +1066,7 @@ const routes = [
       component: PaymentSupplierShow,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'supplier_payment.read'
       }
     },
 
@@ -1086,8 +1079,7 @@ const routes = [
       name: 'stock-home',
       component: StockHome,
       meta: {
-        requiresAuth: true, 
-        permission: ''
+        requiresAuth: true
       }
     },
 
@@ -1098,7 +1090,7 @@ const routes = [
       component: StockAdjustmentIndex,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'stock_operation.read'
       }
     },
     {
@@ -1107,7 +1099,7 @@ const routes = [
       component: StockAdjustmentCreate,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'stock_operation.create'
       }
     },
     {
@@ -1116,7 +1108,7 @@ const routes = [
       component: StockAdjustmentTrashed,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'stock_operation.read'
       }
     },
     {
@@ -1125,7 +1117,7 @@ const routes = [
       component: StockAdjustmentEdit,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'stock_operation.update'
       }
     },
     {
@@ -1134,7 +1126,7 @@ const routes = [
       component: StockAdjustmentShow,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'stock_operation.read'
       }
     },
 
@@ -1160,8 +1152,7 @@ const routes = [
       name: 'setting-home',
       component: SettingHome,
       meta: {
-        requiresAuth: true, 
-        permission: ''
+        requiresAuth: true
       }
     },
     {
@@ -1170,7 +1161,7 @@ const routes = [
       component: GeneralSetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1179,7 +1170,7 @@ const routes = [
       component: InventorySetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1188,7 +1179,7 @@ const routes = [
       component: SalesSetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1197,7 +1188,7 @@ const routes = [
       component: AccountingSetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1206,7 +1197,7 @@ const routes = [
       component: PurchaseSetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
 
@@ -1216,7 +1207,7 @@ const routes = [
       component: NotificationSetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1225,7 +1216,7 @@ const routes = [
       component: SystemSetting,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
 
@@ -1236,7 +1227,7 @@ const routes = [
       component: Profile,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
 
@@ -1248,7 +1239,7 @@ const routes = [
       component: UserIndex,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1257,7 +1248,7 @@ const routes = [
       component: UserCreate,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1266,7 +1257,7 @@ const routes = [
       component: UserTrashed,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1275,7 +1266,7 @@ const routes = [
       component: UserEdit,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1284,7 +1275,7 @@ const routes = [
       component: UserShow,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
 
@@ -1295,7 +1286,7 @@ const routes = [
       component: RoleIndex,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1304,7 +1295,7 @@ const routes = [
       component: RoleCreate,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1313,7 +1304,7 @@ const routes = [
       component: RoleTrashed,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1322,7 +1313,7 @@ const routes = [
       component: RoleEdit,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     {
@@ -1331,7 +1322,7 @@ const routes = [
       component: RoleShow,
       meta: {
         requiresAuth: true, 
-        permission: ''
+        permission: 'setting.create'
       }
     },
     

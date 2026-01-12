@@ -51,7 +51,7 @@ const balance = () => grandTotal() - sale.value.paid
 
 // ------------------------
 // Buttons
-const goBack = () => router.push('/sale/retail-sale/index')
+const goBack = () => router.push('/sale/index')
 const createSale = () => alert('Create new sale!')
 const deleteSale = () => {
   if (confirm('Are you sure you want to delete this sale?')) alert('Deleted!')

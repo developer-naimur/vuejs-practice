@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
-import { $routes, $labels } from '@/constants/retailSale'
+import { $routes, $labels } from '@/constants/sale'
 import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
@@ -69,7 +69,7 @@ const selectCustomer = (c) => {
   customer.value = c
 
   // Navigate to same page with selected customer's id in the URL
-  router.push(`/sale/retail-sale/create/${c.id}`)
+  router.push(`/sale/create/${c.id}`)
 }
 
 const resetFilters = () => searchQuery.value = ''

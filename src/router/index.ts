@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useUserStore } from '@/stores/useUserStore';
 
 
 //---------------------------------------------------------------
@@ -28,6 +29,13 @@ import BrandCreate from '../views/Product/Brand/Create.vue'
 import BrandEdit from '../views/Product/Brand/Edit.vue'
 import BrandShow from '../views/Product/Brand/Show.vue'
 import BrandTrashed from '../views/Product/Brand/Trashed.vue'
+
+// Category
+import CategoryIndex from '../views/Product/Category/Index.vue'
+import CategoryCreate from '../views/Product/Category/Create.vue'
+import CategoryEdit from '../views/Product/Category/Edit.vue'
+import CategoryShow from '../views/Product/Category/Show.vue'
+import CategoryTrashed from '../views/Product/Category/Trashed.vue'
 
 // Unit
 import UnitIndex from '../views/Product/Unit/Index.vue'
@@ -60,17 +68,17 @@ import getSupplier from '../views/Contact/Supplier/getSupplier.vue'
 //---------------------------------------------------
 import SaleHome from '../views/Sale/Home.vue'
 // Retail Sale
-import RetailSaleIndex from '../views/Sale/RetailSale/Index.vue'
-import RetailSaleCreate from '../views/Sale/RetailSale/Create.vue'
-import RetailSaleEdit from '../views/Sale/RetailSale/Edit.vue'
-import RetailSaleShow from '../views/Sale/RetailSale/Show.vue'
-import RetailSaleTrashed from '../views/Sale/RetailSale/Trashed.vue'
+import Index from '../views/Sale/Index.vue'
+import Create from '../views/Sale/Create.vue'
+import Edit from '../views/Sale/Edit.vue'
+import Show from '../views/Sale/Show.vue'
+import Trashed from '../views/Sale/Trashed.vue'
 // Retail Return Sale
-import RetailSaleReturnIndex from '../views/Sale/RetailSale/Return/Index.vue'
-import RetailSaleReturnCreate from '../views/Sale/RetailSale/Return/Create.vue'
-import RetailSaleReturnEdit from '../views/Sale/RetailSale/Return/Edit.vue'
-import RetailSaleReturnShow from '../views/Sale/RetailSale/Return/Show.vue'
-import RetailSaleReturnTrashed from '../views/Sale/RetailSale/Return/Trashed.vue'
+import ReturnIndex from '../views/Sale/Return/Index.vue'
+import ReturnCreate from '../views/Sale/Return/Create.vue'
+import ReturnEdit from '../views/Sale/Return/Edit.vue'
+import ReturnShow from '../views/Sale/Return/Show.vue'
+import ReturnTrashed from '../views/Sale/Return/Trashed.vue'
 
 //---------------------------------------------------
 // Purchase
@@ -202,13 +210,19 @@ const routes = [
   {
     path: '/login',
     name: 'login',
-    component: Login
+    component: Login,
+    meta: {
+      guestOnly: true
+    }
   },
 
   {
     path: '/register',
     name: 'register',
-    component: Register
+    component: Register,
+    meta: {
+      guestOnly: true
+    }
   },
 
 
@@ -216,7 +230,10 @@ const routes = [
   {
     path: '/dashboard',
     name: 'dashboard',
-    component: Dashboard
+    component: Dashboard,
+    meta: {
+      requiresAuth: true
+    }
   },
 
   //-------------------------------------------------------
@@ -226,33 +243,57 @@ const routes = [
     {
       path: '/product/home',
       name: 'product-home',
-      component: ProductHome
+      component: ProductHome,
+      meta: {
+        requiresAuth: true, 
+        permission: 'product.*'
+      }
     },
 
     {
       path: '/product',
       name: 'product.index',
-      component: ProductIndex
+      component: ProductIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'product.read'
+      }
     },
     {
       path: '/product/create',
       name: 'product.create',
-      component: ProductCreate
+      component: ProductCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'product.create'
+      }
     },
     {
       path: '/product/trashed',
       name: 'product.trashed',
-      component: ProductTrashed
+      component: ProductTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'product.read'
+      }
     },
     {
       path: '/product/:id/edit',
       name: 'product.edit',
-      component: ProductEdit
+      component: ProductEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'product.update'
+      }
     },
     {
       path: '/product/:id',
       name: 'product.show',
-      component: ProductShow
+      component: ProductShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'product.read'
+      }
     },
 
   // =============================
@@ -261,27 +302,96 @@ const routes = [
     {
       path: '/product/brand',
       name: 'brand.index',
-      component: BrandIndex
+      component: BrandIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'brand.read'
+      }
     },
     {
       path: '/product/brand/create',
       name: 'brand.create',
-      component: BrandCreate
+      component: BrandCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'brand.create'
+      }
     },
     {
       path: '/product/brand/trashed',
       name: 'brand.trashed',
-      component: BrandTrashed
+      component: BrandTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'brand.read'
+      }
     },
     {
       path: '/product/brand/:id/edit',
       name: 'brand.edit',
-      component: BrandEdit
+      component: BrandEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'brand.update'
+      }
     },
     {
       path: '/product/brand/:id',
       name: 'brand.show',
-      component: BrandShow
+      component: BrandShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'brand.read'
+      }
+    },
+
+  // =============================
+  // Category (under product)
+  // =============================
+    {
+      path: '/product/category',
+      name: 'category.index',
+      component: CategoryIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'category.read'
+      }
+    },
+    {
+      path: '/product/category/create',
+      name: 'category.create',
+      component: CategoryCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'category.create'
+      }
+    },
+    {
+      path: '/product/category/trashed',
+      name: 'category.trashed',
+      component: CategoryTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'category.read'
+      }
+    },
+    {
+      path: '/product/category/:id/edit',
+      name: 'category.edit',
+      component: CategoryEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'category.update'
+      }
+    },
+    {
+      path: '/product/category/:id',
+      name: 'category.show',
+      component: CategoryShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'category.read'
+      }
     },
 
   // =============================
@@ -290,27 +400,47 @@ const routes = [
     {
       path: '/product/unit',
       name: 'unit.index',
-      component: UnitIndex
+      component: UnitIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'unit.read'
+      }
     },
     {
       path: '/product/unit/create',
       name: 'unit.create',
-      component: UnitCreate
+      component: UnitCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'unit.create'
+      }
     },
     {
       path: '/product/unit/trashed',
       name: 'unit.trashed',
-      component: UnitTrashed
+      component: UnitTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'unit.read'
+      }
     },
     {
       path: '/product/unit/:id/edit',
       name: 'unit.edit',
-      component: UnitEdit
+      component: UnitEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'unit.update'
+      }
     },
     {
       path: '/product/unit/:id',
       name: 'unit.show',
-      component: UnitShow
+      component: UnitShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'unit.read'
+      }
     },
 
 
@@ -322,7 +452,11 @@ const routes = [
     {
       path: '/contact/home',
       name: 'contact-home',
-      component: ContactHome
+      component: ContactHome,
+      meta: {
+        requiresAuth: true, 
+        permission: 'contact.*'
+      }
     },
 
     // =============================
@@ -331,32 +465,56 @@ const routes = [
     {
       path: '/customer',
       name: 'customer.index',
-      component: CustomerIndex
+      component: CustomerIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'customer.read'
+      }
     },
     {
       path: '/customer/create',
       name: 'customer.create',
-      component: CustomerCreate
+      component: CustomerCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'customer.create'
+      }
     },
     {
       path: '/customer/trashed',
       name: 'customer.trashed',
-      component: CustomerTrashed
+      component: CustomerTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'customer.read'
+      }
     },
     {
       path: '/customer/:id/edit',
       name: 'customer.edit',
-      component: CustomerEdit
+      component: CustomerEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'customer.update'
+      }
     },
     {
       path: '/customer/:id',
       name: 'customer.show',
-      component: CustomerShow
+      component: CustomerShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'customer.read'
+      }
     },
     {
       path: '/get-customer',
       name: 'customer.get-customer',
-      component: getCustomer
+      component: getCustomer,
+      meta: {
+        requiresAuth: true, 
+        permission: 'customer.read'
+      }
     },
 
   // =============================
@@ -365,32 +523,56 @@ const routes = [
     {
       path: '/supplier',
       name: 'supplier.index',
-      component: SupplierIndex
+      component: SupplierIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'supplier.read'
+      }
     },
     {
       path: '/supplier/create',
       name: 'supplier.create',
-      component: SupplierCreate
+      component: SupplierCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'supplier.create'
+      }
     },
     {
       path: '/supplier/trashed',
       name: 'supplier.trashed',
-      component: SupplierTrashed
+      component: SupplierTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'supplier.read'
+      }
     },
     {
       path: '/supplier/:id/edit',
       name: 'supplier.edit',
-      component: SupplierEdit
+      component: SupplierEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'supplier.update'
+      }
     },
     {
       path: '/supplier/:id',
       name: 'supplier.show',
-      component: SupplierShow
+      component: SupplierShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'supplier.read'
+      }
     },
     {
       path: '/get-supplier',
       name: 'supplier.get-supplier',
-      component: getSupplier
+      component: getSupplier,
+      meta: {
+        requiresAuth: true, 
+        permission: 'supplier.read'
+      }
     },
 
 
@@ -400,58 +582,102 @@ const routes = [
     {
       path: '/sale/home',
       name: 'sale-home',
-      component: SaleHome
+      component: SaleHome,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale.*'
+      }
     },
     {
-      path: '/sale/retail-sale',
-      name: 'retail-sale.index',
-      component: RetailSaleIndex
+      path: '/sale',
+      name: 'sale.index',
+      component: Index,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale.read'
+      }
     },
     {
-      path: '/sale/retail-sale/create/:customer_id',
-      name: 'retail-sale.create',
-      component: RetailSaleCreate
+      path: '/sale/create/:customer_id',
+      name: 'sale.create',
+      component: Create,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale.read'
+      }
     },
     {
-      path: '/sale/retail-sale/trashed',
-      name: 'retail-sale.trashed',
-      component: RetailSaleTrashed
+      path: '/sale/trashed',
+      name: 'sale.trashed',
+      component: Trashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale.read'
+      }
     },
     {
-      path: '/sale/retail-sale/:id/edit',
-      name: 'retail-sale.edit',
-      component: RetailSaleEdit
+      path: '/sale/:id/edit',
+      name: 'sale.edit',
+      component: Edit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale.read'
+      }
     },
     {
-      path: '/sale/retail-sale/:id',
-      name: 'retail-sale.show',
-      component: RetailSaleShow
+      path: '/sale/:id',
+      name: 'sale.show',
+      component: Show,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale.read'
+      }
     },
     //Return
     {
-      path: '/sale/retail-sale/return',
-      name: 'retail-sale-return.index',
-      component: RetailSaleReturnIndex
+      path: '/sale/return',
+      name: 'sale-return.index',
+      component: ReturnIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale_return.read'
+      }
     },
     {
-      path: '/sale/retail-sale/return/create',
-      name: 'retail-sale-return.create',
-      component: RetailSaleReturnCreate
+      path: '/sale/return/create',
+      name: 'sale-return.create',
+      component: ReturnCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale_return.create'
+      }
     },
     {
-      path: '/sale/retail-sale/return/trashed',
-      name: 'retail-sale-return.trashed',
-      component: RetailSaleReturnTrashed
+      path: '/sale/return/trashed',
+      name: 'sale-return.trashed',
+      component: ReturnTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale_return.read'
+      }
     },
     {
-      path: '/sale/retail-sale/return/:id/edit',
-      name: 'retail-sale-return.edit',
-      component: RetailSaleReturnEdit
+      path: '/sale/return/:id/edit',
+      name: 'sale-return.edit',
+      component: ReturnEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale_return.update'
+      }
     },
     {
-      path: '/sale/retail-sale/return/:id',
-      name: 'retail-sale-return.show',
-      component: RetailSaleReturnShow
+      path: '/sale/return/:id',
+      name: 'sale-return.show',
+      component: ReturnShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'sale_return.read'
+      }
     },
 
   //-------------------------------------------------------
@@ -460,58 +686,102 @@ const routes = [
     {
       path: '/purchase/home',
       name: 'purchase-home',
-      component: PurchaseHome
+      component: PurchaseHome,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase.*'
+      }
     },
     {
       path: '/purchase',
       name: 'purchase.index',
-      component: PurchaseIndex
+      component: PurchaseIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase.read'
+      }
     },
     {
       path: '/purchase/create/:supplier_id',
       name: 'purchase.create',
-      component: PurchaseCreate
+      component: PurchaseCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase.create'
+      }
     },
     {
       path: '/purchase/trashed',
       name: 'purchase.trashed',
-      component: PurchaseTrashed
+      component: PurchaseTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase.read'
+      }
     },
     {
       path: '/purchase/:id/edit',
       name: 'purchase.edit',
-      component: PurchaseEdit
+      component: PurchaseEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase.update'
+      }
     },
     {
       path: '/purchase/:id',
       name: 'purchase.show',
-      component: PurchaseShow
+      component: PurchaseShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase.read'
+      }
     },
     //Return
     {
       path: '/purchase/return',
       name: 'purchase-return.index',
-      component: PurchaseReturnIndex
+      component: PurchaseReturnIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase_return.read'
+      }
     },
     {
       path: '/purchase-return/return/create',
       name: 'purchase-return.create',
-      component: PurchaseReturnCreate
+      component: PurchaseReturnCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase_return.create'
+      }
     },
     {
       path: '/purchase-return/return/trashed',
       name: 'purchase-return.trashed',
-      component: PurchaseReturnTrashed
+      component: PurchaseReturnTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase_return.read'
+      }
     },
     {
       path: '/purchase-return/return/:id/edit',
       name: 'purchase-return.edit',
-      component: PurchaseReturnEdit
+      component: PurchaseReturnEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase_return.update'
+      }
     },
     {
       path: '/purchase-return/return/:id',
       name: 'purchase-return.show',
-      component: PurchaseReturnShow
+      component: PurchaseReturnShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'purchase_return.read'
+      }
     },
 
   //-------------------------------------------------------
@@ -520,110 +790,194 @@ const routes = [
     {
       path: '/account/home',
       name: 'account-home',
-      component: AccountHome
+      component: AccountHome,
+      meta: {
+        requiresAuth: true, 
+        permission: 'account.*'
+      }
     },
     {
       path: '/account',
       name: 'account.index',
-      component: AccountIndex
+      component: AccountIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'account.read'
+      }
     },
     {
       path: '/account/create',
       name: 'account.create',
-      component: AccountCreate
+      component: AccountCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'account.create'
+      }
     },
     {
       path: '/account/trashed',
       name: 'account.trashed',
-      component: AccountTrashed
+      component: AccountTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'account.read'
+      }
     },
     {
       path: '/account/:id/edit',
       name: 'account.edit',
-      component: AccountEdit
+      component: AccountEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'account.update'
+      }
     },
     {
       path: '/account/:id',
       name: 'account.show',
-      component: AccountShow
+      component: AccountShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'account.read'
+      }
     },
     //Fund Transfer
     {
       path: '/account/fund-transfer',
       name: 'account-fund-transfer.index',
-      component: FundTransferIndex
+      component: FundTransferIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'fund_transfer.read'
+      }
     },
     {
       path: '/account/fund-transfer/create',
       name: 'account-fund-transfer.create',
-      component: FundTransferCreate
+      component: FundTransferCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'fund_transfer.create'
+      }
     },
     {
       path: '/account/fund-transfer/trashed',
       name: 'account-fund-transfer.trashed',
-      component: FundTransferTrashed
+      component: FundTransferTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'fund_transfer.read'
+      }
     },
     {
       path: '/account/fund-transfer/:id/edit',
       name: 'account-fund-transfer.edit',
-      component: FundTransferEdit
+      component: FundTransferEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'fund_transfer.update'
+      }
     },
     {
       path: '/account/fund-transfer/:id',
       name: 'account-fund-transfer.show',
-      component: FundTransferShow
+      component: FundTransferShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'fund_transfer.read'
+      }
     },
     //IncomeExpense
     {
       path: '/account/income-expense',
       name: 'account-income-expense.index',
-      component: IncomeExpenseIndex
+      component: IncomeExpenseIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense.read'
+      }
     },
     {
       path: '/account/income-expense/create',
       name: 'account-income-expense.create',
-      component: IncomeExpenseCreate
+      component: IncomeExpenseCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense.create'
+      }
     },
     {
       path: '/account/income-expense/trashed',
       name: 'account-income-expense.trashed',
-      component: IncomeExpenseTrashed
+      component: IncomeExpenseTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense.read'
+      }
     },
     {
       path: '/account/income-expense/:id/edit',
       name: 'account-income-expense.edit',
-      component: IncomeExpenseEdit
+      component: IncomeExpenseEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense.update'
+      }
     },
     {
       path: '/account/income-expense/:id',
       name: 'account-income-expense.show',
-      component: IncomeExpenseShow
+      component: IncomeExpenseShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense.read'
+      }
     },
     //IncomeExpenseType
     {
       path: '/account/income-expense/type',
       name: 'account-income-expense-type.index',
-      component: IncomeExpenseTypeIndex
+      component: IncomeExpenseTypeIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense_type.read'
+      }
     },
     {
       path: '/account/income-expense/type/create',
       name: 'account-income-expense-type.create',
-      component: IncomeExpenseTypeCreate
+      component: IncomeExpenseTypeCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense_type.create'
+      }
     },
     {
       path: '/account/income-expense/type/trashed',
       name: 'account-income-expense-type.trashed',
-      component: IncomeExpenseTypeTrashed
+      component: IncomeExpenseTypeTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense_type.read'
+      }
     },
     {
       path: '/account/income-expense/type/:id/edit',
       name: 'account-income-expense-type.edit',
-      component: IncomeExpenseTypeEdit
+      component: IncomeExpenseTypeEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense_type.update'
+      }
     },
     {
       path: '/account/income-expense/type/:id',
       name: 'account-income-expense-type.show',
-      component: IncomeExpenseTypeShow
+      component: IncomeExpenseTypeShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'income_expense_type.read'
+      }
     },
 
   //-------------------------------------------------------
@@ -633,54 +987,94 @@ const routes = [
     {
       path: '/payment/customer',
       name: 'payment-customer.index',
-      component: PaymentCustomerIndex
+      component: PaymentCustomerIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/customer/create',
       name: 'payment-customer.create',
-      component: PaymentCustomerCreate
+      component: PaymentCustomerCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/customer/trashed',
       name: 'payment-customer.trashed',
-      component: PaymentCustomerTrashed
+      component: PaymentCustomerTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/customer/:id/edit',
       name: 'payment-customer.edit',
-      component: PaymentCustomerEdit
+      component: PaymentCustomerEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/customer/:id',
       name: 'payment-customer.show',
-      component: PaymentCustomerShow
+      component: PaymentCustomerShow,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
     //PaymentSupplier
     {
       path: '/payment/supplier',
       name: 'payment-supplier.index',
-      component: PaymentSupplierIndex
+      component: PaymentSupplierIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/supplier/create',
       name: 'payment-supplier.create',
-      component: PaymentSupplierCreate
+      component: PaymentSupplierCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/supplier/trashed',
       name: 'payment-supplier.trashed',
-      component: PaymentSupplierTrashed
+      component: PaymentSupplierTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/supplier/:id/edit',
       name: 'payment-supplier.edit',
-      component: PaymentSupplierEdit
+      component: PaymentSupplierEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/payment/supplier/:id',
       name: 'payment-supplier.show',
-      component: PaymentSupplierShow
+      component: PaymentSupplierShow,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
   //-------------------------------------------------------
@@ -690,34 +1084,58 @@ const routes = [
     {
       path: '/stock/home',
       name: 'stock-home',
-      component: StockHome
+      component: StockHome,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
     //Stock Adjustment
     {
       path: '/stock/operation',
       name: 'stock-operation.index',
-      component: StockAdjustmentIndex
+      component: StockAdjustmentIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/stock/operation/create',
       name: 'stock-operation.create',
-      component: StockAdjustmentCreate
+      component: StockAdjustmentCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/stock/operation/trashed',
       name: 'stock-operation.trashed',
-      component: StockAdjustmentTrashed
+      component: StockAdjustmentTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/stock/operation/:id/edit',
       name: 'stock-operation.edit',
-      component: StockAdjustmentEdit
+      component: StockAdjustmentEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/stock/operation/:id',
       name: 'stock-operation.show',
-      component: StockAdjustmentShow
+      component: StockAdjustmentShow,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
 
@@ -727,7 +1145,11 @@ const routes = [
     {
       path: '/report/home',
       name: 'report-home',
-      component: ReportHome
+      component: ReportHome,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
   //-------------------------------------------------------
@@ -736,50 +1158,86 @@ const routes = [
     {
       path: '/setting/home',
       name: 'setting-home',
-      component: SettingHome
+      component: SettingHome,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/general',
       name: 'general-setting.index',
-      component: GeneralSetting
+      component: GeneralSetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/inventory-product',
       name: 'inventory-product-setting.index',
-      component: InventorySetting
+      component: InventorySetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/sale-transaction',
       name: 'sales-transaction-setting.index',
-      component: SalesSetting
+      component: SalesSetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/accounting-finance',
       name: 'accounting-finance-setting.index',
-      component: AccountingSetting
+      component: AccountingSetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/purchase-supplier',
       name: 'purchase-supplier-setting.index',
-      component: PurchaseSetting
+      component: PurchaseSetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
     {
       path: '/setting/notification',
       name: 'notification-setting.index',
-      component: NotificationSetting
+      component: NotificationSetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/system',
       name: 'system-setting.index',
-      component: SystemSetting
+      component: SystemSetting,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
     // Profile
     {
       path: '/setting/profile',
       name: 'profile-setting.index',
-      component: Profile
+      component: Profile,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
 
@@ -787,54 +1245,94 @@ const routes = [
     {
       path: '/setting/user',
       name: 'user.index',
-      component: UserIndex
+      component: UserIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/create',
       name: 'user.create',
-      component: UserCreate
+      component: UserCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/trashed',
       name: 'user.trashed',
-      component: UserTrashed
+      component: UserTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/:id/edit',
       name: 'user.edit',
-      component: UserEdit
+      component: UserEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/:id',
       name: 'user.show',
-      component: UserShow
+      component: UserShow,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
 
     //Role
     {
       path: '/setting/user/role',
       name: 'user.role.index',
-      component: RoleIndex
+      component: RoleIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/role/create',
       name: 'user.role.create',
-      component: RoleCreate
+      component: RoleCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/role/trashed',
       name: 'user.role.trashed',
-      component: RoleTrashed
+      component: RoleTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/role/:id/edit',
       name: 'user.role.edit',
-      component: RoleEdit
+      component: RoleEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     {
       path: '/setting/user/role/:id',
       name: 'user.role.show',
-      component: RoleShow
+      component: RoleShow,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
     },
     
 
@@ -844,5 +1342,44 @@ const router = createRouter({
   history: createWebHistory(),
   routes
 })
+
+
+// 🔐 Navigation Guard
+router.beforeEach(async (to, from, next) => {
+  const token = localStorage.getItem('token')
+  const isAuthenticated = !!token
+  const userStore = useUserStore()
+
+  // 🔒 Auth required route
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    return next('/login')
+  }
+
+  // 🚫 Guest only route
+  if (to.meta.guestOnly && isAuthenticated) {
+    return next('/dashboard')
+  }
+
+  // 🧠 Load user on refresh
+  if (isAuthenticated && !userStore.user) {
+    try {
+      await userStore.fetchUser()
+    } catch (error) {
+      userStore.logout()
+      return next('/login')
+    }
+  }
+
+  // 🚀 Permission check
+  if (to.meta.permission) {
+    if (!userStore.userCan(to.meta.permission as string)) {
+      return next('/403') // or /dashboard
+    }
+  }
+
+  next()
+})
+
+
 
 export default router

@@ -2,9 +2,9 @@
    ROUTES (GLOBAL)
 ===================================================== */
 export const $routes = {
-  index   : '/sale/retail-sale',
+  index   : '/sale',
   create  : '/get-customer',
-  trash   : '/sale/retail-sale/trashed',
+  trash   : '/sale/trashed',
 }
 
 /* =====================================================

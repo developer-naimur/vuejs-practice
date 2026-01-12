@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
-import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
+import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-import { $routes, $labels } from '@/constants/retailSale'
+import { $routes, $labels } from '@/constants/brand'
 
 
 /* =====================================================
@@ -11,6 +11,7 @@ import { $routes, $labels } from '@/constants/retailSale'
 ===================================================== */
 const $breadcrumbs = [
   { label: 'Home', to: '/' },
+  { label: $labels.plural_name, to: $routes.index },
   { label: $labels.singular_name + ' Trash Lists' }
 ]
 
@@ -35,11 +36,11 @@ const $rows = ref([])
 const loadData = async () => {
   // replace with axios later
   $rows.value = [
-    { id: 1, reference: 'S-1001', customer: 'John Doe', total: 250, date: '2025-12-20', status: 'Completed' },
-    { id: 2, reference: 'S-1002', customer: 'Jane Smith', total: 150, date: '2025-12-21', status: 'Pending' },
-    { id: 3, reference: 'S-1003', customer: 'Alex Brown', total: 300, date: '2025-12-21', status: 'Cancelled' },
-    { id: 4, reference: 'S-1004', customer: 'Mary Jane', total: 400, date: '2025-12-22', status: 'Completed' },
-    { id: 5, reference: 'S-1005', customer: 'Peter Parker', total: 500, date: '2025-12-22', status: 'Pending' }
+    { id: 1, name: 'Pran', status: 'Active' },
+    { id: 2, name: 'Aarong', status: 'Pending' },
+    { id: 3, name: 'Rong', status: 'Inactive' },
+    { id: 4, name: 'Transcom', status: 'Active' },
+    { id: 5, name: 'Bata', status: 'Pending' }
   ]
 }
 onMounted(loadData)
@@ -50,7 +51,7 @@ onMounted(loadData)
 const $rowsFiltered = computed(() => {
   return $rows.value.filter(r => {
     const matchSearch =
-      r.reference.toLowerCase().includes($searchText.value.toLowerCase())
+      r.name.toLowerCase().includes($searchText.value.toLowerCase())
     const matchStatus =
       $statusValue.value ? r.status === $statusValue.value : true
     return matchSearch && matchStatus
@@ -88,7 +89,7 @@ const resetFilters = () => {
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
-    <SalesMenu />
+    <ProductMenu />
   </div>
 
   <div class="flex-1 lg:ml-[320px] p-4">
@@ -115,8 +116,6 @@ const resetFilters = () => {
           </svg>
           Back to All
         </router-link>
-
-        
       </div>
     </div>
 
@@ -158,12 +157,9 @@ const resetFilters = () => {
     <div class="overflow-x-auto">
       <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead class="bg-gray-100">
-          <tr>    
+          <tr>
             <th class="px-4 py-2 text-left">#</th>
-            <th class="px-4 py-2 text-left">Reference</th>
-            <th class="px-4 py-2 text-left">Customer</th>
-            <th class="px-4 py-2 text-right">Total</th>
-            <th class="px-4 py-2 text-left">Date</th>
+            <th class="px-4 py-2 text-left">Name</th>
             <th class="px-4 py-2 text-left">Status</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
@@ -175,37 +171,19 @@ const resetFilters = () => {
           
           <tr v-for="(row, i) in $rowsPaginated" :key="row.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
-            
-             <td class="px-4 py-2 font-medium">
-              {{ row.reference }}
-            </td>
-
-            <td class="px-4 py-2">
-              {{ row.customer }}
-            </td>
-
-            <td class="px-4 py-2 text-right">
-              ৳ {{ row.total }}
-            </td>
-
-            <td class="px-4 py-2">
-              {{ row.date }}
-            </td>
-
-            <!-- Status -->
+            <td class="px-4 py-2">{{ row.name }}</td>
             <td class="px-4 py-2">
               <span
                 class="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full"
                 :class="{
-                  'bg-green-500': row.status === 'Completed',
+                  'bg-green-500': row.status === 'Active',
                   'bg-yellow-500': row.status === 'Pending',
-                  'bg-red-500': row.status === 'Cancelled'
+                  'bg-red-500': row.status === 'Inactive'
                 }"
               >
                 {{ row.status }}
               </span>
             </td>
-
             <td class="px-4 py-2 text-center">
               <div class="flex justify-center gap-2">
                 <button @click="editItem(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">

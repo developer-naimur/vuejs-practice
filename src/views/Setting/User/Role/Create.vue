@@ -47,26 +47,28 @@ const successMessage = ref<string>('');
 
 const submitRows = async () => {
   loading.value = true;
-  try {
-    await axiosInstance.post(`/roles`, );
+  errorMessage.value = '';
+  successMessage.value = '';
 
-    //router.push(`/user/index`);
+  try {
+    await axiosInstance.post('/roles', {
+      roles: newRows.value
+    });
 
     successMessage.value = 'Data has been created successfully!';
+    newRows.value = [{ name: '', status: '' }]; // optional reset
 
   } catch (err) {
-
     if (err instanceof AxiosError) {
-      errorMessage.value = (err.response?.data?.message || "An error occurred while creating the user.");
+      errorMessage.value =
+        err.response?.data?.message || 'An error occurred while creating rows.';
     } else {
-      errorMessage.value = "An unexpected error occurred.";
+      errorMessage.value = 'An unexpected error occurred.';
     }
-
   } finally {
     loading.value = false;
   }
 };
-
 </script>
 
 <template>
@@ -89,6 +91,7 @@ const submitRows = async () => {
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
         <h2 class="text-2xl font-semibold text-gray-700">Add New Role</h2>
+        {{ errorMessage }}
       </div>
 
       <!-- Buttons -->
@@ -126,8 +129,8 @@ const submitRows = async () => {
           <input type="text" v-model="row.name" placeholder="Name" class="border p-3" />
           <select v-model="row.status" class="border p-3">
           	<option value="">Select</option>
-          	<option value="0">Inactive</option>
-          	<option value="1">Active</option>
+          	<option value="inactive">Inactive</option>
+          	<option value="active">Active</option>
           </select>
 
        </div>

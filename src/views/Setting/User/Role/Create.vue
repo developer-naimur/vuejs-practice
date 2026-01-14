@@ -1,8 +1,17 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
+
 
 const breadcrumbs = [
   { label: 'Home', to: '/' },
@@ -31,7 +40,33 @@ const removeField = (index) => {
   }
 }
 
-const submitRows = () => console.log('Submitted rows:', newRows.value)
+
+const loading = ref<boolean>(false);
+const errorMessage = ref<string>('');
+const successMessage = ref<string>('');
+
+const submitRows = async () => {
+  loading.value = true;
+  try {
+    await axiosInstance.post(`/roles`, );
+
+    //router.push(`/user/index`);
+
+    successMessage.value = 'Data has been created successfully!';
+
+  } catch (err) {
+
+    if (err instanceof AxiosError) {
+      errorMessage.value = (err.response?.data?.message || "An error occurred while creating the user.");
+    } else {
+      errorMessage.value = "An unexpected error occurred.";
+    }
+
+  } finally {
+    loading.value = false;
+  }
+};
+
 </script>
 
 <template>
@@ -82,7 +117,6 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
     </div>
 
     <!-- Form -->
-    <FormSkeleton rows="1" columns="2"/>
     <form @submit.prevent="submitRows" class="space-y-4">
 
       <div v-for="(row, index) in newRows" :key="index"

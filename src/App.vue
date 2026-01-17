@@ -4,6 +4,7 @@ import { ref, computed, watchEffect } from 'vue'
 
 import Header from '@/components/inc/Header.vue'
 import MainSidebar from '@/components/inc/MainSidebar.vue'
+import GlobalMessage from '@/components/GlobalMessage.vue'
 
 const currentMenu = ref('')
 const handleMenuSelected = (menu: string) => {
@@ -32,6 +33,7 @@ const isAuthRoute = computed(() => authRoutes.includes(route.path))
           !isAuthRoute ? 'mt-[55px] lg:mt-[50px] lg:ml-[40px] lg:mt-[40px] lg:p-4' : 'bg-gray-100 flex items-center justify-center h-screen'
         ]"
       >
+        <GlobalMessage />
         <RouterView />
       </div>
     </div>

@@ -1,9 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import { $routes, $labels } from '@/constants/brand'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
 
 
 /* =====================================================
@@ -43,7 +54,35 @@ const removeRowField = (index) => {
    Sumit Rows
 ===================================================== */
 
-const submitRows = () => console.log('Submitted rows:', newRows.value)
+
+
+const processing = ref<boolean>(false);
+const submitRows = async () => {
+
+  if (processing.value) return; // next time submit disable when current is proccessing
+
+  processing.value = true;
+
+  try {
+    await axiosInstance.post('/product-categories', {
+      categories: newRows.value
+    });
+
+    messageStore.showSuccess('Data has been created successfully!');
+
+    newRows.value = [{ name: '', status: '' }]; // optional reset
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+    } else {
+      messageStore.showError('An unexpected error occurred.');
+    }
+  } finally {
+    processing.value = false;
+  }
+};
+
 </script>
 
 <template>
@@ -92,8 +131,6 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
 
       </div>
     </div>
-
-    <FormSkeleton rows="1" columns="2"/>
     
     <!-- Form -->
     <form @submit.prevent="submitRows" class="space-y-4">
@@ -106,7 +143,7 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
           <label class="block text-gray-600 font-medium mb-1 text-sm">
             Name <span class="text-red-600">*</span>
           </label>
-          <input v-model="row.name" type="text" placeholder="Enter name"
+          <input v-model="row.name" type="text" placeholder="Enter name *"
                  class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition"/>
         </div>
 
@@ -117,7 +154,7 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
           </label>
           <select v-model="row.status"
                   class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
-            <option value="">Select</option>
+            <option value="">Status *</option>
             <option>Active</option>
             <option>Inactive</option>
           </select>
@@ -166,10 +203,15 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
 
       <!-- Submit -->
       <div>
-        <button type="submit"
-                class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer">
-          Submit All {{ $labels.plural_name }}
+
+        <button
+          type="submit"
+          :disabled="processing"
+          class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
         </button>
+    
       </div>
 
     </form>

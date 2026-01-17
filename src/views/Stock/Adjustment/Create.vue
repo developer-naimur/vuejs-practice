@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
@@ -7,6 +7,15 @@ import { useRouter } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import { $routes, $labels } from '@/constants/stockAdjustment'
 const router = useRouter()
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
 
 
 /* =====================================================

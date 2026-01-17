@@ -1,9 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { ref, computed } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 import { $routes, $labels } from '@/constants/accountIncomeExpenseType'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
 
 
 /* =====================================================
@@ -44,7 +55,33 @@ const removeRowField = (index) => {
 /* =====================================================
    Submit Rows
 ===================================================== */
-const submitRows = () => console.log('Submitted rows:', newRows.value)
+
+const processing = ref<boolean>(false);
+const submitRows = async () => {
+
+  if (processing.value) return; // next time submit disable when current is proccessing
+
+  processing.value = true;
+
+  try {
+    await axiosInstance.post('/other-income-expense-types', {
+      rows: newRows.value
+    });
+
+    messageStore.showSuccess('Data has been created successfully!');
+
+    newRows.value = [{ name: '', status: '' }]; // optional reset
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+    } else {
+      messageStore.showError('An unexpected error occurred.');
+    }
+  } finally {
+    processing.value = false;
+  }
+};
 </script>
 
 <template>
@@ -98,7 +135,6 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
     </div>
 
     <!-- Form -->
-    <FormSkeleton rows="1" columns="2"/>
     <form @submit.prevent="submitRows" class="space-y-4">
 
       <div v-for="(row, index) in newRows" :key="index"
@@ -169,10 +205,15 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
 
       <!-- Submit -->
       <div>
-        <button row="submit"
-                class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer">
-          Submit All {{ $labels.plural_name }}
+
+        <button
+          type="submit"
+          :disabled="processing"
+          class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
         </button>
+    
       </div>
 
     </form>

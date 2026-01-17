@@ -4,6 +4,9 @@ import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
 import { useRouter } from 'vue-router';
 import axiosInstance from '@/axiosInstance';
 import { AxiosError } from "axios";
@@ -41,32 +44,30 @@ const removeField = (index) => {
 }
 
 
-const loading = ref<boolean>(false);
-const errorMessage = ref<string>('');
-const successMessage = ref<string>('');
-
+const processing = ref<boolean>(false);
 const submitRows = async () => {
-  loading.value = true;
-  errorMessage.value = '';
-  successMessage.value = '';
+
+  if (processing.value) return; // next time submit disable when current is proccessing
+
+  processing.value = true;
 
   try {
     await axiosInstance.post('/roles', {
       roles: newRows.value
     });
 
-    successMessage.value = 'Data has been created successfully!';
+    messageStore.showSuccess('Data has been created successfully!');
+
     newRows.value = [{ name: '', status: '' }]; // optional reset
 
   } catch (err) {
     if (err instanceof AxiosError) {
-      errorMessage.value =
-        err.response?.data?.message || 'An error occurred while creating rows.';
+      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
     } else {
-      errorMessage.value = 'An unexpected error occurred.';
+      messageStore.showError('An unexpected error occurred.');
     }
   } finally {
-    loading.value = false;
+    processing.value = false;
   }
 };
 </script>
@@ -91,7 +92,6 @@ const submitRows = async () => {
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
         <h2 class="text-2xl font-semibold text-gray-700">Add New Role</h2>
-        {{ errorMessage }}
       </div>
 
       <!-- Buttons -->
@@ -126,9 +126,9 @@ const submitRows = async () => {
            class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4">
 
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="text" v-model="row.name" placeholder="Name" class="border p-3" />
+          <input type="text" v-model="row.name" placeholder="Name *" class="border p-3" />
           <select v-model="row.status" class="border p-3">
-          	<option value="">Select</option>
+          	<option value="">Status * </option>
           	<option value="inactive">Inactive</option>
           	<option value="active">Active</option>
           </select>
@@ -178,10 +178,15 @@ const submitRows = async () => {
 
       <!-- Submit -->
       <div>
-        <button type="submit"
-                class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer">
-          Submit All Roles
+
+        <button
+          type="submit"
+          :disabled="processing"
+          class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ processing ? 'Processing...' : 'Submit All Roles' }}
         </button>
+
       </div>
 
     </form>

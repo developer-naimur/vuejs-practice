@@ -1,9 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import Preloader from '@/components/skeleton/Preloader-1.vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
 
 /* Breadcrumb */
 const breadcrumbs = [

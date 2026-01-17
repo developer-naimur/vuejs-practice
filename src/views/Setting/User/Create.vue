@@ -1,8 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
+
 
 const breadcrumbs = [
   { label: 'Home', to: '/' },
@@ -30,8 +42,32 @@ const removeField = (index) => {
     newRows.value.splice(index, 1)
   }
 }
+const processing = ref<boolean>(false);
+const submitRows = async () => {
 
-const submitRows = () => console.log('Submitted rows:', newRows.value)
+  if (processing.value) return; // next time submit disable when current is proccessing
+
+  processing.value = true;
+
+  try {
+    await axiosInstance.post('/users', {
+      users: newRows.value
+    });
+
+    messageStore.showSuccess('Data has been created successfully!');
+
+    newRows.value = [{ name: '', status: '' }]; // optional reset
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+    } else {
+      messageStore.showError('An unexpected error occurred.');
+    }
+  } finally {
+    processing.value = false;
+  }
+};
 </script>
 
 <template>
@@ -82,18 +118,17 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
     </div>
 
     <!-- Form -->
-    <FormSkeleton rows="2" columns="4"/>
     <form @submit.prevent="submitRows" class="space-y-4">
 
       <div v-for="(row, index) in newRows" :key="index"
            class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4">
 
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="text" v-model="row.name" placeholder="Name" class="border p-3" />
-          <input type="text" v-model="row.phone" placeholder="Phone" class="border p-3" />
-          <input type="email" v-model="row.email" placeholder="Email" class="border p-3" />
+          <input type="text" v-model="row.name" placeholder="Name *" class="border p-3" />
+          <input type="text" v-model="row.phone" placeholder="Phone *" class="border p-3" />
+          <input type="email" v-model="row.email" placeholder="Email *" class="border p-3" />
           <select v-model="row.role" class="border p-3">
-          	<option value="">Select</option>
+          	<option value="">Role *</option>
           	<option value="0">Admin</option>
           	<option value="1">Manager</option>
           </select>
@@ -102,13 +137,13 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
 
-          <input type="text" v-model="row.username" placeholder="Username" class="border p-3" />
+          <input type="text" v-model="row.username" placeholder="Username *" class="border p-3" />
 
           <div class="relative">
 		  <input
 		    :type="row.showPassword ? 'text' : 'password'"
 		    v-model="row.password"
-		    placeholder="Password"
+		    placeholder="Password *"
 		    class="border p-3 w-full pr-10"
 		  />
 
@@ -145,7 +180,7 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
 		</div>
 
           <select v-model="row.status" class="border p-3">
-          	<option value="">Select</option>
+          	<option value="">Status *</option>
           	<option value="0">Inactive</option>
           	<option value="1">Active</option>
           </select>
@@ -195,10 +230,15 @@ const submitRows = () => console.log('Submitted rows:', newRows.value)
 
       <!-- Submit -->
       <div>
-        <button type="submit"
-                class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer">
-          Submit All Users
+
+        <button
+          type="submit"
+          :disabled="processing"
+          class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          {{ processing ? 'Processing...' : 'Submit All Users' }}
         </button>
+
       </div>
 
     </form>

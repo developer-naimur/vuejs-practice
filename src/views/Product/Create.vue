@@ -1,9 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import { $routes, $labels } from '@/constants/product'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
 
 
 /* =====================================================
@@ -80,10 +91,34 @@ const handleFile = (e, index) => {
 /* =====================================================
    Submit Rows
 ===================================================== */
-const submitRows = () => {
-  console.log(newRows.value)
-}
 
+
+const processing = ref<boolean>(false);
+const submitRows = async () => {
+
+  if (processing.value) return; // next time submit disable when current is proccessing
+
+  processing.value = true;
+
+  try {
+    await axiosInstance.post('/products', {
+      products: newRows.value
+    });
+
+    messageStore.showSuccess('Data has been created successfully!');
+
+    newRows.value = [{ name: '', status: '' }]; // optional reset
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+    } else {
+      messageStore.showError('An unexpected error occurred.');
+    }
+  } finally {
+    processing.value = false;
+  }
+};
 
 </script>
 
@@ -135,8 +170,6 @@ const submitRows = () => {
     </div>
 
 
-    <FormSkeleton rows="4" columns="4"/>
-
     <form @submit.prevent="submitRows" class="space-y-4" >
 
 
@@ -148,20 +181,20 @@ const submitRows = () => {
 
         <!-- Row 1 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input v-model="row.name" placeholder="Name" class="border p-3" />
+          <input v-model="row.name" placeholder="Name *" class="border p-3" />
 
           <select v-model="row.brand" class="border p-3">
-            <option value="">Select Brand</option>
+            <option value="">Brand *</option>
             <option v-for="b in brands" :key="b">{{ b }}</option>
           </select>
 
           <select v-model="row.unit" class="border p-3">
-            <option value="">Select Unit</option>
+            <option value="">Unit *</option>
             <option v-for="u in units" :key="u">{{ u }}</option>
           </select>
 
           <select v-model="row.status" class="border p-3">
-            <option value="">Status</option>
+            <option value="">Status *</option>
             <option>Active</option>
             <option>Inactive</option>
           </select>
@@ -236,11 +269,13 @@ const submitRows = () => {
 
       </div>
 
-      <button
-        type="submit"
-        class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition">
-        Submit All {{ $labels.plural_name }}
-      </button>
+    <button
+      type="submit"
+      :disabled="processing"
+      class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
+    </button>
 
     </form>
   </div>

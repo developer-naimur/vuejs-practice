@@ -1,9 +1,20 @@
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 import { $routes, $labels } from '@/constants/accountFundTransfer'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+const messageStore = useMessageStore()
+
+import { useRouter } from 'vue-router';
+import axiosInstance from '@/axiosInstance';
+import { AxiosError } from "axios";
+
+import { useUserStore } from "@/stores/useUserStore";
+const userStore = useUserStore();
+const router = useRouter();
 
 
 /* =====================================================
@@ -59,9 +70,35 @@ const removeField = (index) => {
 /* =====================================================
    Submit Rows
 ===================================================== */
-const submitItems = () => {
-  console.log('Submitted:', items.value)
-}
+
+
+const processing = ref<boolean>(false);
+const submitRows = async () => {
+
+  if (processing.value) return; // next time submit disable when current is proccessing
+
+  processing.value = true;
+
+  try {
+    await axiosInstance.post('/account-fund-transfers', {
+      rows: newRows.value
+    });
+
+    messageStore.showSuccess('Data has been created successfully!');
+
+    newRows.value = [{ name: '', status: '' }]; // optional reset
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+    } else {
+      messageStore.showError('An unexpected error occurred.');
+    }
+  } finally {
+    processing.value = false;
+  }
+};
+
 </script>
 
 <template>
@@ -111,8 +148,6 @@ const submitItems = () => {
     </div>
 
     <!-- FORM -->
-
-    <FormSkeleton rows="2" columns="3"/>
 
     <form @submit.prevent="submitItems" class="space-y-4">
 
@@ -247,10 +282,12 @@ const submitItems = () => {
       <!-- Submit -->
       <button
         type="submit"
-        class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition"
+        :disabled="processing"
+        class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        Submit All {{ $labels.plural_name }}
+        {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
       </button>
+
 
     </form>
   </div>

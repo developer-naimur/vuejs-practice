@@ -53,7 +53,7 @@ const submitRows = async () => {
 
   try {
     await axiosInstance.post('/roles', {
-      roles: newRows.value
+      rows: newRows.value
     });
 
     messageStore.showSuccess('Data has been created successfully!');

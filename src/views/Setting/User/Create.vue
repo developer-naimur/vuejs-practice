@@ -51,7 +51,7 @@ const submitRows = async () => {
 
   try {
     await axiosInstance.post('/users', {
-      users: newRows.value
+      rows: newRows.value
     });
 
     messageStore.showSuccess('Data has been created successfully!');

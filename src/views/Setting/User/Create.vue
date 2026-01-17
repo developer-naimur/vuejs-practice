@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
@@ -26,9 +26,9 @@ const togglePassword = (row) => {
   row.showPassword = !row.showPassword
 }
 
-const newRows = ref([{ name: '', phone: '', role: '', email: '', username: '', password: '', status: '', showPassword: false }])
+const newRows = ref([{ name: '', phone: '', role: [], email: '',  password: '', status: '', showPassword: false }])
 
-const addField = () => newRows.value.push({ name: '', phone: '', role: '', email: '', username: '', password: '', status: '', showPassword: false, })
+const addField = () => newRows.value.push({ name: '', phone: '', role: [], email: '', password: '', status: '', showPassword: false, })
 
 // Copy the clicked row and insert as new
 const copyField = (index) => {
@@ -42,6 +42,8 @@ const removeField = (index) => {
     newRows.value.splice(index, 1)
   }
 }
+
+
 const processing = ref<boolean>(false);
 const submitRows = async () => {
 
@@ -51,12 +53,14 @@ const submitRows = async () => {
 
   try {
     await axiosInstance.post('/users', {
-      rows: newRows.value
+      rows: newRows.value.map(row => ({
+        ...row,
+        role_ids: row.role || []
+      }))
     });
-
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }]; // optional reset
+    newRows.value = [{ name: '', phone: '', role: [], email: '', password: '', status: '', showPassword: false, }];
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -68,6 +72,28 @@ const submitRows = async () => {
     processing.value = false;
   }
 };
+
+
+//load roles
+const roles = ref([])
+const roleLoading = ref<boolean>(false);
+const loadRoles = async () => {
+  processing.value = true
+  roleLoading.value = true
+  try {
+    const res = await axiosInstance.get('/roles/option/list')
+    roles.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Role load failed. Please check permission.')
+  } finally {
+    roleLoading.value = false
+    processing.value = false
+  }
+}
+
+onMounted(() => {
+  loadRoles()
+})
 </script>
 
 <template>
@@ -124,20 +150,27 @@ const submitRows = async () => {
            class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4">
 
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
           <input type="text" v-model="row.name" placeholder="Name *" class="border p-3" />
+
           <input type="text" v-model="row.phone" placeholder="Phone *" class="border p-3" />
+
           <input type="email" v-model="row.email" placeholder="Email *" class="border p-3" />
-          <select v-model="row.role" class="border p-3">
-          	<option value="">Role *</option>
-          	<option value="0">Admin</option>
-          	<option value="1">Manager</option>
+
+          <select
+            v-model="row.role"
+            class="border p-3"
+            :disabled="roleLoading || !roles.length"
+            multiple
+          >
+            <option v-for="role in roles" :key="role.id" :value="role.id">
+              {{ role.role_name }}
+            </option>
           </select>
+
        </div>
 
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-
-          <input type="text" v-model="row.username" placeholder="Username *" class="border p-3" />
 
           <div class="relative">
 		  <input
@@ -181,8 +214,8 @@ const submitRows = async () => {
 
           <select v-model="row.status" class="border p-3">
           	<option value="">Status *</option>
-          	<option value="0">Inactive</option>
-          	<option value="1">Active</option>
+          	<option value="inactive">Inactive</option>
+          	<option value="active">Active</option>
           </select>
 
        </div>

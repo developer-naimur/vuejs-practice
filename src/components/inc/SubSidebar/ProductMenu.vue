@@ -5,6 +5,7 @@ const menus = ref([
   { label: 'Product Lists', to: '/product' },
   { label: 'Add New Product', to: '/product/create' },
   { label: 'Brands', to: '/product/brand' },
+  { label: 'Categories', to: '/product/category' },
   { label: 'Units', to: '/product/unit' }
 ])
 </script>

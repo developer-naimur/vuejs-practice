@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-import { $routes, $labels } from '@/constants/brand'
+import { $routes, $labels } from '@/constants/category'
 
 
 /* =====================================================

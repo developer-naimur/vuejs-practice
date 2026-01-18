@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
-import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
-import { $routes, $labels } from '@/constants/accountIncomeExpenseType'
+import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 
 import { useMessageStore } from '@/stores/useMessageStore'
@@ -17,44 +16,33 @@ const userStore = useUserStore();
 const router = useRouter();
 
 
-/* =====================================================
-   BREADCRUMB
-===================================================== */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: $labels.plural_name, to: $routes.index },
-  { label: 'Add New ' + $labels.singular_name, }
+  { label: 'Payment Methods', to: '/setting/payment-method' },
+  { label: 'Add New Payment Method' }
 ]
 
+const togglePassword = (row) => {
+  row.showPassword = !row.showPassword
+}
 
-/* =====================================================
-   Add Row
-===================================================== */
-const newRows = ref([{ name: '', status: '' }])
-const addRowField = () => newRows.value.push({ name: '', status: '' })
+const newRows = ref([{ name: '',  status: '' }])
 
+const addField = () => newRows.value.push({ name: '', status: '' })
 
-/* =====================================================
-   Copy Row
-===================================================== */
-const copyRowField = (index) => {
+// Copy the clicked row and insert as new
+const copyField = (index) => {
   const rowToCopy = { ...newRows.value[index] }
   newRows.value.splice(index + 1, 0, rowToCopy)
 }
 
-
-/* =====================================================
-   Remove Row
-===================================================== */
-const removeRowField = (index) => {
+// Remove row only if more than 1 row exists
+const removeField = (index) => {
   if (newRows.value.length > 1) {
     newRows.value.splice(index, 1)
   }
 }
 
-/* =====================================================
-   Submit Rows
-===================================================== */
 
 const processing = ref<boolean>(false);
 const submitRows = async () => {
@@ -64,13 +52,12 @@ const submitRows = async () => {
   processing.value = true;
 
   try {
-    await axiosInstance.post('/other-income-expense-types', {
+    await axiosInstance.post('/payment-methods', {
       rows: newRows.value
     });
-
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }]; // optional reset
+    newRows.value = [{ name: '', phone: '', role: [], email: '', password: '', status: '', showPassword: false, }];
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -82,13 +69,15 @@ const submitRows = async () => {
     processing.value = false;
   }
 };
+
 </script>
 
 <template>
+
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
-    <AccountMenu />
+    <SettingsMenu />
   </div>
 
   <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
@@ -101,27 +90,22 @@ const submitRows = async () => {
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">
-          Add New {{ $labels.singular_name }}
-        </h2>
+        <h2 class="text-2xl font-semibold text-gray-700">Add New Payment Method</h2>
       </div>
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link
-          :to="$routes.index"
-          class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition"
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" rx="1" />
-            <rect x="14" y="3" width="7" height="7" rx="1" />
-            <rect x="3" y="14" width="7" height="7" rx="1" />
-            <rect x="14" y="14" width="7" height="7" rx="1" />
-          </svg>
+        <router-link to="/setting/payment-method" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
+		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
+		        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
+		        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
+		    </svg>
           View All
         </router-link>
 
-        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link to="/setting/payment-method/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"
@@ -131,6 +115,7 @@ const submitRows = async () => {
           </svg>
           Trash
         </router-link>
+
       </div>
     </div>
 
@@ -138,40 +123,30 @@ const submitRows = async () => {
     <form @submit.prevent="submitRows" class="space-y-4">
 
       <div v-for="(row, index) in newRows" :key="index"
-           class="flex gap-4 items-end bg-white pb-5 border-b border-gray-200 transition relative">
+           class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4">
 
-        <!-- row Name -->
-        <div class="flex-1">
-          <label class="block text-gray-600 font-medium mb-1 text-sm">
-            Name <span class="text-red-600">*</span>
-          </label>
-          <input v-model="row.name" row="text" placeholder="Enter name"
-                 class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition"/>
-        </div>
+       <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-        <!-- Status -->
-        <div class="w-40">
-          <label class="block text-gray-600 font-medium mb-1 text-sm">
-            Status <span class="text-red-600">*</span>
-          </label>
-          <select v-model="row.status"
-                  class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
-            <option value="">Select</option>
-            <option value="active">Active</option>
+          <input type="text" v-model="row.name" placeholder="Name *" class="border p-3" />
+
+          <select v-model="row.status" class="border p-3">
+            <option value="">Status *</option>
             <option value="inactive">Inactive</option>
+            <option value="active">Active</option>
           </select>
-        </div>
+
+       </div>
 
         <!-- Actions -->
         <div class="w-36 flex gap-2">
 
           <!-- Remove row (icon only) -->
-          <button row="button" @click="removeRowField(index)"
+          <button type="button" @click="removeField(index)"
                   :disabled="newRows.length === 1"
                   class="w-12 h-12 flex items-center justify-center rounded-md
                          bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                          transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                  title="Remove row">
+                  title="Remove Row">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
@@ -179,7 +154,7 @@ const submitRows = async () => {
           </button>
 
           <!-- Copy & Add Row (icon only) -->
-          <button v-if="index === newRows.length - 1" row="button" @click="copyRowField(index)"
+          <button v-if="index === newRows.length - 1" type="button" @click="copyField(index)"
                   class="w-12 h-12 flex items-center justify-center rounded-md bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
                   title="Copy & Add Row">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -190,9 +165,9 @@ const submitRows = async () => {
           </button>
 
           <!-- Add row Button (only for last row) -->
-          <button v-if="index === newRows.length - 1" row="button" @click="addRowField"
+          <button v-if="index === newRows.length - 1" type="button" @click="addField"
                   class="w-12 h-12 flex items-center justify-center rounded-md bg-green-500 text-white cursor-pointer"
-                  title="Add More rows">
+                  title="Add More Rows">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-7 h-7" fill="none"
                  viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/>
@@ -211,13 +186,13 @@ const submitRows = async () => {
           :disabled="processing"
           class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
+          {{ processing ? 'Processing...' : 'Submit All Payment Methods' }}
         </button>
-    
+
       </div>
 
     </form>
   </div>
-  
+
 </div>
 </template>

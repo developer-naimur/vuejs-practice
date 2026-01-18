@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-import { $routes, $labels } from '@/constants/brand'
+import { $routes, $labels } from '@/constants/category'
 
 import { useMessageStore } from '@/stores/useMessageStore'
 const messageStore = useMessageStore()
@@ -65,7 +65,7 @@ const submitRows = async () => {
 
   try {
     await axiosInstance.post('/product-categories', {
-      categories: newRows.value
+      rows: newRows.value
     });
 
     messageStore.showSuccess('Data has been created successfully!');
@@ -155,8 +155,8 @@ const submitRows = async () => {
           <select v-model="row.status"
                   class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
             <option value="">Status *</option>
-            <option>Active</option>
-            <option>Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
 

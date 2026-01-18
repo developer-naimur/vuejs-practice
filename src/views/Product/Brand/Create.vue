@@ -65,7 +65,7 @@ const submitRows = async () => {
 
   try {
     await axiosInstance.post('/product-brands', {
-      brands: newRows.value
+      rows: newRows.value
     });
 
     messageStore.showSuccess('Data has been created successfully!');
@@ -154,8 +154,8 @@ const submitRows = async () => {
           <select v-model="row.status"
                   class="w-full border border-gray-300 p-3 focus:ring-2 focus:ring-gray-500 focus:outline-none transition">
             <option value="">Status *</option>
-            <option>Active</option>
-            <option>Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
 

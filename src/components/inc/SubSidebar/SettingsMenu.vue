@@ -4,6 +4,9 @@ import { ref } from 'vue'
 const menus = ref([
   { label: 'General Settings', to: '/setting/general' },
   { label: 'User & Access Management', to: '/setting/user' },
+  { label: 'Payment Method', to: '/setting/payment-method' },
+  { label: 'Price Group', to: '/setting/price-group' },
+  { label: 'Area/Route', to: '/setting/route' },
   { label: 'Inventory / Product Settings', to: '/setting/inventory-product' },
   { label: 'Purchase / Supplier Settings', to: '/setting/purchase-supplier' },
   { label: 'Sales / Transaction Settings', to: '/setting/sale-transaction' },

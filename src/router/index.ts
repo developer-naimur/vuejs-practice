@@ -194,6 +194,30 @@ import RoleEdit from '../views/Setting/User/Role/Edit.vue'
 import RoleShow from '../views/Setting/User/Role/Show.vue'
 import RoleTrashed from '../views/Setting/User/Role/Trashed.vue'
 
+// Payment Methods 
+import PaymentMethodIndex from '../views/Setting/PaymentMethod/Index.vue'
+import PaymentMethodCreate from '../views/Setting/PaymentMethod/Create.vue'
+import PaymentMethodEdit from '../views/Setting/PaymentMethod/Edit.vue'
+import PaymentMethodShow from '../views/Setting/PaymentMethod/Show.vue'
+import PaymentMethodTrashed from '../views/Setting/PaymentMethod/Trashed.vue'
+
+
+// Price Groups 
+import PriceGroupIndex from '../views/Setting/PriceGroup/Index.vue'
+import PriceGroupCreate from '../views/Setting/PriceGroup/Create.vue'
+import PriceGroupEdit from '../views/Setting/PriceGroup/Edit.vue'
+import PriceGroupShow from '../views/Setting/PriceGroup/Show.vue'
+import PriceGroupTrashed from '../views/Setting/PriceGroup/Trashed.vue'
+
+
+
+// Area/Route 
+import RouteIndex from '../views/Setting/Route/Index.vue'
+import RouteCreate from '../views/Setting/Route/Create.vue'
+import RouteEdit from '../views/Setting/Route/Edit.vue'
+import RouteShow from '../views/Setting/Route/Show.vue'
+import RouteTrashed from '../views/Setting/Route/Trashed.vue'
+
 
 const routes = [
 
@@ -1320,6 +1344,147 @@ const routes = [
       path: '/setting/user/role/:id',
       name: 'user.role.show',
       component: RoleShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+
+    //Payment Method
+    {
+      path: '/setting/payment-method',
+      name: 'payment-method.index',
+      component: PaymentMethodIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/payment-method/create',
+      name: 'payment-method.create',
+      component: PaymentMethodCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/payment-method/trashed',
+      name: 'payment-method.trashed',
+      component: PaymentMethodTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/payment-method/:id/edit',
+      name: 'payment-method.edit',
+      component: PaymentMethodEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/payment-method/:id',
+      name: 'payment-method.show',
+      component: PaymentMethodShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+
+    //Price Groups
+    {
+      path: '/setting/price-group',
+      name: 'price-group.index',
+      component: PriceGroupIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/price-group/create',
+      name: 'price-group.create',
+      component: PriceGroupCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/price-group/trashed',
+      name: 'price-group.trashed',
+      component: PriceGroupTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/price-group/:id/edit',
+      name: 'price-group.edit',
+      component: PriceGroupEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/price-group/:id',
+      name: 'price-group.show',
+      component: PriceGroupShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    
+    //Area/Route
+    {
+      path: '/setting/route',
+      name: 'route.index',
+      component: RouteIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/route/create',
+      name: 'route.create',
+      component: RouteCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/route/trashed',
+      name: 'route.trashed',
+      component: RouteTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/route/:id/edit',
+      name: 'route.edit',
+      component: RouteEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/route/:id',
+      name: 'route.show',
+      component: RouteShow,
       meta: {
         requiresAuth: true, 
         permission: 'setting.create'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 import { $routes, $labels } from '@/constants/account'
@@ -30,19 +30,23 @@ const breadcrumbs = [
 /* =====================================================
    Add Row
 ===================================================== */
-const items = ref([
+const newRows = ref([
   {
+    payment_method_id: '',
     account_name: '',
     account_number: '',
-    opening_amount: '',
+    branch: '',
+    opening_balance: '',
     note: ''
   }
 ])
 const addField = () => {
-  items.value.push({
+  newRows.value.push({
+    payment_method_id: '',
     account_name: '',
     account_number: '',
-    opening_amount: '',
+    branch: '',
+    opening_balance: '',
     note: ''
   })
 }
@@ -52,8 +56,8 @@ const addField = () => {
    Copy Row
 ===================================================== */
 const copyField = (index) => {
-  const copied = { ...items.value[index] }
-  items.value.splice(index + 1, 0, copied)
+  const copied = { ...newRows.value[index] }
+  newRows.value.splice(index + 1, 0, copied)
 }
 
 
@@ -61,8 +65,8 @@ const copyField = (index) => {
    Remove Row
 ===================================================== */
 const removeField = (index) => {
-  if (items.value.length > 1) {
-    items.value.splice(index, 1)
+  if (newRows.value.length > 1) {
+    newRows.value.splice(index, 1)
   }
 }
 
@@ -79,13 +83,25 @@ const submitRows = async () => {
   processing.value = true;
 
   try {
+    const payload = newRows.value.map(row => ({
+      ...row,
+      opening_balance: row.opening_balance || 0
+    }))
+
     await axiosInstance.post('/accounts', {
-      rows: newRows.value
-    });
+      rows: payload
+    })
 
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }]; // optional reset
+    newRows.value = [{
+      payment_method_id: '',
+      account_name: '',
+      account_number: '',
+      branch: '',
+      opening_balance: '',
+      note: ''
+    }];
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -98,6 +114,26 @@ const submitRows = async () => {
   }
 };
 
+//load payment methods
+const payment_methods = ref([])
+const paymentMethodLoading = ref<boolean>(false);
+const loadPaymentMethods = async () => {
+  processing.value = true
+  paymentMethodLoading.value = true
+  try {
+    const res = await axiosInstance.get('/payment-methods/option/list')
+    payment_methods.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Payment Method load failed. Please check permission.')
+  } finally {
+    paymentMethodLoading.value = false
+    processing.value = false
+  }
+}
+
+onMounted(() => {
+  loadPaymentMethods()
+})
 </script>
 
 <template>
@@ -110,7 +146,7 @@ const submitRows = async () => {
   <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
 
     <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
+    <Breadcrumb :newRows="breadcrumbs" />
 
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
@@ -147,10 +183,10 @@ const submitRows = async () => {
     </div>
 
     <!-- FORM -->
-    <form @submit.prevent="submitItems" class="space-y-4">
+    <form @submit.prevent="submitRows" class="space-y-4">
 
       <div
-        v-for="(item, index) in items"
+        v-for="(row, index) in newRows"
         :key="index"
         class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4"
       >
@@ -158,13 +194,30 @@ const submitRows = async () => {
         <!-- Row 1 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
+
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">
+            Payment Method <span class="text-red-600">*</span>
+          </label>
+          <select
+            v-model="row.payment_method_id"
+            class="w-full border p-3"
+            :disabled="paymentMethodLoading || !payment_methods.length"
+          >
+            <option value="">Select</option>
+            <option v-for="payment_method in payment_methods" :key="payment_method.id" :value="payment_method.id">
+              {{ payment_method.method_name }}
+            </option>
+          </select>
+        </div>
+
           <!-- Account Name -->
           <div>
             <label class="block text-sm text-gray-600 mb-1">
               Account Name <span class="text-red-600">*</span>
             </label>
             <input
-              v-model="item.account_name"
+              v-model="row.account_name"
               type="text"
               class="w-full border p-3"
               placeholder="Account Name"
@@ -177,7 +230,7 @@ const submitRows = async () => {
               Account Number
             </label>
             <input
-              v-model="item.account_number"
+              v-model="row.account_number"
               type="text"
               class="w-full border p-3"
               placeholder="Account Number"
@@ -187,10 +240,10 @@ const submitRows = async () => {
           <!-- Opening Amount -->
           <div>
             <label class="block text-sm text-gray-600 mb-1">
-              Opening Amount <span class="text-red-600">*</span>
+              Opening Amount
             </label>
             <input
-              v-model="item.opening_amount"
+              v-model="row.opening_balance"
               type="number"
               placeholder="0.00"
               class="w-full border p-3"
@@ -202,13 +255,25 @@ const submitRows = async () => {
         <!-- Row 2 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Branch
+            </label>
+            <input
+              v-model="row.branch"
+              type="text"
+              class="w-full border p-3"
+              placeholder="Branch"
+            />
+          </div>
+
           <!-- Note -->
           <div class="md:col-span-2">
             <label class="block text-sm text-gray-600 mb-1">
               Note
             </label>
             <textarea
-              v-model="item.note"
+              v-model="row.note"
               rows="2"
               placeholder="Optional note"
               class="w-full border p-3"
@@ -224,7 +289,7 @@ const submitRows = async () => {
           <button
             type="button"
             @click="removeField(index)"
-            :disabled="items.length === 1"
+            :disabled="newRows.length === 1"
             class="w-12 h-12 flex items-center justify-center rounded-md
                    bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                    transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -239,7 +304,7 @@ const submitRows = async () => {
 
           <!-- Copy -->
           <button
-            v-if="index === items.length - 1"
+            v-if="index === newRows.length - 1"
             type="button"
             @click="copyField(index)"
             class="w-12 h-12 flex items-center justify-center rounded-md
@@ -258,7 +323,7 @@ const submitRows = async () => {
 
           <!-- Add -->
           <button
-            v-if="index === items.length - 1"
+            v-if="index === newRows.length - 1"
             type="button"
             @click="addField"
             class="w-12 h-12 flex items-center justify-center rounded-md

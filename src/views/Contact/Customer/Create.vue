@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import { $routes, $labels } from '@/constants/customer'
@@ -36,6 +36,8 @@ const newRows = ref([
     phone: '',
     address: '',
     opening_balance: '',
+    route_id: '',
+    price_group_id: '',
     description: ''
   }
 ])
@@ -46,6 +48,8 @@ const addRowField = () =>
     phone: '',
     address: '',
     opening_balance: '',
+    route_id: '',
+    price_group_id: '',
     description: ''
   })
 
@@ -84,7 +88,16 @@ const submitRows = async () => {
 
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }]; // optional reset
+    newRows.value = [{
+      name: '',
+      status: '',
+      phone: '',
+      address: '',
+      opening_balance: '',
+      route_id: '',
+      price_group_id: '',
+      description: ''
+    }];
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -96,6 +109,46 @@ const submitRows = async () => {
     processing.value = false;
   }
 };
+
+
+//load routes
+const routes = ref([])
+const routeLoading = ref<boolean>(false);
+const loadRoute = async () => {
+  processing.value = true
+  routeLoading.value = true
+  try {
+    const res = await axiosInstance.get('/routes/option/list')
+    routes.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Route load failed. Please check permission.')
+  } finally {
+    routeLoading.value = false
+    processing.value = false
+  }
+}
+
+//load price groups
+const price_groups = ref([])
+const priceGroupLoading = ref<boolean>(false);
+const loadPriceGroup = async () => {
+  processing.value = true
+  priceGroupLoading.value = true
+  try {
+    const res = await axiosInstance.get('/price-groups/option/list')
+    price_groups.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Price Group load failed. Please check permission.')
+  } finally {
+    priceGroupLoading.value = false
+    processing.value = false
+  }
+}
+
+onMounted(() => {
+  loadRoute()
+  loadPriceGroup()
+})
 </script>
 
 <template>
@@ -192,22 +245,43 @@ const submitRows = async () => {
 
       <div>
         <label class="block text-sm text-gray-600 mb-1">
-          Status <span class="text-red-600">*</span>
+          Price Group <span class="text-red-600">*</span>
         </label>
         <select
-          v-model="row.status"
+          v-model="row.price_group_id"
           class="w-full border p-3"
+          :disabled="priceGroupLoading || !price_groups.length"
         >
-          <option value="">Status *</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+          <option value="">Select</option>
+          <option v-for="price_group in price_groups" :key="price_group.id" :value="price_group.id">
+            {{ price_group.group_name }}
+          </option>
         </select>
       </div>
     </div>
 
     <!-- Row 2 -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-      <div class="md:col-span-2">
+
+
+
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">
+          Area/Route <span class="text-red-600">*</span>
+        </label>
+        <select
+          v-model="row.route_id"
+          class="w-full border p-3"
+          :disabled="routeLoading || !routes.length"
+        >
+          <option value="">Select</option>
+          <option v-for="route in routes" :key="route.id" :value="route.id">
+            {{ route.route_name }}
+          </option>
+        </select>
+      </div>
+
+      <div>
         <label class="block text-sm text-gray-600 mb-1">
           Address
         </label>
@@ -219,7 +293,7 @@ const submitRows = async () => {
         />
       </div>
 
-      <div class="md:col-span-2">
+      <div>
         <label class="block text-sm text-gray-600 mb-1">
           Description
         </label>
@@ -230,6 +304,21 @@ const submitRows = async () => {
           class="w-full border p-3"
         ></textarea>
       </div>
+      
+      <div>
+        <label class="block text-sm text-gray-600 mb-1">
+          Status <span class="text-red-600">*</span>
+        </label>
+        <select
+          v-model="row.status"
+          class="w-full border p-3"
+        >
+          <option value="">Select</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+
     </div>
 
     <!-- ACTION BUTTONS (SAME STYLE AS PRODUCT FORM) -->

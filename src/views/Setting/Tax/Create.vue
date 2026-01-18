@@ -26,9 +26,9 @@ const togglePassword = (row) => {
   row.showPassword = !row.showPassword
 }
 
-const newRows = ref([{ name: '', status: '' }])
+const newRows = ref([{ name: '', value: '', status: '' }])
 
-const addField = () => newRows.value.push({ name: '', status: '' })
+const addField = () => newRows.value.push({ name: '', value: '', status: '' })
 
 // Copy the clicked row and insert as new
 const copyField = (index) => {
@@ -58,7 +58,7 @@ const submitRows = async () => {
 
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }];
+    newRows.value = [{ name: '', value: '', status: '' }];
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -129,6 +129,7 @@ const submitRows = async () => {
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           <input type="text" v-model="row.name" placeholder="Name *" class="border p-3" />
+          <input type="text" v-model="row.value" placeholder="Value *" class="border p-3" />
 
           <select v-model="row.status" class="border p-3">
             <option value="">Status *</option>

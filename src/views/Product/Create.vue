@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
@@ -30,18 +30,17 @@ const breadcrumbs = [
 /* =====================================================
    Add Row
 ===================================================== */
-const brands = ['Apple', 'Samsung', 'Sony']
-const units = ['PCS', 'KG', 'Litre']
 const newRows = ref([
   {
     name: '',
-    brand: '',
+    brand_id: '',
+    category_id: '',
     cost_price: '',
     sold_price: '',
-    vat: '',
+    tax_id: '',
     discount: '',
-    discount_type: 'Flat',
-    unit: '',
+    discount_type: '',
+    unit_id: '',
     file: null,
     description: '',
     status: ''
@@ -50,13 +49,14 @@ const newRows = ref([
 const addRowField = () => {
   newRows.value.push({
     name: '',
-    brand: '',
+    brand_id: '',
+    category_id: '',
     cost_price: '',
     sold_price: '',
-    vat: '',
+    tax_id: '',
     discount: '',
-    discount_type: 'Flat',
-    unit: '',
+    discount_type: '',
+    unit_id: '',
     file: null,
     description: '',
     status: ''
@@ -119,6 +119,79 @@ const submitRows = async () => {
     processing.value = false;
   }
 };
+
+//load taxes
+const taxes = ref([])
+const taxLoading = ref<boolean>(false);
+const loadTaxes = async () => {
+  processing.value = true
+  taxLoading.value = true
+  try {
+    const res = await axiosInstance.get('/taxes/option/list')
+    taxes.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Tax load failed. Please check permission.')
+  } finally {
+    taxLoading.value = false
+    processing.value = false
+  }
+}
+
+//load brands
+const brands = ref([])
+const brandLoading = ref<boolean>(false);
+const loadBrands = async () => {
+  processing.value = true
+  brandLoading.value = true
+  try {
+    const res = await axiosInstance.get('/product-brands/option/list')
+    brands.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Brand load failed. Please check permission.')
+  } finally {
+    brandLoading.value = false
+    processing.value = false
+  }
+}
+//load categories
+const categories = ref([])
+const categoryLoading = ref<boolean>(false);
+const loadCategories = async () => {
+  processing.value = true
+  categoryLoading.value = true
+  try {
+    const res = await axiosInstance.get('/product-categories/option/list')
+    categories.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Category load failed. Please check permission.')
+  } finally {
+    categoryLoading.value = false
+    processing.value = false
+  }
+}
+//load units
+const units = ref([])
+const unitLoading = ref<boolean>(false);
+const loadUnits = async () => {
+  processing.value = true
+  unitLoading.value = true
+  try {
+    const res = await axiosInstance.get('/product-units/option/list')
+    units.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Unit load failed. Please check permission.')
+  } finally {
+    unitLoading.value = false
+    processing.value = false
+  }
+}
+
+onMounted(() => {
+  loadTaxes()
+  loadBrands()
+  loadCategories()
+  loadUnits()
+})
 
 </script>
 
@@ -183,15 +256,77 @@ const submitRows = async () => {
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input v-model="row.name" placeholder="Name *" class="border p-3" />
 
-          <select v-model="row.brand" class="border p-3">
+          <select
+            v-model="row.brand_id"
+            class="border p-3"
+            :disabled="brandLoading || !brands.length"
+          >
             <option value="">Brand *</option>
-            <option v-for="b in brands" :key="b">{{ b }}</option>
+            <option v-for="brand in brands" :key="brand.id" :value="brand.id">
+              {{ brand.brand_name }}
+            </option>
           </select>
 
-          <select v-model="row.unit" class="border p-3">
-            <option value="">Unit *</option>
-            <option v-for="u in units" :key="u">{{ u }}</option>
+          <select
+            v-model="row.category_id"
+            class="border p-3"
+            :disabled="categoryLoading || !categories.length"
+          >
+            <option value="">Category *</option>
+            <option v-for="category in categories" :key="category.id" :value="category.id">
+              {{ category.category_name }}
+            </option>
           </select>
+
+          <select
+            v-model="row.unit_id"
+            class="border p-3"
+            :disabled="unitLoading || !units.length"
+          >
+            <option value="">Unit *</option>
+            <option v-for="unit in units" :key="unit.id" :value="unit.id">
+              {{ unit.unit_name }}
+            </option>
+          </select>
+          
+        </div>
+
+        <!-- Row 2 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
+          <input type="number" v-model="row.sold_price" placeholder="Sold Price" class="border p-3" />
+          <select
+              v-model="row.tax_id"
+              class="border p-3"
+              :disabled="taxLoading || !taxes.length"
+            >
+              <option value="">VAT</option>
+              <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                {{ tax.tax_name }}
+              </option>
+            </select>
+
+          <input type="number" v-model="row.discount" placeholder="Discount" class="border p-3" />
+        </div>
+
+        <!-- Row 3 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <select v-model="row.discount_type" class="border p-3">
+            <option value="">Select</option>
+            <option value="Flat">Flat</option>
+            <option value="Percent">Percent</option>
+          </select>
+
+          <input type="file"
+            @change="e => handleFile(e, index)"
+            class="border p-2" />
+
+          <!-- Description -->
+          <textarea
+            v-model="row.description"
+            placeholder="Description"
+            rows="1"
+            class="border p-3"></textarea>
 
           <select v-model="row.status" class="border p-3">
             <option value="">Status *</option>
@@ -199,33 +334,6 @@ const submitRows = async () => {
             <option>Inactive</option>
           </select>
         </div>
-
-        <!-- Row 2 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
-          <input type="number" v-model="row.sold_price" placeholder="Sold Price" class="border p-3" />
-          <input type="number" v-model="row.vat" placeholder="VAT" class="border p-3" />
-          <input type="number" v-model="row.discount" placeholder="Discount" class="border p-3" />
-        </div>
-
-        <!-- Row 3 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <select v-model="row.discount_type" class="border p-3">
-            <option>Flat</option>
-            <option>Percent</option>
-          </select>
-
-          <input type="file"
-            @change="e => handleFile(e, index)"
-            class="border p-2 col-span-1 md:col-span-3" />
-        </div>
-
-        <!-- Description -->
-        <textarea
-          v-model="row.description"
-          placeholder="Description"
-          rows="3"
-          class="w-full border p-3"></textarea>
 
         <!-- ACTION BUTTONS (100% SAME AS YOUR CODE) -->
         <div class="w-36 flex gap-2">

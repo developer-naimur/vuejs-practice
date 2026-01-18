@@ -210,13 +210,27 @@ import PriceGroupShow from '../views/Setting/PriceGroup/Show.vue'
 import PriceGroupTrashed from '../views/Setting/PriceGroup/Trashed.vue'
 
 
-
 // Area/Route 
 import RouteIndex from '../views/Setting/Route/Index.vue'
 import RouteCreate from '../views/Setting/Route/Create.vue'
 import RouteEdit from '../views/Setting/Route/Edit.vue'
 import RouteShow from '../views/Setting/Route/Show.vue'
 import RouteTrashed from '../views/Setting/Route/Trashed.vue'
+
+
+// Warehouse
+import WarehouseIndex from '../views/Setting/Warehouse/Index.vue'
+import WarehouseCreate from '../views/Setting/Warehouse/Create.vue'
+import WarehouseEdit from '../views/Setting/Warehouse/Edit.vue'
+import WarehouseShow from '../views/Setting/Warehouse/Show.vue'
+import WarehouseTrashed from '../views/Setting/Warehouse/Trashed.vue'
+
+// Tax
+import TaxIndex from '../views/Setting/Tax/Index.vue'
+import TaxCreate from '../views/Setting/Tax/Create.vue'
+import TaxEdit from '../views/Setting/Tax/Edit.vue'
+import TaxShow from '../views/Setting/Tax/Show.vue'
+import TaxTrashed from '../views/Setting/Tax/Trashed.vue'
 
 
 const routes = [
@@ -1485,6 +1499,100 @@ const routes = [
       path: '/setting/route/:id',
       name: 'route.show',
       component: RouteShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    
+    //Warehouse
+    {
+      path: '/setting/warehouse',
+      name: 'warehouse.index',
+      component: WarehouseIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/warehouse/create',
+      name: 'warehouse.create',
+      component: WarehouseCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/warehouse/trashed',
+      name: 'warehouse.trashed',
+      component: WarehouseTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/warehouse/:id/edit',
+      name: 'warehouse.edit',
+      component: WarehouseEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/warehouse/:id',
+      name: 'warehouse.show',
+      component: WarehouseShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    
+    //Tax
+    {
+      path: '/setting/tax',
+      name: 'tax.index',
+      component: TaxIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/tax/create',
+      name: 'tax.create',
+      component: TaxCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/tax/trashed',
+      name: 'tax.trashed',
+      component: TaxTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/tax/:id/edit',
+      name: 'tax.edit',
+      component: TaxEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/tax/:id',
+      name: 'tax.show',
+      component: TaxShow,
       meta: {
         requiresAuth: true, 
         permission: 'setting.create'

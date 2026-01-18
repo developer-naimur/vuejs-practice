@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import FormSkeleton from '@/components/skeleton/Form-1.vue'
 import AccountMenu from '@/components/inc/SubSidebar/AccountMenu.vue'
 import { $routes, $labels } from '@/constants/accountIncomeExpense'
@@ -25,26 +25,31 @@ const breadcrumbs = [
   { label: 'Add New ' + $labels.singular_name, }
 ]
 
+const getToday = () => {
+  return new Date().toISOString().slice(0, 10);
+}
 
 /* =====================================================
    Add Row
 ===================================================== */
-const items = ref([
+const newRows = ref([
   {
     mode: '',
-    date: '',
-    type: '',
-    account: '',
+    transaction_date: getToday(),
+    type_id: '',
+    account_id: '',
+    tax_id: '',
     amount: '',
     note: ''
   }
 ])
 const addField = () => {
-  items.value.push({
+  newRows.value.push({
     mode: '',
-    date: '',
-    type: '',
-    account: '',
+    transaction_date: getToday(),
+    type_id: '',
+    account_id: '',
+    tax_id: '',
     amount: '',
     note: ''
   })
@@ -55,8 +60,8 @@ const addField = () => {
    Copy Row
 ===================================================== */
 const copyField = (index) => {
-  const copied = { ...items.value[index] }
-  items.value.splice(index + 1, 0, copied)
+  const copied = { ...newRows.value[index] }
+  newRows.value.splice(index + 1, 0, copied)
 }
 
 
@@ -64,8 +69,8 @@ const copyField = (index) => {
    Remove Row
 ===================================================== */
 const removeField = (index) => {
-  if (items.value.length > 1) {
-    items.value.splice(index, 1)
+  if (newRows.value.length > 1) {
+    newRows.value.splice(index, 1)
   }
 }
 
@@ -90,7 +95,15 @@ const submitRows = async () => {
 
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }]; // optional reset
+    newRows.value = [{
+      mode: '',
+      transaction_date: getToday(),
+      type_id: '',
+      account_id: '',
+      tax_id: '',
+      amount: '',
+      note: ''
+    }];
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -102,6 +115,64 @@ const submitRows = async () => {
     processing.value = false;
   }
 };
+
+
+//load accounts
+const accounts = ref([])
+const accountLoading = ref<boolean>(false);
+const loadAccounts = async () => {
+  processing.value = true
+  accountLoading.value = true
+  try {
+    const res = await axiosInstance.get('/accounts/option/list')
+    accounts.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    accountLoading.value = false
+    processing.value = false
+  }
+}
+
+//load types
+const types = ref([])
+const typeLoading = ref<boolean>(false);
+const loadTypes = async () => {
+  processing.value = true
+  typeLoading.value = true
+  try {
+    const res = await axiosInstance.get('/other-income-expense-types/option/list')
+    types.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Type load failed. Please check permission.')
+  } finally {
+    typeLoading.value = false
+    processing.value = false
+  }
+}
+
+//load taxes
+const taxes = ref([])
+const taxLoading = ref<boolean>(false);
+const loadTaxes = async () => {
+  processing.value = true
+  taxLoading.value = true
+  try {
+    const res = await axiosInstance.get('/taxes/option/list')
+    taxes.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Tax load failed. Please check permission.')
+  } finally {
+    taxLoading.value = false
+    processing.value = false
+  }
+}
+
+onMounted(() => {
+  loadAccounts()
+  loadTypes()
+  loadTaxes()
+})
 
 </script>
 
@@ -153,10 +224,10 @@ const submitRows = async () => {
     </div>
 
     <!-- FORM -->
-    <form @submit.prevent="submitItems" class="space-y-4">
+    <form @submit.prevent="submitRows" class="space-y-4">
 
       <div
-        v-for="(item, index) in items"
+        v-for="(row, index) in newRows"
         :key="index"
         class="bg-white pb-5 border-b border-gray-200 transition relative space-y-4"
       >
@@ -164,28 +235,28 @@ const submitRows = async () => {
         <!-- Row 1 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
-          <!-- Mode -->
-          <div>
-            <label class="block text-sm text-gray-600 mb-1">
-              Mode <span class="text-red-600">*</span>
-            </label>
-            <select v-model="item.mode" class="w-full border p-3">
-              <option value="">Select</option>
-              <option value="income">Income</option>
-              <option value="expense">Expense</option>
-            </select>
-          </div>
-
           <!-- Date -->
           <div>
             <label class="block text-sm text-gray-600 mb-1">
               Date <span class="text-red-600">*</span>
             </label>
             <input
-              v-model="item.date"
+              v-model="row.transaction_date"
               type="date"
               class="w-full border p-3"
             />
+          </div>
+
+          <!-- Mode -->
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Mode <span class="text-red-600">*</span>
+            </label>
+            <select v-model="row.mode" class="w-full border p-3">
+              <option value="">Select</option>
+              <option value="income">Income</option>
+              <option value="expense">Expense</option>
+            </select>
           </div>
 
           <!-- Type -->
@@ -193,32 +264,56 @@ const submitRows = async () => {
             <label class="block text-sm text-gray-600 mb-1">
               Type <span class="text-red-600">*</span>
             </label>
-            <select v-model="item.type" class="w-full border p-3">
+            <select
+              v-model="row.type_id"
+              class="w-full border p-3"
+              :disabled="typeLoading || !types.length"
+            >
               <option value="">Select</option>
-              <option>Office</option>
-              <option>Transport</option>
-              <option>Utility</option>
-              <option>Other</option>
+              <option v-for="type in types" :key="type.id" :value="type.id">
+                {{ type.type_name }}
+              </option>
             </select>
           </div>
 
           <!-- Account -->
           <div>
             <label class="block text-sm text-gray-600 mb-1">
-              Account
+              Account <span class="text-red-600">*</span>
             </label>
-            <select v-model="item.account" class="w-full border p-3">
+            <select
+              v-model="row.account_id"
+              class="w-full border p-3"
+              :disabled="accountLoading || !accounts.length"
+            >
               <option value="">Select</option>
-              <option>Cash</option>
-              <option>Bank</option>
-              <option>bKash</option>
-              <option>Nagad</option>
+              <option v-for="account in accounts" :key="account.id" :value="account.id">
+                {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+              </option>
             </select>
+
           </div>
         </div>
 
         <!-- Row 2 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+
+          <!-- Tax -->
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Tax
+            </label>
+            <select
+              v-model="row.tax_id"
+              class="w-full border p-3"
+              :disabled="taxLoading || !taxes.length"
+            >
+              <option value="">Select</option>
+              <option v-for="tax in taxes" :key="tax.id" :value="tax.id">
+                {{ tax.tax_name }}
+              </option>
+            </select>
+          </div>
 
           <!-- Amount -->
           <div>
@@ -226,7 +321,7 @@ const submitRows = async () => {
               Amount <span class="text-red-600">*</span>
             </label>
             <input
-              v-model="item.amount"
+              v-model="row.amount"
               type="number"
               placeholder="0.00"
               class="w-full border p-3"
@@ -239,7 +334,7 @@ const submitRows = async () => {
               Note
             </label>
             <textarea
-              v-model="item.note"
+              v-model="row.note"
               rows="2"
               placeholder="Optional note"
               class="w-full border p-3"
@@ -254,7 +349,7 @@ const submitRows = async () => {
           <button
             type="button"
             @click="removeField(index)"
-            :disabled="items.length === 1"
+            :disabled="newRows.length === 1"
             class="w-12 h-12 flex items-center justify-center rounded-md
                    bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                    transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -269,7 +364,7 @@ const submitRows = async () => {
 
           <!-- Copy -->
           <button
-            v-if="index === items.length - 1"
+            v-if="index === newRows.length - 1"
             type="button"
             @click="copyField(index)"
             class="w-12 h-12 flex items-center justify-center rounded-md
@@ -288,7 +383,7 @@ const submitRows = async () => {
 
           <!-- Add -->
           <button
-            v-if="index === items.length - 1"
+            v-if="index === newRows.length - 1"
             type="button"
             @click="addField"
             class="w-12 h-12 flex items-center justify-center rounded-md

@@ -1,59 +1,67 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
-import TableSkeleton from '@/components/Skeleton/Table.vue'
-import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axiosInstance from '@/axiosInstance'
+import { AxiosError } from 'axios'
+
+/* ===============================
+  GLOBAL / SHARED
+================================ */
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
+import Pagination from '@/components/Pagination.vue'
 
 import { useMessageStore } from '@/stores/useMessageStore'
-const messageStore = useMessageStore()
-
-import { useRouter } from 'vue-router';
-import axiosInstance from '@/axiosInstance';
-import { AxiosError } from "axios";
-
-import { useUserStore } from "@/stores/useUserStore";
-const userStore = useUserStore();
-const router = useRouter();
-
-import Pagination from '@/components/Pagination.vue'
 import { usePagination } from '@/composables/usePagination'
+
+const messageStore = useMessageStore()
+const router = useRouter()
+
+/* ===============================
+  PAGINATION (GLOBAL)
+================================ */
 const {
   currentPage,
   perPage,
   lastPage,
-  total,
   setMeta,
   changePage,
-  reset
-} = usePagination()
+} = usePagination(10)
 
-// ------------------------
-// Breadcrumb
-// ------------------------
+/* ===============================
+  PAGE META
+================================ */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
   { label: 'Tax Lists' }
 ]
 
-// ------------------------
-// Status Classes
-// ------------------------
-const statusClass = status => {
+/* ===============================
+  FILTERS
+================================ */
+const searchValue = ref('')
+const statusValue = ref('')
+
+/* ===============================
+  TABLE DATA
+================================ */
+const rows = ref<any[]>([])
+const totalRows = ref(0)
+const loading = ref(false)
+
+/* ===============================
+  STATUS BADGE
+================================ */
+const statusClass = (status: string) => {
   if (status === 'active') return 'bg-green-500'
   if (status === 'inactive') return 'bg-yellow-500'
   return 'bg-red-500'
 }
 
-
-// ------------------------
-// rows
-// ------------------------
-const searchValue = ref('')
-const statusValue = ref('')
-
-const rows = ref([])
-const totalRows = ref(0)
-const loading = ref<boolean>(false);
+/* ===============================
+  FETCH DATA
+================================ */
 const fetchRows = async () => {
   loading.value = true
 
@@ -62,12 +70,8 @@ const fetchRows = async () => {
       params: {
         name: searchValue.value || undefined,
         status: statusValue.value || undefined,
-
         page: currentPage.value,
         per_page: perPage.value,
-
-        sort_by: 'id',
-        sort_dir: 'desc',
       }
     })
 
@@ -84,10 +88,14 @@ const fetchRows = async () => {
   }
 }
 
+/* ===============================
+  ACTIONS
+================================ */
 const handleSearch = () => {
   currentPage.value = 1
   fetchRows()
 }
+
 const resetFilters = () => {
   searchValue.value = ''
   statusValue.value = ''
@@ -95,9 +103,10 @@ const resetFilters = () => {
   fetchRows()
 }
 
-onMounted(() => {
-  fetchRows()
-})
+/* ===============================
+  INIT
+================================ */
+onMounted(fetchRows)
 </script>
 
 <template>

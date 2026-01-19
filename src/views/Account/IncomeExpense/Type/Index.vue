@@ -122,7 +122,7 @@ onMounted(fetchRows)
   <div class="flex-1 lg:ml-[320px] p-4">
 
     <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
+    <Breadcrumb :items="$breadcrumbs" />
 
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">

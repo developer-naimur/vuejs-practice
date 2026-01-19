@@ -128,7 +128,7 @@ onMounted(fetchRows)
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
         <h2 class="text-2xl font-semibold text-gray-700">Warehouse Lists</h2>
-        <span class="text-gray-600 font-medium">Total Warehouses: {{ totalRows }}</span>
+        <span class="text-gray-600 font-medium">Totals: {{ totalRows }}</span>
       </div>
 
       <!-- Buttons -->

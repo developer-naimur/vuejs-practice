@@ -1,87 +1,114 @@
-<script setup>
-import { ref, computed } from 'vue'
-import TableSkeleton from '@/components/Skeleton/Table.vue'
-import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
-import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import axiosInstance from '@/axiosInstance'
+import { AxiosError } from 'axios'
 
-// ------------------------
-// Breadcrumb
-// ------------------------
+/* ===============================
+  GLOBAL / SHARED
+================================ */
+import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import SettingsMenu from '@/components/inc/SubSidebar/SettingsMenu.vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
+import Pagination from '@/components/Pagination.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+import { usePagination } from '@/composables/usePagination'
+
+const messageStore = useMessageStore()
+const router = useRouter()
+
+/* ===============================
+  PAGINATION (GLOBAL)
+================================ */
+const {
+  currentPage,
+  perPage,
+  lastPage,
+  setMeta,
+  changePage,
+} = usePagination(10)
+
+/* ===============================
+  PAGE META
+================================ */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
+  { label: 'User Lists', to: '/setting/user' },
   { label: 'User Trash Lists' }
 ]
 
-// ------------------------
-// rows
-// ------------------------
-const rows = ref([
-  { id: 1, name: 'John Doe', status: 'Active' },
-  { id: 2, name: 'Jane Smith', status: 'Pending' },
-  { id: 3, name: 'Alex Brown', status: 'Inactive' },
-  { id: 4, name: 'Mary Jane', status: 'Active' },
-  { id: 5, name: 'Peter Parker', status: 'Pending' }
-])
+/* ===============================
+  FILTERS
+================================ */
+const searchValue = ref('')
+const statusValue = ref('')
 
-const trashRows = ref([]) // soft deleted rows
+/* ===============================
+  TABLE DATA
+================================ */
+const rows = ref<any[]>([])
+const totalRows = ref(0)
+const loading = ref(false)
 
-// ------------------------
-// Filters
-// ------------------------
-const searchQuery = ref('')
-const statusFilter = ref('')
-
-// ------------------------
-// Pagination
-// ------------------------
-const currentPage = ref(1)
-const perPage = ref(5)
-
-// Filtered & Paginated rows
-const filteredRows = computed(() => {
-  return rows.value
-    .filter(row => {
-      const matchesSearch = row.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      const matchesStatus = statusFilter.value ? row.status === statusFilter.value : true
-      return matchesSearch && matchesStatus
-    })
-    .slice((currentPage.value - 1) * perPage.value, currentPage.value * perPage.value)
-})
-
-const totalRows = computed(() => rows.value.length)
-const totalPages = computed(() => Math.ceil(filteredRows.value.length / perPage.value))
-
-// ------------------------
-// Status Classes
-// ------------------------
-const statusClass = status => {
-  if (status === 'Active') return 'bg-green-500'
-  if (status === 'Pending') return 'bg-yellow-500'
+/* ===============================
+  STATUS BADGE
+================================ */
+const statusClass = (status: string) => {
+  if (status === 'active') return 'bg-green-500'
+  if (status === 'inactive') return 'bg-yellow-500'
   return 'bg-red-500'
 }
 
-// ------------------------
-// Actions
-// ------------------------
-const editRow = row => alert(`Edit ${row.name}`)
-const deleteRow = row => {
-  if (confirm(`Are you sure you want to delete ${row.name}?`)) {
-    trashRows.value.push(row)
-    rows.value = rows.value.filter(u => u.id !== row.id)
+/* ===============================
+  FETCH DATA
+================================ */
+const fetchRows = async () => {
+  loading.value = true
+
+  try {
+    const res = await axiosInstance.get('/users', {
+      params: {
+        name: searchValue.value || undefined,
+        status: statusValue.value || undefined,
+        page: currentPage.value,
+        per_page: perPage.value,
+        trashed: 'only',
+      }
+    })
+
+    rows.value = res.data.data
+    totalRows.value = res.data.meta.total
+    setMeta(res.data.meta)
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'Fetch failed')
+    }
+  } finally {
+    loading.value = false
   }
 }
-const viewTrash = () => alert('Soft deleted rows: ' + trashRows.value.map(u => u.name).join(', '))
 
-// ------------------------
-// Filters
-// ------------------------
-const resetFilters = () => {
-  searchQuery.value = ''
-  statusFilter.value = ''
+/* ===============================
+  ACTIONS
+================================ */
+const handleSearch = () => {
   currentPage.value = 1
+  fetchRows()
 }
 
+const resetFilters = () => {
+  searchValue.value = ''
+  statusValue.value = ''
+  currentPage.value = 1
+  fetchRows()
+}
 
+/* ===============================
+  INIT
+================================ */
+onMounted(fetchRows)
 </script>
 
 <template>
@@ -103,46 +130,50 @@ const resetFilters = () => {
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
         <h2 class="text-2xl font-semibold text-gray-700">User Trash Lists</h2>
-        <span class="text-gray-600 font-medium">Total Users: {{ totalRows }}</span>
+        <span class="text-gray-600 font-medium">Totals: {{ totalRows }}</span>
       </div>
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/setting/user" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
-        </svg>
-          View All
+    
+        <router-link to="/setting/user" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="w-4 h-4"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor"
+               stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to All
         </router-link>
+        
       </div>
     </div>
 
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="searchQuery" type="text" placeholder="Search..."
+        <input v-model="searchValue" type="text" placeholder="Search..."
                class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
       </div>
       <div class="w-full md:w-1/5">
-        <select v-model="statusFilter" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+        <select v-model="statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
           <option value="">Status</option>
-          <option>Active</option>
-          <option>Inactive</option>
-          <option>Pending</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
         </select>
       </div>
       <div class="flex gap-2 w-full md:w-auto">
-        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
+        <button @click="handleSearch" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
           </svg>
           Search
         </button>
-        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition cursor-pointer"
                 @click="resetFilters">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -160,17 +191,21 @@ const resetFilters = () => {
           <tr>
             <th class="px-4 py-2 text-left">#</th>
             <th class="px-4 py-2 text-left">Name</th>
+            <th class="px-4 py-2 text-left">Phone</th>
+            <th class="px-4 py-2 text-left">Email</th>
             <th class="px-4 py-2 text-left">Status</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
 
-          <TableSkeleton :colspan="100" />
+          <TableSkeleton v-if="loading" :colspan="100" />
           
-          <tr v-for="(row, index) in filteredRows" :key="row.id" class="hover:bg-gray-50">
+          <tr v-if="loading == false" v-for="(row, index) in rows" :key="row.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
             <td class="px-4 py-2">{{ row.name }}</td>
+            <td class="px-4 py-2">{{ row.phone_number }}</td>
+            <td class="px-4 py-2">{{ row.email_address }}</td>
             <td class="px-4 py-2">
               <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(row.status)">
                 {{ row.status }}
@@ -194,23 +229,20 @@ const resetFilters = () => {
               </div>
             </td>
           </tr>
+          <tr v-if="rows.length === 0 && loading == false">
+            <td colspan="100" class="text-center">No record found.</td>
+          </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-      <div>
-        Showing <span class="font-semibold">{{ (currentPage-1)*perPage + 1 }}</span> to
-        <span class="font-semibold">{{ Math.min(currentPage*perPage, filteredRows.length) }}</span> of
-        <span class="font-semibold">{{ totalRows }}</span> entries
-      </div>
-      <div class="flex gap-2">
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" v-for="n in Math.ceil(totalRows/perPage)" :key="n" @click="currentPage=n">{{ n }}</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(totalRows/perPage))">&raquo;</button>
-      </div>
-    </div>
+    <Pagination
+      :current-page="currentPage"
+      :last-page="lastPage"
+      @change="page => changePage(page, fetchRows)"
+    />
+
 
   </div>
 

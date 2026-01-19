@@ -134,6 +134,20 @@ onMounted(fetchRows)
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
     
+        <router-link
+          to="/setting/user/role"
+          class="flex items-center gap-2 px-4 py-2 rounded bg-purple-500 text-white hover:bg-purple-600 transition"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M5.121 17.804A13.937 13.937 0 0112 16
+                     c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0
+                     3 3 0 016 0z"/>
+          </svg>
+          Roles
+        </router-link>
+
         <router-link to="/setting/user/create" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

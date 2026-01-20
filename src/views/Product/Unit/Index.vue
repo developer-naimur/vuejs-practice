@@ -105,6 +105,17 @@ const resetFilters = () => {
 }
 
 /* ===============================
+  Soft Delete
+================================ */
+import { useSoftDeleteStore } from '@/stores/useSoftDeleteStore'
+const deleteStore = useSoftDeleteStore()
+const deleteRow = (row) => {
+  row.deleteUrl = `/product-units/${row.uuid}`
+  row.onSuccess = fetchRows
+  row.label = row.unit_name || 'this item'
+  deleteStore.openDeleteModal(row)
+}
+/* ===============================
   INIT
 ================================ */
 onMounted(fetchRows)

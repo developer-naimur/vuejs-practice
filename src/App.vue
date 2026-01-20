@@ -5,6 +5,7 @@ import { ref, computed, watchEffect } from 'vue'
 import Header from '@/components/inc/Header.vue'
 import MainSidebar from '@/components/inc/MainSidebar.vue'
 import GlobalMessage from '@/components/GlobalMessage.vue'
+import SoftDeleteConfirmModal from '@/components/SoftDeleteConfirmModal.vue'
 
 const currentMenu = ref('')
 const handleMenuSelected = (menu: string) => {
@@ -34,6 +35,7 @@ const isAuthRoute = computed(() => authRoutes.includes(route.path))
         ]"
       >
         <GlobalMessage />
+        <SoftDeleteConfirmModal />
         <RouterView />
       </div>
     </div>

@@ -115,6 +115,18 @@ const loadPaymentMethods = async () => {
 }
 
 /* ===============================
+  Soft Delete
+================================ */
+import { useSoftDeleteStore } from '@/stores/useSoftDeleteStore'
+const deleteStore = useSoftDeleteStore()
+const deleteRow = (row) => {
+  row.deleteUrl = `/accounts/${row.uuid}`
+  row.onSuccess = fetchRows
+  row.label = row.account_name || 'this item'
+  deleteStore.openDeleteModal(row)
+}
+
+/* ===============================
   INIT
 ================================ */
 onMounted(() => {

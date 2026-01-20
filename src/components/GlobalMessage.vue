@@ -14,7 +14,7 @@ watch(
 
       timer = setTimeout(() => {
         messageStore.close()
-      }, 5000)
+      }, 10000)
     }
   }
 )
@@ -24,7 +24,7 @@ watch(
   <transition name="fade">
     <div
       v-if="messageStore.visible"
-      class="fixed top-5 right-5 z-50 w-[380px] p-4 rounded-xl shadow-xl flex items-start gap-3 border"
+      class="fixed top-5 right-5 z-500 w-[380px] p-4 rounded-xl shadow-xl flex items-start gap-3 border"
       :class="messageStore.type === 'success'
         ? 'bg-white border-green-200'
         : 'bg-white border-red-200'"
@@ -47,8 +47,7 @@ watch(
       </div>
 
       <!-- Message -->
-      <div class="flex-1 text-sm font-medium text-gray-700">
-        {{ messageStore.message }}
+      <div class="flex-1 text-sm font-medium text-gray-700" v-html="messageStore.message.replace(/\n/g, '<br>')">
       </div>
 
       <!-- Close Icon -->

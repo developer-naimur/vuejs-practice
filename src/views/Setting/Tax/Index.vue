@@ -104,6 +104,18 @@ const resetFilters = () => {
 }
 
 /* ===============================
+  Soft Delete
+================================ */
+import { useSoftDeleteStore } from '@/stores/useSoftDeleteStore'
+const deleteStore = useSoftDeleteStore()
+const deleteRow = (row) => {
+  row.deleteUrl = `/taxes/${row.uuid}`
+  row.onSuccess = fetchRows
+  row.label = row.tax_name || 'this item'
+  deleteStore.openDeleteModal(row)
+}
+
+/* ===============================
   INIT
 ================================ */
 onMounted(fetchRows)
@@ -238,6 +250,7 @@ onMounted(fetchRows)
       </table>
     </div>
 
+ 
     <!-- Pagination -->
     <Pagination
       :current-page="currentPage"

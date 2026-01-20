@@ -129,7 +129,7 @@ const submitRows = async () => {
        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           <input type="text" v-model="row.name" placeholder="Name *" class="border p-3" />
-          <input type="text" v-model="row.value" placeholder="Value *" class="border p-3" />
+          <input type="number" step="0.01" v-model="row.value" placeholder="Value *" class="border p-3" />
 
           <select v-model="row.status" class="border p-3">
             <option value="">Status *</option>

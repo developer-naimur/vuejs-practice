@@ -96,7 +96,7 @@ const submitRows = async () => {
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-        <router-link to="/setting/route" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        <router-link to="/setting/warehouse" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
 		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
 		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
@@ -106,7 +106,7 @@ const submitRows = async () => {
           View All
         </router-link>
 
-        <router-link to="/setting/route/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
+        <router-link to="/setting/warehouse/trashed" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round"

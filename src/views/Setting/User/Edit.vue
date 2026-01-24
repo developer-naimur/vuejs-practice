@@ -39,13 +39,13 @@ const togglePassword = (row) => {
 const fetchRow = async () => {
   try {
     const res = await axiosInstance.get(`/users/${rowId}`)
-	const data = res.data.data
-
+  	const data = res.data.data
+    const roleIds = data.roles.map(role => role.id)
     row.value = {
       name: data.name,
-      phone: data.phone,
-      role: data.role,
-      email: data.email,
+      phone: data.phone_number,
+      role: roleIds,
+      email: data.email_address,
       password: '',
       status: data.status,
       showPassword: false,
@@ -58,15 +58,22 @@ const fetchRow = async () => {
 }
 
 /* ===============================
-  UPDATE TAX
+  UPDATE
 ================================ */
 const submitUpdate = async () => {
   if (processing.value) return
-
   processing.value = true
 
   try {
-    await axiosInstance.put(`/users/${rowId}`, row.value)
+      await axiosInstance.put(`/users/${rowId}`, {
+        name: row.value.name,
+        phone: row.value.phone,
+        email: row.value.email,
+        status: row.value.status,
+        password: row.value.password || null,
+        role_ids: row.value.role || []
+      })
+
     messageStore.showSuccess('Row updated successfully!')
     router.push('/setting/user')
   } catch (err) {
@@ -79,6 +86,7 @@ const submitUpdate = async () => {
     processing.value = false
   }
 }
+
 
 //load roles
 const roles = ref([])
@@ -162,7 +170,8 @@ onMounted(() => {
 		  <input
 		    :type="row.showPassword ? 'text' : 'password'"
 		    v-model="row.password"
-		    placeholder="Password *"
+		    placeholder="New Password"
+        autocomplete="new-password"
 		    class="border p-3 w-full pr-10"
 		  />
 

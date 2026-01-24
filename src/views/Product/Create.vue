@@ -28,48 +28,53 @@ const breadcrumbs = [
 
 
 /* =====================================================
+   NEW ROW HELPER
+===================================================== */
+const getNewRow = () => ({
+  name: '',
+  brand_id: '',
+  category_id: [],
+  cost_price: '',
+  sold_price: '',
+  tax_id: '',
+  discount: '',
+  discount_type: '',
+  file: null,
+  description: '',
+  status: '',
+  unit_conversions: [
+    {
+      unit_id: '',
+      multiplier: ''
+    }
+  ],
+  price_groups: [
+    {
+      price_group_id : '',
+      price: ''
+    }
+  ],
+})
+
+
+/* =====================================================
    Add Row
 ===================================================== */
-const newRows = ref([
-  {
-    name: '',
-    brand_id: '',
-    category_id: '',
-    cost_price: '',
-    sold_price: '',
-    tax_id: '',
-    discount: '',
-    discount_type: '',
-    unit_id: '',
-    file: null,
-    description: '',
-    status: ''
-  }
-])
+const newRows = ref([getNewRow()])
+
 const addRowField = () => {
-  newRows.value.push({
-    name: '',
-    brand_id: '',
-    category_id: '',
-    cost_price: '',
-    sold_price: '',
-    tax_id: '',
-    discount: '',
-    discount_type: '',
-    unit_id: '',
-    file: null,
-    description: '',
-    status: ''
-  })
+  newRows.value.push(getNewRow())
 }
+
 
 /* =====================================================
    Copy Row
 ===================================================== */
-const copyRowField = index => {
-  const rowToCopy = { ...newRows.value[index] }
+const copyRowField = (index) => {
+  const rowToCopy = JSON.parse(JSON.stringify(newRows.value[index]))
   newRows.value.splice(index + 1, 0, rowToCopy)
 }
+
 
 /* =====================================================
    Remove Row
@@ -79,6 +84,7 @@ const removeRowField = index => {
     newRows.value.splice(index, 1)
   }
 }
+
 
 /* =====================================================
    File Handle
@@ -91,12 +97,10 @@ const handleFile = (e, index) => {
 /* =====================================================
    Submit Rows
 ===================================================== */
-
-
 const processing = ref<boolean>(false);
-const submitRows = async () => {
 
-  if (processing.value) return; // next time submit disable when current is proccessing
+const submitRows = async () => {
+  if (processing.value) return;
 
   processing.value = true;
 
@@ -107,7 +111,8 @@ const submitRows = async () => {
 
     messageStore.showSuccess('Data has been created successfully!');
 
-    newRows.value = [{ name: '', status: '' }]; // optional reset
+    // Reset after submit
+    newRows.value = [getNewRow()]
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -120,7 +125,10 @@ const submitRows = async () => {
   }
 };
 
-//load taxes
+
+/* =====================================================
+   Load Data
+===================================================== */
 const taxes = ref([])
 const taxLoading = ref<boolean>(false);
 const loadTaxes = async () => {
@@ -137,7 +145,6 @@ const loadTaxes = async () => {
   }
 }
 
-//load brands
 const brands = ref([])
 const brandLoading = ref<boolean>(false);
 const loadBrands = async () => {
@@ -153,7 +160,7 @@ const loadBrands = async () => {
     processing.value = false
   }
 }
-//load categories
+
 const categories = ref([])
 const categoryLoading = ref<boolean>(false);
 const loadCategories = async () => {
@@ -169,7 +176,7 @@ const loadCategories = async () => {
     processing.value = false
   }
 }
-//load units
+
 const units = ref([])
 const unitLoading = ref<boolean>(false);
 const loadUnits = async () => {
@@ -186,14 +193,84 @@ const loadUnits = async () => {
   }
 }
 
+//load price groups
+const price_groups = ref([])
+const priceGroupLoading = ref<boolean>(false);
+const loadPriceGroup = async () => {
+  processing.value = true
+  priceGroupLoading.value = true
+  try {
+    const res = await axiosInstance.get('/price-groups/option/list')
+    price_groups.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Price Group load failed. Please check permission.')
+  } finally {
+    priceGroupLoading.value = false
+    processing.value = false
+  }
+}
+
+/* =====================================================
+   Unit Conversion per Product
+===================================================== */
+const addUnitRow = (productIndex) => {
+  newRows.value[productIndex].unit_conversions.push({
+    unit_id: '',
+    multiplier: ''
+  })
+}
+
+const removeUnitRow = (productIndex, ucIndex) => {
+  if (newRows.value[productIndex].unit_conversions.length > 1) {
+    newRows.value[productIndex].unit_conversions.splice(ucIndex, 1)
+  }
+}
+
+const isUnitDisabled = (productIndex, unitId, currentUnitId) => {
+  const units = newRows.value[productIndex].unit_conversions.map(u => u.unit_id);
+
+  // allow the current selected unit
+  if (unitId === currentUnitId) return false;
+
+  return units.includes(unitId);
+}
+
+
+/* =====================================================
+   Price Group per Product
+===================================================== */
+const addPriceGroupRow = (productIndex) => {
+  newRows.value[productIndex].price_groups.push({
+    price_group_id: '',
+    price: ''
+  })
+}
+
+const removePriceGroupRow = (productIndex, pgIndex) => {
+  if (newRows.value[productIndex].price_groups.length > 1) {
+    newRows.value[productIndex].price_groups.splice(pgIndex, 1)
+  }
+}
+
+const isPriceGroupDisabled = (productIndex, priceGroupId, currentPriceGroupId) => {
+  const price_groups = newRows.value[productIndex].price_groups.map(u => u.price_group_id);
+
+  // allow the current selected price group
+  if (priceGroupId === currentPriceGroupId) return false;
+
+  return price_groups.includes(priceGroupId);
+}
+
 onMounted(() => {
   loadTaxes()
   loadBrands()
   loadCategories()
   loadUnits()
+  loadPriceGroup()
 })
 
 </script>
+
 
 <template>
 
@@ -271,29 +348,19 @@ onMounted(() => {
             v-model="row.category_id"
             class="border p-3"
             :disabled="categoryLoading || !categories.length"
+            multiple
           >
-            <option value="">Category *</option>
+            <option value="">Category</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">
               {{ category.category_name }}
             </option>
           </select>
-
-          <select
-            v-model="row.unit_id"
-            class="border p-3"
-            :disabled="unitLoading || !units.length"
-          >
-            <option value="">Unit *</option>
-            <option v-for="unit in units" :key="unit.id" :value="unit.id">
-              {{ unit.unit_name }}
-            </option>
-          </select>
           
+          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
         </div>
 
         <!-- Row 2 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
           <input type="number" v-model="row.sold_price" placeholder="Sold Price" class="border p-3" />
           <select
               v-model="row.tax_id"
@@ -307,19 +374,17 @@ onMounted(() => {
             </select>
 
           <input type="number" v-model="row.discount" placeholder="Discount" class="border p-3" />
-        </div>
 
-        <!-- Row 3 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <select v-model="row.discount_type" class="border p-3">
             <option value="">Select</option>
             <option value="Flat">Flat</option>
             <option value="Percent">Percent</option>
           </select>
 
-          <input type="file"
-            @change="e => handleFile(e, index)"
-            class="border p-2" />
+        </div>
+
+        <!-- Row 3 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
           <!-- Description -->
           <textarea
@@ -334,6 +399,141 @@ onMounted(() => {
             <option>Inactive</option>
           </select>
         </div>
+
+        <div class="mt-10 border border-gray-200 rounded-2xl bg-white shadow-sm">
+          <div class="px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-800">
+              Unit Conversion <span class="text-red-500">*</span>
+            </h3>
+            <p class="text-sm text-gray-500 mt-1">
+              Define alternative units and their conversion rate
+            </p>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div
+              v-for="(uc, ucIndex) in row.unit_conversions"
+              :key="ucIndex"
+              class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
+            >
+              <select
+                v-model="uc.unit_id"
+                class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              >
+                <option value="">Select Unit *</option>
+                <option
+                  v-for="unit in units"
+                  :key="unit.id"
+                  :value="unit.id"
+                  :disabled="isUnitDisabled(index, unit.id, uc.unit_id)"
+                >
+                  {{ unit.unit_name }}
+                </option>
+              </select>
+
+              <input
+                v-model="uc.multiplier"
+                type="number"
+                placeholder="Multiplier (e.g. 0.5, 2)"
+                class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              />
+
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  @click="addUnitRow(index)"
+                  v-if="ucIndex === row.unit_conversions.length - 1"
+                  class="px-4 py-2 text-sm font-medium rounded-lg
+                         bg-emerald-500 hover:bg-emerald-600 text-white
+                         transition cursor-pointer"
+                >
+                  Add
+                </button>
+
+                <button
+                  type="button"
+                  @click="removeUnitRow(index, ucIndex)"
+                  :disabled="row.unit_conversions.length === 1"
+                  class="px-4 py-2 text-sm font-medium rounded-lg
+                         bg-rose-500 hover:bg-rose-600 text-white
+                         transition cursor-pointer
+                         disabled:opacity-40 disabled:cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="mt-10 border border-gray-200 rounded-2xl bg-white shadow-sm">
+          <div class="px-6 py-4 border-b">
+            <h3 class="text-base font-semibold text-gray-800">Price Group</h3>
+            <p class="text-sm text-gray-500 mt-1">
+              Set pricing based on customer groups
+            </p>
+          </div>
+
+          <div class="p-6 space-y-4">
+            <div
+              v-for="(pg, pgIndex) in row.price_groups"
+              :key="pgIndex"
+              class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
+            >
+              <select
+                v-model="pg.price_group_id"
+                class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              >
+                <option value="">Select Price Group</option>
+                <option
+                  v-for="price_group in price_groups"
+                  :key="price_group.id"
+                  :value="price_group.id"
+                  :disabled="isPriceGroupDisabled(index, price_group.id, pg.price_group_id)"
+                >
+                  {{ price_group.group_name }}
+                </option>
+              </select>
+
+              <input
+                v-model="pg.price"
+                type="number"
+                placeholder="Price"
+                class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              />
+
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  @click="addPriceGroupRow(index)"
+                  v-if="pgIndex === row.price_groups.length - 1"
+                  class="px-4 py-2 text-sm font-medium rounded-lg
+                         bg-emerald-500 hover:bg-emerald-600 text-white
+                         transition cursor-pointer"
+                >
+                  Add
+                </button>
+
+                <button
+                  type="button"
+                  @click="removePriceGroupRow(index, pgIndex)"
+                  :disabled="row.price_groups.length === 1"
+                  class="px-4 py-2 text-sm font-medium rounded-lg
+                         bg-rose-500 hover:bg-rose-600 text-white
+                         transition cursor-pointer
+                         disabled:opacity-40 disabled:cursor-pointer"
+                >
+                  Remove
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
 
         <!-- ACTION BUTTONS (100% SAME AS YOUR CODE) -->
         <div class="w-36 flex gap-2">

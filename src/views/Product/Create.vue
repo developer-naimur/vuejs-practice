@@ -32,6 +32,7 @@ const breadcrumbs = [
 ===================================================== */
 const getNewRow = () => ({
   name: '',
+  sku: '',
   brand_id: '',
   category_id: '',
   cost_price: '',
@@ -99,6 +100,7 @@ const handleFile = (e, index) => {
    Submit Rows
 ===================================================== */
 const processing = ref<boolean>(false);
+const loading = ref(true)
 
 const submitRows = async () => {
   if (processing.value) return;
@@ -133,7 +135,7 @@ const submitRows = async () => {
 const taxes = ref([])
 const taxLoading = ref<boolean>(false);
 const loadTaxes = async () => {
-  processing.value = true
+  loading.value = true
   taxLoading.value = true
   try {
     const res = await axiosInstance.get('/taxes/option/list')
@@ -142,14 +144,14 @@ const loadTaxes = async () => {
     messageStore.showError('Tax load failed. Please check permission.')
   } finally {
     taxLoading.value = false
-    processing.value = false
+    loading.value = false
   }
 }
 
 const brands = ref([])
 const brandLoading = ref<boolean>(false);
 const loadBrands = async () => {
-  processing.value = true
+  loading.value = true
   brandLoading.value = true
   try {
     const res = await axiosInstance.get('/product-brands/option/list')
@@ -158,14 +160,14 @@ const loadBrands = async () => {
     messageStore.showError('Brand load failed. Please check permission.')
   } finally {
     brandLoading.value = false
-    processing.value = false
+    loading.value = false
   }
 }
 
 const categories = ref([])
 const categoryLoading = ref<boolean>(false);
 const loadCategories = async () => {
-  processing.value = true
+  loading.value = true
   categoryLoading.value = true
   try {
     const res = await axiosInstance.get('/product-categories/option/list')
@@ -174,14 +176,14 @@ const loadCategories = async () => {
     messageStore.showError('Category load failed. Please check permission.')
   } finally {
     categoryLoading.value = false
-    processing.value = false
+    loading.value = false
   }
 }
 
 const units = ref([])
 const unitLoading = ref<boolean>(false);
 const loadUnits = async () => {
-  processing.value = true
+  loading.value = true
   unitLoading.value = true
   try {
     const res = await axiosInstance.get('/product-units/option/list')
@@ -190,7 +192,7 @@ const loadUnits = async () => {
     messageStore.showError('Unit load failed. Please check permission.')
   } finally {
     unitLoading.value = false
-    processing.value = false
+    loading.value = false
   }
 }
 
@@ -198,7 +200,7 @@ const loadUnits = async () => {
 const product_prices = ref([])
 const priceGroupLoading = ref<boolean>(false);
 const loadPriceGroup = async () => {
-  processing.value = true
+  loading.value = true
   priceGroupLoading.value = true
   try {
     const res = await axiosInstance.get('/price-groups/option/list')
@@ -207,7 +209,7 @@ const loadPriceGroup = async () => {
     messageStore.showError('Price Group load failed. Please check permission.')
   } finally {
     priceGroupLoading.value = false
-    processing.value = false
+    loading.value = false
   }
 }
 
@@ -320,8 +322,12 @@ onMounted(() => {
       </div>
     </div>
 
+    <!-- Loading -->
+    <div v-if="loading" class="space-y-4">
+      <FormSkeleton :columns="3" :rows="4" />
+    </div>
 
-    <form @submit.prevent="submitRows" class="space-y-4" >
+    <form v-else @submit.prevent="submitRows" class="space-y-4" >
 
 
       <div
@@ -333,6 +339,7 @@ onMounted(() => {
         <!-- Row 1 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <input v-model="row.name" placeholder="Name *" class="border p-3" />
+          <input v-model="row.sku" placeholder="SKU *" class="border p-3" />
 
           <select
             v-model="row.brand_id"
@@ -356,11 +363,11 @@ onMounted(() => {
             </option>
           </select>
           
-          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
         </div>
 
         <!-- Row 2 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <input type="number" v-model="row.cost_price" placeholder="Cost Price" class="border p-3" />
           <input type="number" v-model="row.selling_price" placeholder="Sold Price" class="border p-3" />
           <select
               v-model="row.tax_id"
@@ -375,16 +382,17 @@ onMounted(() => {
 
           <input type="number" v-model="row.discount_value" placeholder="Discount" class="border p-3" />
 
-          <select v-model="row.discount_type" class="border p-3">
-            <option value="">Select</option>
-            <option value="flat">Flat</option>
-            <option value="percent">Percent</option>
-          </select>
 
         </div>
 
         <!-- Row 3 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          
+          <select v-model="row.discount_type" class="border p-3">
+            <option value="">Select</option>
+            <option value="flat">Flat</option>
+            <option value="percent">Percent</option>
+          </select>
 
           <!-- Description -->
           <textarea
@@ -400,7 +408,7 @@ onMounted(() => {
           </select>
 
           <select v-model="row.is_stock_tracked" class="border p-3">
-            <option value="">Stock Tracked?</option>
+            <option value="">Stock Tracked? *</option>
             <option :value="1">Yes</option>
             <option :value="0">No</option>
           </select>

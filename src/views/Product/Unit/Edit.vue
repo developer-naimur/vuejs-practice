@@ -27,11 +27,7 @@ const loading = ref(true)
 /* ===============================
   SINGLE ROW STATE
 ================================ */
-const row = ref({
-  name: '',
-  value: '',
-  status: ''
-})
+const row = ref()
 
 /* ===============================
   FETCH TAX DATA

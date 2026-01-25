@@ -33,22 +33,23 @@ const breadcrumbs = [
 const getNewRow = () => ({
   name: '',
   brand_id: '',
-  category_id: [],
+  category_id: '',
   cost_price: '',
-  sold_price: '',
+  selling_price: '',
   tax_id: '',
-  discount: '',
+  discount_value: '',
   discount_type: '',
   file: null,
   description: '',
   status: '',
+  is_stock_tracked: '',
   unit_conversions: [
     {
       unit_id: '',
       multiplier: ''
     }
   ],
-  price_groups: [
+  product_prices: [
     {
       price_group_id : '',
       price: ''
@@ -106,7 +107,7 @@ const submitRows = async () => {
 
   try {
     await axiosInstance.post('/products', {
-      products: newRows.value
+      rows: newRows.value
     });
 
     messageStore.showSuccess('Data has been created successfully!');
@@ -194,14 +195,14 @@ const loadUnits = async () => {
 }
 
 //load price groups
-const price_groups = ref([])
+const product_prices = ref([])
 const priceGroupLoading = ref<boolean>(false);
 const loadPriceGroup = async () => {
   processing.value = true
   priceGroupLoading.value = true
   try {
     const res = await axiosInstance.get('/price-groups/option/list')
-    price_groups.value = res.data.data
+    product_prices.value = res.data.data
   } catch (err) {
     messageStore.showError('Price Group load failed. Please check permission.')
   } finally {
@@ -240,25 +241,25 @@ const isUnitDisabled = (productIndex, unitId, currentUnitId) => {
    Price Group per Product
 ===================================================== */
 const addPriceGroupRow = (productIndex) => {
-  newRows.value[productIndex].price_groups.push({
+  newRows.value[productIndex].product_prices.push({
     price_group_id: '',
     price: ''
   })
 }
 
 const removePriceGroupRow = (productIndex, pgIndex) => {
-  if (newRows.value[productIndex].price_groups.length > 1) {
-    newRows.value[productIndex].price_groups.splice(pgIndex, 1)
+  if (newRows.value[productIndex].product_prices.length > 1) {
+    newRows.value[productIndex].product_prices.splice(pgIndex, 1)
   }
 }
 
 const isPriceGroupDisabled = (productIndex, priceGroupId, currentPriceGroupId) => {
-  const price_groups = newRows.value[productIndex].price_groups.map(u => u.price_group_id);
+  const product_prices = newRows.value[productIndex].product_prices.map(u => u.price_group_id);
 
   // allow the current selected price group
   if (priceGroupId === currentPriceGroupId) return false;
 
-  return price_groups.includes(priceGroupId);
+  return product_prices.includes(priceGroupId);
 }
 
 onMounted(() => {
@@ -348,7 +349,6 @@ onMounted(() => {
             v-model="row.category_id"
             class="border p-3"
             :disabled="categoryLoading || !categories.length"
-            multiple
           >
             <option value="">Category</option>
             <option v-for="category in categories" :key="category.id" :value="category.id">
@@ -361,7 +361,7 @@ onMounted(() => {
 
         <!-- Row 2 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <input type="number" v-model="row.sold_price" placeholder="Sold Price" class="border p-3" />
+          <input type="number" v-model="row.selling_price" placeholder="Sold Price" class="border p-3" />
           <select
               v-model="row.tax_id"
               class="border p-3"
@@ -373,12 +373,12 @@ onMounted(() => {
               </option>
             </select>
 
-          <input type="number" v-model="row.discount" placeholder="Discount" class="border p-3" />
+          <input type="number" v-model="row.discount_value" placeholder="Discount" class="border p-3" />
 
           <select v-model="row.discount_type" class="border p-3">
             <option value="">Select</option>
-            <option value="Flat">Flat</option>
-            <option value="Percent">Percent</option>
+            <option value="flat">Flat</option>
+            <option value="percent">Percent</option>
           </select>
 
         </div>
@@ -395,9 +395,16 @@ onMounted(() => {
 
           <select v-model="row.status" class="border p-3">
             <option value="">Status *</option>
-            <option>Active</option>
-            <option>Inactive</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
           </select>
+
+          <select v-model="row.is_stock_tracked" class="border p-3">
+            <option value="">Stock Tracked?</option>
+            <option :value="1">Yes</option>
+            <option :value="0">No</option>
+          </select>
+
         </div>
 
         <div class="mt-10 border border-gray-200 rounded-2xl bg-white shadow-sm">
@@ -477,7 +484,7 @@ onMounted(() => {
 
           <div class="p-6 space-y-4">
             <div
-              v-for="(pg, pgIndex) in row.price_groups"
+              v-for="(pg, pgIndex) in row.product_prices"
               :key="pgIndex"
               class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
             >
@@ -488,7 +495,7 @@ onMounted(() => {
               >
                 <option value="">Select Price Group</option>
                 <option
-                  v-for="price_group in price_groups"
+                  v-for="price_group in product_prices"
                   :key="price_group.id"
                   :value="price_group.id"
                   :disabled="isPriceGroupDisabled(index, price_group.id, pg.price_group_id)"
@@ -509,7 +516,7 @@ onMounted(() => {
                 <button
                   type="button"
                   @click="addPriceGroupRow(index)"
-                  v-if="pgIndex === row.price_groups.length - 1"
+                  v-if="pgIndex === row.product_prices.length - 1"
                   class="px-4 py-2 text-sm font-medium rounded-lg
                          bg-emerald-500 hover:bg-emerald-600 text-white
                          transition cursor-pointer"
@@ -520,7 +527,7 @@ onMounted(() => {
                 <button
                   type="button"
                   @click="removePriceGroupRow(index, pgIndex)"
-                  :disabled="row.price_groups.length === 1"
+                  :disabled="row.product_prices.length === 1"
                   class="px-4 py-2 text-sm font-medium rounded-lg
                          bg-rose-500 hover:bg-rose-600 text-white
                          transition cursor-pointer

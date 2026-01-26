@@ -49,7 +49,8 @@ const getNewRow = () => ({
   unit_conversions: [
     {
       unit_id: '',
-      multiplier: ''
+      multiplier: '',
+      opening: ''
     }
   ],
   product_prices: [
@@ -221,7 +222,8 @@ const loadPriceGroup = async () => {
 const addUnitRow = (productIndex) => {
   newRows.value[productIndex].unit_conversions.push({
     unit_id: '',
-    multiplier: ''
+    multiplier: '',
+    opening: ''
   })
 }
 
@@ -549,7 +551,7 @@ onMounted(() => {
             <div
               v-for="(uc, ucIndex) in row.unit_conversions"
               :key="ucIndex"
-              class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
+              class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center"
             >
 
               <div class="flex gap-2">
@@ -579,6 +581,14 @@ onMounted(() => {
                 v-model="uc.multiplier"
                 type="number"
                 placeholder="Multiplier (e.g. 0.5, 2)"
+                class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              />
+
+              <input
+                v-model="uc.opening"
+                type="number"
+                placeholder="Opening Qty"
                 class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
                        focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
               />

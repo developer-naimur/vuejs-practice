@@ -27,7 +27,7 @@ const loading = ref(true)
 /* ===============================
   SINGLE ROW STATE
 ================================ */
-const row = ref()
+const row = ref({})
 
 /* ===============================
   FETCH TAX DATA
@@ -35,7 +35,7 @@ const row = ref()
 const fetchRow = async () => {
   try {
     const res = await axiosInstance.get(`/products/${rowId}`)
-  const data = res.data.data
+    const data = res.data.data
 
     row.value = {
       name: data.name,
@@ -44,18 +44,18 @@ const fetchRow = async () => {
       category_id: data.category.id,
       cost_price: data.cost_price,
       selling_price: data.selling_price,
-      tax_id: data.tax.id,
+      tax_id: data?.tax?.id || '',
       discount_value: data.discount_value,
       discount_type: data.discount_type,
       description: data.description,
       is_stock_tracked: data.is_stock_tracked,
-      unit_conversions: data.unitConversions,
+      unit_conversions: data.opening_by_units,
       product_prices: data.prices,
       status: data.status,
     }
+
   } catch (err) {
     messageStore.showError('Failed to load row data')
-    //router.push('/setting/tax')
   } finally {
     loading.value = false
   }
@@ -478,7 +478,7 @@ onMounted(() => {
             <div
               v-for="(uc, ucIndex) in row.unit_conversions"
               :key="ucIndex"
-              class="grid grid-cols-1 md:grid-cols-3 gap-4 items-center"
+              class="grid grid-cols-1 md:grid-cols-4 gap-4 items-center"
             >
 
               <div class="flex gap-2">
@@ -508,6 +508,14 @@ onMounted(() => {
                 v-model="uc.multiplier"
                 type="number"
                 placeholder="Multiplier (e.g. 0.5, 2)"
+                class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
+                       focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
+              />
+
+              <input
+                v-model="uc.opening"
+                type="number"
+                placeholder="Opening Qty"
                 class="w-full rounded-lg border-gray-300 px-4 py-2.5 text-sm
                        focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none"
               />

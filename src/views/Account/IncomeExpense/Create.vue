@@ -168,6 +168,15 @@ const loadTaxes = async () => {
   }
 }
 
+
+
+import TypeCreateForm from '@/components/modals/incomeExpenseType/TypeCreateForm.vue'
+const showTypeModal = ref(false)
+const onTypeSaved = async () => {
+  showTypeModal.value = false
+  await loadTypes() // dropdown refresh
+}
+
 onMounted(() => {
   loadAccounts()
   loadTypes()
@@ -264,16 +273,23 @@ onMounted(() => {
             <label class="block text-sm text-gray-600 mb-1">
               Type <span class="text-red-600">*</span>
             </label>
-            <select
-              v-model="row.type_id"
-              class="w-full border p-3"
-              :disabled="typeLoading || !types.length"
-            >
-              <option value="">Select</option>
-              <option v-for="type in types" :key="type.id" :value="type.id">
-                {{ type.type_name }}
-              </option>
-            </select>
+            <div class="flex gap-2">
+              <select
+                v-model="row.type_id"
+                class="w-full border p-3"
+                :disabled="typeLoading || !types.length"
+              >
+                <option value="">Select</option>
+                <option v-for="type in types" :key="type.id" :value="type.id">
+                  {{ type.type_name }}
+                </option>
+              </select>
+              <button type="button"
+                      @click="showTypeModal = true"
+                      class="px-3 bg-blue-500 text-white rounded cursor-pointer">
+                +
+              </button>
+            </div>
           </div>
 
           <!-- Account -->
@@ -411,6 +427,25 @@ onMounted(() => {
 
 
     </form>
+  </div>
+
+
+
+  <!-- modals -->
+  <!-- Type modal -->
+  <div v-if="showTypeModal"
+     class="fixed inset-0 bg-black/50 flex items-center justify-center z-100">
+
+    <div class="bg-white w-full max-w-xl rounded-xl p-6">
+
+      <h3 class="text-lg font-semibold mb-4">Add New Type</h3>
+
+      <TypeCreateForm
+        @saved="onTypeSaved"
+        @cancel="showTypeModal = false"
+      />
+
+    </div>
   </div>
   
 </div>

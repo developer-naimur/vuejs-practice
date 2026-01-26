@@ -9,12 +9,12 @@ const menus = ref([
   { label: 'Area/Route', to: '/setting/route' },
   { label: 'Warehouse', to: '/setting/warehouse' },
   { label: 'Tax', to: '/setting/tax' },
-  { label: 'Inventory / Product Settings', to: '/setting/inventory-product' },
-  { label: 'Purchase / Supplier Settings', to: '/setting/purchase-supplier' },
-  { label: 'Sales / Transaction Settings', to: '/setting/sale-transaction' },
-  { label: 'Accounting / Financial Settings', to: '/setting/accounting-finance' },
-  { label: 'Notifications / Alerts', to: '/setting/notification' },
-  { label: 'System / Technical Settings', to: '/setting/system' }
+  //{ label: 'Inventory / Product Settings', to: '/setting/inventory-product' },
+  //{ label: 'Purchase / Supplier Settings', to: '/setting/purchase-supplier' },
+  //{ label: 'Sales / Transaction Settings', to: '/setting/sale-transaction' },
+  //{ label: 'Accounting / Financial Settings', to: '/setting/accounting-finance' },
+  //{ label: 'Notifications / Alerts', to: '/setting/notification' },
+  //{ label: 'System / Technical Settings', to: '/setting/system' }
 ])
 </script>
 

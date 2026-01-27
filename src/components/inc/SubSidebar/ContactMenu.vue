@@ -3,7 +3,8 @@ import { ref } from 'vue'
 
 const menus = ref([
   { label: 'Customer', to: '/customer' },
-  { label: 'Supplier', to: '/supplier' }
+  { label: 'Supplier', to: '/supplier' },
+  { label: 'Payment & Receive', to: '/payment-and-receive' }
 ])
 </script>
 

@@ -62,6 +62,12 @@ import SupplierEdit from '../views/Contact/Supplier/Edit.vue'
 import SupplierShow from '../views/Contact/Supplier/Show.vue'
 import SupplierTrashed from '../views/Contact/Supplier/Trashed.vue'
 import getSupplier from '../views/Contact/Supplier/getSupplier.vue'
+//Payment and Receive
+import PaymentAndReceiveIndex from '../views/Contact/PaymentAndReceive/Index.vue'
+import PaymentAndReceiveCreate from '../views/Contact/PaymentAndReceive/Create.vue'
+import PaymentAndReceiveEdit from '../views/Contact/PaymentAndReceive/Edit.vue'
+import PaymentAndReceiveShow from '../views/Contact/PaymentAndReceive/Show.vue'
+import PaymentAndReceiveTrashed from '../views/Contact/PaymentAndReceive/Trashed.vue'
 
 //---------------------------------------------------
 // Sales
@@ -128,22 +134,6 @@ import IncomeExpenseTypeEdit from '../views/Account/IncomeExpense/Type/Edit.vue'
 import IncomeExpenseTypeShow from '../views/Account/IncomeExpense/Type/Show.vue'
 import IncomeExpenseTypeTrashed from '../views/Account/IncomeExpense/Type/Trashed.vue'
 
-
-//---------------------------------------------------
-// Payment
-//---------------------------------------------------
-// Customer Payment 
-import PaymentCustomerIndex from '../views/Payment/Customer/Index.vue'
-import PaymentCustomerCreate from '../views/Payment/Customer/Create.vue'
-import PaymentCustomerEdit from '../views/Payment/Customer/Edit.vue'
-import PaymentCustomerShow from '../views/Payment/Customer/Show.vue'
-import PaymentCustomerTrashed from '../views/Payment/Customer/Trashed.vue'
-// Supplier Payment 
-import PaymentSupplierIndex from '../views/Payment/Supplier/Index.vue'
-import PaymentSupplierCreate from '../views/Payment/Supplier/Create.vue'
-import PaymentSupplierEdit from '../views/Payment/Supplier/Edit.vue'
-import PaymentSupplierShow from '../views/Payment/Supplier/Show.vue'
-import PaymentSupplierTrashed from '../views/Payment/Supplier/Trashed.vue'
 
 //---------------------------------------------------
 // Stock
@@ -610,6 +600,55 @@ const routes = [
       }
     },
 
+  // =============================
+  // Payment and Receive (under contact)
+  // =============================
+    {
+      path: '/payment-and-receive',
+      name: 'payment-receive.index',
+      component: PaymentAndReceiveIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'payment_and_receive.read'
+      }
+    },
+    {
+      path: '/payment-and-receive/create',
+      name: 'payment-receive.create',
+      component: PaymentAndReceiveCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'payment_and_receive.create'
+      }
+    },
+    {
+      path: '/payment-and-receive/trashed',
+      name: 'payment-receive.trashed',
+      component: PaymentAndReceiveTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'payment_and_receive.read'
+      }
+    },
+    {
+      path: '/payment-and-receive/:id/edit',
+      name: 'payment-receive.edit',
+      component: PaymentAndReceiveEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'payment_and_receive.update'
+      }
+    },
+    {
+      path: '/payment-and-receive/:id',
+      name: 'payment-receive.show',
+      component: PaymentAndReceiveShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'payment_and_receive.read'
+      }
+    },
+
 
   //-------------------------------------------------------
   // Sale 
@@ -1011,103 +1050,7 @@ const routes = [
         permission: 'income_expense_type.read'
       }
     },
-
-  //-------------------------------------------------------
-  // Payment 
-  //-------------------------------------------------------
-    //PaymentCustomer
-    {
-      path: '/payment/customer',
-      name: 'payment-customer.index',
-      component: PaymentCustomerIndex,
-      meta: {
-        requiresAuth: true
-      }
-    },
-    {
-      path: '/payment/customer/create',
-      name: 'payment-customer.create',
-      component: PaymentCustomerCreate,
-      meta: {
-        requiresAuth: true, 
-        permission: 'customer_payment.create'
-      }
-    },
-    {
-      path: '/payment/customer/trashed',
-      name: 'payment-customer.trashed',
-      component: PaymentCustomerTrashed,
-      meta: {
-        requiresAuth: true, 
-        permission: 'customer_payment.read'
-      }
-    },
-    {
-      path: '/payment/customer/:id/edit',
-      name: 'payment-customer.edit',
-      component: PaymentCustomerEdit,
-      meta: {
-        requiresAuth: true, 
-        permission: 'customer_payment.update'
-      }
-    },
-    {
-      path: '/payment/customer/:id',
-      name: 'payment-customer.show',
-      component: PaymentCustomerShow,
-      meta: {
-        requiresAuth: true, 
-        permission: 'customer_payment.read'
-      }
-    },
-
-    //PaymentSupplier
-    {
-      path: '/payment/supplier',
-      name: 'payment-supplier.index',
-      component: PaymentSupplierIndex,
-      meta: {
-        requiresAuth: true, 
-        permission: 'supplier_payment.read'
-      }
-    },
-    {
-      path: '/payment/supplier/create',
-      name: 'payment-supplier.create',
-      component: PaymentSupplierCreate,
-      meta: {
-        requiresAuth: true, 
-        permission: 'supplier_payment.create'
-      }
-    },
-    {
-      path: '/payment/supplier/trashed',
-      name: 'payment-supplier.trashed',
-      component: PaymentSupplierTrashed,
-      meta: {
-        requiresAuth: true, 
-        permission: 'supplier_payment.read'
-      }
-    },
-    {
-      path: '/payment/supplier/:id/edit',
-      name: 'payment-supplier.edit',
-      component: PaymentSupplierEdit,
-      meta: {
-        requiresAuth: true, 
-        permission: 'supplier_payment.update'
-      }
-    },
-    {
-      path: '/payment/supplier/:id',
-      name: 'payment-supplier.show',
-      component: PaymentSupplierShow,
-      meta: {
-        requiresAuth: true, 
-        permission: 'supplier_payment.read'
-      }
-    },
-
+    
   //-------------------------------------------------------
   // Stock 
   //-------------------------------------------------------

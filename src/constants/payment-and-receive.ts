@@ -11,6 +11,6 @@ export const $routes = {
    PAGE TEXT / LABELS
 ===================================================== */
 export const $labels = {
-  plural_name   : 'Payment and Receives',
-  singular_name : 'Payment and Receive',
+  plural_name   : 'Payment & Receives',
+  singular_name : 'Payment & Receive',
 }

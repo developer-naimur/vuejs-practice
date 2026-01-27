@@ -307,8 +307,8 @@ onMounted(() => {
                 {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
               </option>
             </select>
-
           </div>
+          
         </div>
 
         <!-- Row 2 -->

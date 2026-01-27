@@ -3,7 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axiosInstance from '@/axiosInstance'
 import { AxiosError } from 'axios'
-import { $routes, $labels } from '@/constants/supplier'
+import { $routes, $labels } from '@/constants/payment-and-receive'
 
 /* ===============================
   GLOBAL / SHARED
@@ -43,9 +43,10 @@ const $breadcrumbs = [
 /* ===============================
   FILTERS
 ================================ */
-const nameValue = ref('')
-const phoneValue = ref('')
-const statusValue = ref('')
+const dateValue = ref('')
+const customerId = ref('')
+const supplierId = ref('')
+const accountId = ref('')
 
 /* ===============================
   TABLE DATA
@@ -70,11 +71,12 @@ const fetchRows = async () => {
   loading.value = true
 
   try {
-    const res = await axiosInstance.get('/suppliers', {
+    const res = await axiosInstance.get('/payment-and-receives', {
       params: {
-        name: nameValue.value || undefined,
-        phone: phoneValue.value || undefined,
-        status: statusValue.value || undefined,
+        transaction_date: dateValue.value || undefined,
+        customer_id: customerId.value || undefined,
+        supplier_id: supplierId.value || undefined,
+        account_id: accountId.value || undefined,
         page: currentPage.value,
         per_page: perPage.value,
         trashed: 'only',
@@ -86,14 +88,11 @@ const fetchRows = async () => {
     setMeta(res.data.meta)
 
   } catch (err) {
-    if (err instanceof AxiosError) {
-      messageStore.showError(err.response?.data?.message || 'Fetch failed')
-    }
+    messageStore.showError('Fetch failed')
   } finally {
     loading.value = false
   }
 }
-
 /* ===============================
   ACTIONS
 ================================ */
@@ -103,18 +102,88 @@ const handleSearch = () => {
 }
 
 const resetFilters = () => {
-  nameValue.value = ''
-  phoneValue.value = ''
-  statusValue.value = ''
+  dateValue.value = ''
+  customerId.value = ''
+  supplierId.value = ''
+  accountId.value = ''
   currentPage.value = 1
   fetchRows()
 }
 
 /* ===============================
+  Soft Delete
+================================ */
+import { useSoftDeleteStore } from '@/stores/useSoftDeleteStore'
+const deleteStore = useSoftDeleteStore()
+const deleteRow = (row) => {
+  row.deleteUrl = `/payment-and-receives/${row.uuid}`
+  row.onSuccess = fetchRows
+  row.label = row.name || 'this item'
+  deleteStore.openDeleteModal(row)
+}
+
+
+//load accounts
+const accounts = ref([])
+const accountLoading = ref<boolean>(false);
+const loadAccounts = async () => {
+  loading.value = true
+  accountLoading.value = true
+  try {
+    const res = await axiosInstance.get('/accounts/option/list')
+    accounts.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    accountLoading.value = false
+    loading.value = false
+  }
+}
+
+//load customers
+const customers = ref([])
+const customerLoading = ref<boolean>(false);
+const loadCustomers = async () => {
+  loading.value = true
+  customerLoading.value = true
+  try {
+    const res = await axiosInstance.get('/customers/option/list')
+    customers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Customer load failed. Please check permission.')
+  } finally {
+    customerLoading.value = false
+    loading.value = false
+  }
+}
+//load suppliers
+const suppliers = ref([])
+const supplierLoading = ref<boolean>(false);
+const loadSuppliers = async () => {
+  loading.value = true
+  supplierLoading.value = true
+  try {
+    const res = await axiosInstance.get('/suppliers/option/list')
+    suppliers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Supplier load failed. Please check permission.')
+  } finally {
+    supplierLoading.value = false
+    loading.value = false
+  }
+}
+
+
+/* ===============================
   INIT
 ================================ */
-onMounted(fetchRows)
 
+onMounted(() => {
+  loadAccounts()
+  loadCustomers()
+  loadSuppliers()
+  fetchRows()
+})
 </script>
 
 <template>
@@ -158,22 +227,60 @@ onMounted(fetchRows)
       </div>
     </div>
 
+
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="nameValue" type="text" placeholder="Name..."
+        <input v-model="dateValue" type="date" placeholder="Date..."
                class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
       </div>
       <div class="w-full md:w-1/3">
-        <input v-model="phoneValue" type="text" placeholder="Phone..."
-               class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
-      </div>
-      <div class="w-full md:w-1/5">
-        <select v-model="statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
-          <option value="">Status</option>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
+        
+        <select
+          v-model="customerId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+          <option value="">All Customers</option>
+          <option
+            v-for="customer in customers"
+            :key="customer.id"
+            :value="customer.id"
+          >
+            {{ customer.name }}
+            <template v-if="customer.phone"> - {{ customer.phone }}</template>
+          </option>
         </select>
+
+      </div>
+      <div class="w-full md:w-1/3">
+        
+        <select
+          v-model="supplierId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+          <option value="">All Suppliers</option>
+          <option
+            v-for="supplier in suppliers"
+            :key="supplier.id"
+            :value="supplier.id"
+          >
+            {{ supplier.name }}
+            <template v-if="supplier.phone"> - {{ supplier.phone }}</template>
+          </option>
+        </select>
+
+      </div>
+      <div class="w-full md:w-1/3">
+        
+        <select
+          v-model="accountId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none"
+          :disabled="accountLoading || !accounts.length"
+        >
+          <option value="">All Accounts</option>
+          <option v-for="account in accounts" :key="account.id" :value="account.id">
+            {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+          </option>
+        </select>
+
       </div>
       <div class="flex gap-2 w-full md:w-auto">
         <button @click="handleSearch" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition cursor-pointer">
@@ -200,11 +307,12 @@ onMounted(fetchRows)
         <thead class="bg-gray-100">
           <tr>
               <th class="px-4 py-2 text-left">#</th>
-              <th class="px-4 py-2 text-left">Name</th>
-              <th class="px-4 py-2 text-left">Phone</th>
-              <th class="px-4 py-2 text-left">Address</th>
-              <th class="px-4 py-2 text-left">Status</th>
-              <th class="px-4 py-2 text-left">Opening Balance</th>
+              <th class="px-4 py-2 text-left">Date</th>
+              <th class="px-4 py-2 text-left">Party</th>
+              <th class="px-4 py-2 text-left">Account</th>
+              <th class="px-4 py-2 text-left">Debit</th>
+              <th class="px-4 py-2 text-left">Credit</th>
+              <th class="px-4 py-2 text-left">Note</th>
               <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
@@ -214,19 +322,26 @@ onMounted(fetchRows)
           
           <tr v-if="loading == false" v-for="(row, index) in rows" :key="row.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-            <td class="px-4 py-2">{{ row.name }}</td>
-            <td class="px-4 py-2">{{ row.phone }}</td>
-            <td class="px-4 py-2">{{ row.address }}</td>
+            <td class="px-4 py-2">{{ row.date }}</td>
             <td class="px-4 py-2">
-              <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(row.status)">
-                {{ row.status }}
-              </span>
+              <template v-if="row.customer">
+                <b>Customer:</b> {{ row.customer.name }} - {{ row.customer.phone }}
+              </template>
+              <template v-if="row.supplier">
+                <b>Supplier:</b>
+                {{ row.supplier.name }} - {{ row.supplier.phone }}
+              </template>
             </td>
-            <td class="px-4 py-2">{{ row.opening }}</td>
-            <td class="px-4 py-2 flex gap-2 items-center">
+            <td class="px-4 py-2">
+              {{ row?.account?.account_name || 'N/A' }} - {{ row?.account?.account_number || 'N/A' }}
+            </td>
+            <td class="px-4 py-2">{{ row.debit }}</td>
+            <td class="px-4 py-2">{{ row.credit }}</td>
+            <td class="px-4 py-2">{{ row.note }}</td>
+            <td class="px-4 py-2">
               <RowActions
                 :row="row"
-                routeBase="suppliers"
+                routeBase="payment-and-receives"
                 :onDeleted="() => {
                   rows = rows.filter(r => r.uuid !== row.uuid)
                   totalRows--

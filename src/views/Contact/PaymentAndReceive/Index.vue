@@ -41,8 +41,10 @@ const $breadcrumbs = [
 /* ===============================
   FILTERS
 ================================ */
-const accountValue = ref('')
 const dateValue = ref('')
+const customerId = ref('')
+const supplierId = ref('')
+const accountId = ref('')
 
 /* ===============================
   TABLE DATA
@@ -70,7 +72,9 @@ const fetchRows = async () => {
     const res = await axiosInstance.get('/payment-and-receives', {
       params: {
         transaction_date: dateValue.value || undefined,
-        account_id: accountValue.value || undefined,
+        customer_id: customerId.value || undefined,
+        supplier_id: supplierId.value || undefined,
+        account_id: accountId.value || undefined,
         page: currentPage.value,
         per_page: perPage.value,
       }
@@ -96,7 +100,9 @@ const handleSearch = () => {
 
 const resetFilters = () => {
   dateValue.value = ''
-  accountValue.value = ''
+  customerId.value = ''
+  supplierId.value = ''
+  accountId.value = ''
   currentPage.value = 1
   fetchRows()
 }
@@ -113,11 +119,68 @@ const deleteRow = (row) => {
   deleteStore.openDeleteModal(row)
 }
 
+
+//load accounts
+const accounts = ref([])
+const accountLoading = ref<boolean>(false);
+const loadAccounts = async () => {
+  loading.value = true
+  accountLoading.value = true
+  try {
+    const res = await axiosInstance.get('/accounts/option/list')
+    accounts.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    accountLoading.value = false
+    loading.value = false
+  }
+}
+
+//load customers
+const customers = ref([])
+const customerLoading = ref<boolean>(false);
+const loadCustomers = async () => {
+  loading.value = true
+  customerLoading.value = true
+  try {
+    const res = await axiosInstance.get('/customers/option/list')
+    customers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Customer load failed. Please check permission.')
+  } finally {
+    customerLoading.value = false
+    loading.value = false
+  }
+}
+//load suppliers
+const suppliers = ref([])
+const supplierLoading = ref<boolean>(false);
+const loadSuppliers = async () => {
+  loading.value = true
+  supplierLoading.value = true
+  try {
+    const res = await axiosInstance.get('/suppliers/option/list')
+    suppliers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Supplier load failed. Please check permission.')
+  } finally {
+    supplierLoading.value = false
+    loading.value = false
+  }
+}
+
+
 /* ===============================
   INIT
 ================================ */
-onMounted(fetchRows)
 
+onMounted(() => {
+  loadAccounts()
+  loadCustomers()
+  loadSuppliers()
+  fetchRows()
+})
 </script>
 
 <template>
@@ -175,8 +238,52 @@ onMounted(fetchRows)
                class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
       </div>
       <div class="w-full md:w-1/3">
-        <input v-model="accountValue" type="text" placeholder="Phone..."
-               class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+        
+        <select
+          v-model="customerId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+          <option value="">All Customers</option>
+          <option
+            v-for="customer in customers"
+            :key="customer.id"
+            :value="customer.id"
+          >
+            {{ customer.name }}
+            <template v-if="customer.phone"> - {{ customer.phone }}</template>
+          </option>
+        </select>
+
+      </div>
+      <div class="w-full md:w-1/3">
+        
+        <select
+          v-model="supplierId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+          <option value="">All Suppliers</option>
+          <option
+            v-for="supplier in suppliers"
+            :key="supplier.id"
+            :value="supplier.id"
+          >
+            {{ supplier.name }}
+            <template v-if="supplier.phone"> - {{ supplier.phone }}</template>
+          </option>
+        </select>
+
+      </div>
+      <div class="w-full md:w-1/3">
+        
+        <select
+          v-model="accountId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none"
+          :disabled="accountLoading || !accounts.length"
+        >
+          <option value="">All Accounts</option>
+          <option v-for="account in accounts" :key="account.id" :value="account.id">
+            {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+          </option>
+        </select>
+
       </div>
       <div class="flex gap-2 w-full md:w-auto">
         <button @click="handleSearch" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition cursor-pointer">
@@ -221,9 +328,10 @@ onMounted(fetchRows)
             <td class="px-4 py-2">{{ row.date }}</td>
             <td class="px-4 py-2">
               <template v-if="row.customer">
-                {{ row.customer.name }} - {{ row.customer.phone }}
+                <b>Customer:</b> {{ row.customer.name }} - {{ row.customer.phone }}
               </template>
               <template v-if="row.supplier">
+                <b>Supplier:</b>
                 {{ row.supplier.name }} - {{ row.supplier.phone }}
               </template>
             </td>

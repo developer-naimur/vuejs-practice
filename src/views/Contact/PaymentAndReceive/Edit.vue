@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import axiosInstance from '@/axiosInstance'
 import { AxiosError } from 'axios'
 
-import FormSkeleton from '@/components/Skeleton/Form-1.vue'
+import FormSkeleton from '@/components/Skeleton/Form-2.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
 import { useMessageStore } from '@/stores/useMessageStore'
@@ -17,8 +17,8 @@ const rowId = route.params.id
 
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Suppliers', to: '/supplier' },
-  { label: 'Edit Supplier' }
+  { label: 'Payment & Receives', to: '/payment-and-receive' },
+  { label: 'Edit Payment & Receive' }
 ]
 
 const processing = ref(false)
@@ -34,15 +34,34 @@ const row = ref({})
 ================================ */
 const fetchRow = async () => {
   try {
-    const res = await axiosInstance.get(`/suppliers/${rowId}`)
+    const res = await axiosInstance.get(`/payment-and-receives/${rowId}`)
     const data = res.data.data
+    
+    let amount = ''
+    if (Number(data.debit) > 0) {
+      amount = data.debit
+    } else if (Number(data.credit) > 0) {
+      amount = data.credit
+    }
+
     row.value = {
-      name: data.name,
-      phone: data.phone,
-      address: data.address,
-      description: data.description,
-      opening_balance: data.opening,
-      status: data.status,
+      transaction_date: data.date,
+      payment_type: data.debit > 0
+        ? 'payment'
+        : data.credit > 0
+          ? 'receive'
+          : '',
+      party_type: data.customer
+        ? 'customer'
+        : data.supplier
+          ? 'supplier'
+          : '',
+      account_id: data.account?.id || '',
+      customer_id: data.customer?.id || '',
+      supplier_id: data.supplier?.id || '',
+      amount: amount,
+      cheque_number: data.cheque_number || '',
+      note: data.note || '',
     }
   } catch (err) {
     messageStore.showError('Failed to load row data')
@@ -60,9 +79,9 @@ const submitUpdate = async () => {
   processing.value = true
 
   try {
-    await axiosInstance.put(`/suppliers/${rowId}`, row.value)
+    await axiosInstance.put(`/payment-and-receives/${rowId}`, row.value)
     messageStore.showSuccess('Row updated successfully!')
-    router.push('/supplier')
+    router.push('/payment-and-receive')
   } catch (err) {
     if (err instanceof AxiosError) {
       messageStore.showError(err.response?.data?.message || 'Update failed')
@@ -74,9 +93,80 @@ const submitUpdate = async () => {
   }
 }
 
+//load accounts
+const accounts = ref([])
+const accountLoading = ref<boolean>(false);
+const loadAccounts = async () => {
+  loading.value = true
+  accountLoading.value = true
+  try {
+    const res = await axiosInstance.get('/accounts/option/list')
+    accounts.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    accountLoading.value = false
+    loading.value = false
+  }
+}
+
+//load customers
+const customers = ref([])
+const customerLoading = ref<boolean>(false);
+const loadCustomers = async () => {
+  loading.value = true
+  customerLoading.value = true
+  try {
+    const res = await axiosInstance.get('/customers/option/list')
+    customers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Customer load failed. Please check permission.')
+  } finally {
+    customerLoading.value = false
+    loading.value = false
+  }
+}
+//load suppliers
+const suppliers = ref([])
+const supplierLoading = ref<boolean>(false);
+const loadSuppliers = async () => {
+  loading.value = true
+  supplierLoading.value = true
+  try {
+    const res = await axiosInstance.get('/suppliers/option/list')
+    suppliers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Supplier load failed. Please check permission.')
+  } finally {
+    supplierLoading.value = false
+    loading.value = false
+  }
+}
+
 onMounted(() => {
+  loadAccounts()
+  loadCustomers()
+  loadSuppliers()
   fetchRow()
 })
+
+watch(
+  () => row.value.party_type,
+  (partyType) => {
+    if (partyType === 'customer') {
+      row.value.supplier_id = ''
+      row.value.payment_type = 'receive'
+    } else if (partyType === 'supplier') {
+      row.value.customer_id = ''
+      row.value.payment_type = 'payment'
+    } else {
+      row.value.customer_id = ''
+      row.value.supplier_id = ''
+      row.value.payment_type = ''
+    }
+  }
+)
+
 
 </script>
 
@@ -94,7 +184,7 @@ onMounted(() => {
 
     <!-- Title -->
     <div class="flex justify-between items-center">
-      <h2 class="text-2xl font-semibold text-gray-700">Edit Supplier</h2>
+      <h2 class="text-2xl font-semibold text-gray-700">Edit Payment & Receive</h2>
 
       <router-link
           to="/supplier"
@@ -106,91 +196,169 @@ onMounted(() => {
 
       <!-- Loading -->
       <div v-if="loading" class="space-y-4">
-        <FormSkeleton :columns="3" :rows="2" />
+        <FormSkeleton :columns="3" :rows="3" />
       </div>
 
       <!-- Form -->
       <form v-else @submit.prevent="submitUpdate" class="space-y-4">
 
-      <!-- Row 1 -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">
-            Name <span class="text-red-600">*</span>
-          </label>
-          <input
-            v-model="row.name"
-            type="text"
-            placeholder="Name *"
-            class="w-full border p-3 focus:ring-2 focus:ring-gray-500"
-          />
-        </div>
+        <!-- Row 1 -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Date <span class="text-red-600">*</span>
+            </label>
+            <input
+              v-model="row.transaction_date"
+              type="date"
+              class="w-full border p-3 focus:ring-2 focus:ring-gray-500"
+            />
+          </div>
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">
-            Phone
-          </label>
-          <input
-            v-model="row.phone"
-            type="text"
-            placeholder="Phone number"
-            class="w-full border p-3"
-          />
-        </div>
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Party Type <span class="text-red-600">*</span>
+            </label>
+            <select
+              v-model="row.party_type"
+              class="w-full border p-3"
+            >
+              <option value="">Party Type</option>
+              <option value="customer">Customer</option>
+              <option value="supplier">Supplier</option>
+            </select>
+          </div>
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">
-            Opening Balance
-          </label>
-          <input
-            v-model="row.opening_balance"
-            type="number"
-            placeholder="0.00"
-            class="w-full border p-3"
-          />
-        </div>
 
-        <div>
-          <label class="block text-sm text-gray-600 mb-1">
-            Status <span class="text-red-600">*</span>
-          </label>
-          <select
-            v-model="row.status"
-            class="w-full border p-3"
+          <div
+            class="relative group"
+            :title="row.party_type !== 'customer'
+              ? 'Please select Party Type: Customer'
+              : ''"
           >
-            <option value="">Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-        </div>
-      </div>
+            <label
+              class="block text-sm mb-1"
+              :class="row.party_type !== 'customer'
+                ? 'text-gray-400'
+                : 'text-gray-600'"
+            >
+              Customer <span class="text-red-600">*</span>
+            </label>
 
-      <!-- Row 2 -->
-      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div class="md:col-span-2">
-          <label class="block text-sm text-gray-600 mb-1">
-            Address
-          </label>
-          <input
-            v-model="row.address"
-            type="text"
-            placeholder="Address"
-            class="w-full border p-3"
-          />
-        </div>
+            <select
+              v-model="row.customer_id"
+              class="w-full border p-3 transition
+                     disabled:bg-gray-100 disabled:text-gray-400
+                     disabled:cursor-not-allowed"
+              :disabled="row.party_type !== 'customer' || customerLoading || !customers.length"
+            >
+              <option value="">Select</option>
+              <option
+                v-for="customer in customers"
+                :key="customer.id"
+                :value="customer.id"
+              >
+                {{ customer.name }}
+                <template v-if="customer.phone"> - {{ customer.phone }}</template>
+              </option>
+            </select>
+          </div>
 
-        <div class="md:col-span-2">
-          <label class="block text-sm text-gray-600 mb-1">
-            Description
-          </label>
-          <textarea
-            v-model="row.description"
-            rows="2"
-            placeholder="Optional notes"
-            class="w-full border p-3"
-          ></textarea>
+          <div
+            class="relative group"
+            :title="row.party_type !== 'supplier'
+              ? 'Please select Party Type: Supplier'
+              : ''"
+          >
+            <label
+              class="block text-sm mb-1"
+              :class="row.party_type !== 'supplier'
+                ? 'text-gray-400'
+                : 'text-gray-600'"
+            >
+              Supplier <span class="text-red-600">*</span>
+            </label>
+
+            <select
+              v-model="row.supplier_id"
+              class="w-full border p-3 transition
+                     disabled:bg-gray-100 disabled:text-gray-400
+                     disabled:cursor-not-allowed"
+              :disabled="row.party_type !== 'supplier' || supplierLoading || !suppliers.length"
+            >
+              <option value="">Select</option>
+              <option
+                v-for="supplier in suppliers"
+                :key="supplier.id"
+                :value="supplier.id"
+              >
+                {{ supplier.name }}
+                <template v-if="supplier.phone"> - {{ supplier.phone }}</template>
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Payment Type <span class="text-red-600">*</span>
+            </label>
+            <select
+              v-model="row.payment_type"
+              class="w-full border p-3"
+            >
+              <option value="">Payment Type</option>
+              <option value="payment">Payment</option>
+              <option value="receive">Receive</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Account <span class="text-red-600">*</span>
+            </label>
+            <select
+              v-model="row.account_id"
+              class="w-full border p-3"
+              :disabled="accountLoading || !accounts.length"
+            >
+              <option value="">Select</option>
+              <option v-for="account in accounts" :key="account.id" :value="account.id">
+                {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+              </option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Amount <span class="text-red-600">*</span>
+            </label>
+            <input
+              v-model="row.amount"
+              type="number"
+              placeholder="0.00"
+              class="w-full border p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Cheque Number
+            </label>
+            <input
+              v-model="row.cheque_number"
+              type="text"
+              class="w-full border p-3"
+            />
+          </div>
+
+          <div>
+            <label class="block text-sm text-gray-600 mb-1">
+              Note
+            </label>
+            <textarea v-model="row.note" class="w-full border p-3"></textarea>
+          </div>
+
         </div>
-      </div>
 
       <button
         type="submit"
@@ -199,7 +367,7 @@ onMounted(() => {
                hover:bg-gray-600 transition cursor-pointer
                disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ processing ? 'Updating...' : 'Update Supplier' }}
+        {{ processing ? 'Updating...' : 'Update Payment & Receive' }}
       </button>
 
     </form>

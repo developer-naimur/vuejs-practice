@@ -50,7 +50,6 @@ const fetchRow = async () => {
     const res = await axiosInstance.get(`/stock-adjustments/${rowId}`)
     const data = res.data.data
 
-    console.log(data.details)
     // Main row fields
     row.value = {
       operation_date: data.date,
@@ -65,16 +64,16 @@ const fetchRow = async () => {
 
     // Load selected products into Pinia store
     productPopup.selectedProducts.splice(0, productPopup.selectedProducts.length) // clear old
+
     data.details?.forEach((d: any) => {
-      productPopup.addProduct({
+      productPopup.selectedProducts.push({
         id: d.product_id,
-        name: d.product?.name || `Product-${d.product_id}`,
+        name: d.product?.name || '',
         qty: Number(d.quantity),
         cost_price: Number(d.cost_price),
         note: d.note,
       })
     })
-
 
   } catch (err) {
     messageStore.showError('Failed to load row data')

@@ -9,7 +9,7 @@ import { $routes, $labels } from '@/constants/stockAdjustment'
   GLOBAL / SHARED
 ================================ */
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-import ProductMenu from '@/components/inc/SubSidebar/ProductMenu.vue'
+import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import Pagination from '@/components/Pagination.vue'
 
@@ -176,7 +176,7 @@ onMounted(() => {
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
-    <ProductMenu />
+    <StockMenu />
   </div>
 
   <div class="flex-1 lg:ml-[320px] p-4">
@@ -322,10 +322,13 @@ onMounted(() => {
             <td class="px-4 py-2">{{ row.operation_type }}</td>
             <td class="px-4 py-2">{{ row.direction }}</td>
             <td class="px-4 py-2">
-              <span class="capitalize">
-                {{ row.party?.type }} -
-                {{ row.party?.name?.name || 'N/A' }}
-              </span>
+              {{
+                row.customer
+                  ? `${row.customer.name} ${row.customer.phone ?? ''}`
+                  : row.supplier
+                    ? `${row.supplier.name} ${row.supplier.phone ?? ''}`
+                    : 'N/A'
+              }}
             </td>
             <td class="px-4 py-2">
               <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(row.status)">

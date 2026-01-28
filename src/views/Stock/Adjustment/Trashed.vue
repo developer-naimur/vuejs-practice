@@ -319,10 +319,13 @@ onMounted(() => {
             <td class="px-4 py-2">{{ row.operation_type }}</td>
             <td class="px-4 py-2">{{ row.direction }}</td>
             <td class="px-4 py-2">
-              <span class="capitalize">
-                {{ row.party?.type }} -
-                {{ row.party?.name?.name || 'N/A' }}
-              </span>
+              {{
+                row.customer
+                  ? `${row.customer.name} - ${row.customer.phone ?? ''}`
+                  : row.supplier
+                    ? `${row.supplier.name} - ${row.supplier.phone ?? ''}`
+                    : 'N/A'
+              }}
             </td>
             <td class="px-4 py-2">
               <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(row.status)">

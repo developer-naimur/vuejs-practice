@@ -65,27 +65,43 @@ const row = ref({
 })
 
 const submitRows = async () => {
-  if (processing.value) return;
+  if (processing.value) return
 
-  processing.value = true;
+  if (!selectedProducts.value.length) {
+    messageStore.showError('Please select at least one product.')
+    return
+  }
+
+  processing.value = true
 
   try {
     await axiosInstance.post('/stock-adjustments', {
-      rows: row.value
-    });
+      ...row.value,
+      details: selectedProducts.value.map(p => ({
+        product_id: p.id,
+        quantity: p.qty,
+      })),
+    })
 
-    messageStore.showSuccess('Data has been created successfully!');
+    messageStore.showSuccess('Stock adjustment created successfully!')
+
+    // optional reset
+    productPopup.selectedProducts = []
+    router.push($routes.index)
 
   } catch (err) {
     if (err instanceof AxiosError) {
-      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+      messageStore.showError(
+        err.response?.data?.message || 'Failed to create stock adjustment.'
+      )
     } else {
-      messageStore.showError('An unexpected error occurred.');
+      messageStore.showError('Unexpected error occurred.')
     }
   } finally {
-    processing.value = false;
+    processing.value = false
   }
-};
+}
+
 
 
 //load accounts
@@ -227,10 +243,12 @@ watch(
     	    <select v-model="row.operation_type"
     	            class="w-full border p-2 focus:ring-2 focus:ring-gray-500">
     	      <option value="">Select</option>
-    	      <option value="customer_adjustment">Customer Adjustment</option>
-    	      <option value="supplier_adjustment">Supplier Adjustment</option>
+    	      <option value="adjustment">Adjustment</option>
     	      <option value="damage">Damage</option>
     	      <option value="free">Free</option>
+            <option value="return">Return</option>
+            <option value="lost">Lost</option>
+
     	    </select>
     	  </div>
 
@@ -257,6 +275,7 @@ watch(
               <option value="">Party Type</option>
               <option value="customer">Customer</option>
               <option value="supplier">Supplier</option>
+              <option value="none">None</option>
             </select>
           </div>
 
@@ -361,6 +380,7 @@ watch(
                       <div class="flex border rounded overflow-hidden">
                         <!-- Minus Button -->
                         <button
+                          type="button"
                           @click="updateQty(p, 'minus')"
                           class="px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition cursor-pointer"
                         >
@@ -379,6 +399,7 @@ watch(
 
                         <!-- Plus Button -->
                         <button
+                          type="button"
                           @click="updateQty(p, 'plus')"
                           class="px-4 py-2 bg-green-500 text-white hover:bg-green-600 transition cursor-pointer"
                         >

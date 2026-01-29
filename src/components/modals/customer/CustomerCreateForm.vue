@@ -1,33 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import FormSkeleton from '@/components/skeleton/Form-1.vue'
-import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
-import { $routes, $labels } from '@/constants/customer'
-import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-
+import axiosInstance from '@/axiosInstance'
+import { AxiosError } from 'axios'
 import { useMessageStore } from '@/stores/useMessageStore'
+import { $routes, $labels } from '@/constants/customer'
+
 const messageStore = useMessageStore()
 
-import { useRouter } from 'vue-router';
-import axiosInstance from '@/axiosInstance';
-import { AxiosError } from "axios";
-
-import { useUserStore } from "@/stores/useUserStore";
-const userStore = useUserStore();
-const router = useRouter();
+const emit = defineEmits(['saved', 'cancel'])
 
 /* =====================================================
-   BREADCRUMB
-===================================================== */
-const breadcrumbs = [
-  { label: 'Home', to: '/' },
-  { label: $labels.plural_name, to: $routes.index },
-  { label: 'Add New ' + $labels.singular_name, }
-]
-
-
-/* =====================================================
-   Add Row
+   Add Row (same as your page)
 ===================================================== */
 const newRows = ref([
   {
@@ -41,6 +24,7 @@ const newRows = ref([
     description: ''
   }
 ])
+
 const addRowField = () =>
   newRows.value.push({
     name: '',
@@ -54,17 +38,11 @@ const addRowField = () =>
   })
 
 
-/* =====================================================
-   Copy Row
-===================================================== */
 const copyRowField = (index) => {
   const rowToCopy = { ...newRows.value[index] }
   newRows.value.splice(index + 1, 0, rowToCopy)
 }
 
-/* =====================================================
-   Remove Row
-===================================================== */
 const removeRowField = (index) => {
   if (newRows.value.length > 1) {
     newRows.value.splice(index, 1)
@@ -72,23 +50,23 @@ const removeRowField = (index) => {
 }
 
 /* =====================================================
-   Submit Rows
+   Submit
 ===================================================== */
-const processing = ref<boolean>(false);
+const processing = ref(false)
+
 const submitRows = async () => {
-
-  if (processing.value) return; // next time submit disable when current is proccessing
-
-  processing.value = true;
+  if (processing.value) return
+  processing.value = true
 
   try {
     await axiosInstance.post('/customers', {
       rows: newRows.value
-    });
+    })
 
-    messageStore.showSuccess('Data has been created successfully!');
+    messageStore.showSuccess('Row created successfully!')
+    emit('saved') // 🔥 IMPORTANT
 
-    newRows.value = [{
+    newRows.value = ({
       name: '',
       status: '',
       phone: '',
@@ -97,18 +75,18 @@ const submitRows = async () => {
       route_id: '',
       price_group_id: '',
       description: ''
-    }];
+    })
 
   } catch (err) {
     if (err instanceof AxiosError) {
-      messageStore.showError(err.response?.data?.message || 'An error occurred while creating rows.');
+      messageStore.showError(err.response?.data?.message || 'Error')
     } else {
-      messageStore.showError('An unexpected error occurred.');
+      messageStore.showError('Unexpected error')
     }
   } finally {
-    processing.value = false;
+    processing.value = false
   }
-};
+}
 
 
 //load routes
@@ -149,55 +127,11 @@ onMounted(() => {
   loadRoute()
   loadPriceGroup()
 })
+
 </script>
-
 <template>
-  <div class="flex gap-4">
 
-  <div class="hidden lg:block flex-none">
-    <ContactMenu />
-  </div>
-
-  <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
-
-    <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
-
-   <!-- Top Bar -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-
-      <!-- Title + Total -->
-      <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Add New {{ $labels.singular_name }}</h2>
-      </div>
-
-      <!-- Buttons -->
-      <div class="flex gap-2 flex-wrap">
-        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
-		    </svg>
-          View All
-        </router-link>
-
-        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0
-                     01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0
-                     011-1h4a1 1 0 011 1v2" />
-          </svg>
-          Trash
-        </router-link>
-
-      </div>
-    </div>
-
-   <form @submit.prevent="submitRows" class="space-y-4">
+  <form @submit.prevent="submitRows" class="space-y-4">
 
   <div
     v-for="(row, index) in newRows"
@@ -206,7 +140,7 @@ onMounted(() => {
   >
 
     <!-- Row 1 -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
       <div>
         <label class="block text-sm text-gray-600 mb-1">
         Name <span class="text-red-600">*</span>
@@ -258,10 +192,7 @@ onMounted(() => {
           </option>
         </select>
       </div>
-    </div>
 
-    <!-- Row 2 -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
       <div>
         <label class="block text-sm text-gray-600 mb-1">
           Area/Route <span class="text-red-600">*</span>
@@ -329,7 +260,7 @@ onMounted(() => {
         class="w-12 h-12 flex items-center justify-center rounded-md
                bg-red-100 text-red-600 hover:bg-red-600 hover:text-white
                transition disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-        title="Remove sustomer"
+        title="Remove row"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none"
           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -377,18 +308,19 @@ onMounted(() => {
 
   </div>
 
-    <button
-      type="submit"
-      :disabled="processing"
-      class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
-    </button>
+  <!-- Submit -->
+    <div class="flex justify-end gap-2 pt-4">
+      <button type="button" @click="$emit('cancel')" class="px-4 py-2 bg-gray-200 cursor-pointer">
+        Cancel
+      </button>
 
+      <button type="submit"
+              :disabled="processing"
+              class="px-4 py-2 bg-gray-600 text-white cursor-pointer">
+        {{ processing ? 'Saving...' : 'Saved' }}
+      </button>
+    </div>
 
 </form>
 
-  </div>
-
-</div>
 </template>

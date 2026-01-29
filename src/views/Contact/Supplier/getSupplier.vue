@@ -1,71 +1,133 @@
-<script setup>
-import { ref, computed } from 'vue'
-import TableSkeleton from '@/components/Skeleton/Table.vue'
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import axiosInstance from '@/axiosInstance'
+import { AxiosError } from 'axios'
+import { $routes, $labels } from '@/constants/purchase'
 
+/* ===============================
+  GLOBAL / SHARED
+================================ */
+import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
+import Pagination from '@/components/Pagination.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+import { usePagination } from '@/composables/usePagination'
+
+const messageStore = useMessageStore()
 const router = useRouter()
-// ------------------------
-// Breadcrumb
-// ------------------------
-const breadcrumbs = [
+
+/* ===============================
+  PAGINATION (GLOBAL)
+================================ */
+const {
+  currentPage,
+  perPage,
+  lastPage,
+  setMeta,
+  changePage,
+} = usePagination(10)
+
+/* =====================================================
+   BREADCRUMB
+===================================================== */
+const $breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Create New Purchase' }
+  { label: $labels.singular_name + ' Lists' }
 ]
 
-// ------------------------
-// suppliers Data
-// ------------------------
-const suppliers = ref([
-  { id: 1, name: 'John Doe' },
-  { id: 2, name: 'Jane Smith' },
-  { id: 3, name: 'Alex Brown' },
-  { id: 4, name: 'Mary Jane' },
-  { id: 5, name: 'Peter Parker' }
-])
+/* ===============================
+  FILTERS
+================================ */
+const nameValue = ref('')
+const phoneValue = ref('')
+const statusValue = ref('')
 
-const trashsuppliers = ref([]) // soft deleted suppliers
+/* ===============================
+  TABLE DATA
+================================ */
+const rows = ref<any[]>([])
+const totalRows = ref(0)
+const loading = ref(false)
 
-// ------------------------
-// Filters
-// ------------------------
-const searchQuery = ref('')
-const statusFilter = ref('')
-
-// ------------------------
-// Pagination
-// ------------------------
-const currentPage = ref(1)
-const perPage = ref(5)
-
-// Filtered & Paginated suppliers
-const filteredSuppliers = computed(() => {
-  return suppliers.value
-    .filter(supplier => {
-      const matchesSearch = supplier.name.toLowerCase().includes(searchQuery.value.toLowerCase())
-      const matchesStatus = statusFilter.value ? supplier.status === statusFilter.value : true
-      return matchesSearch && matchesStatus
-    })
-    .slice((currentPage.value - 1) * perPage.value, currentPage.value * perPage.value)
-})
-
-const totalSuppliers = computed(() => suppliers.value.length)
-const totalPages = computed(() => Math.ceil(filteredSuppliers.value.length / perPage.value))
-
-// ------------------------
-// Filters
-// ------------------------
-const resetFilters = () => {
-  searchQuery.value = ''
-  statusFilter.value = ''
-  currentPage.value = 1
+/* ===============================
+  STATUS BADGE
+================================ */
+const statusClass = (status: string) => {
+  if (status === 'active') return 'bg-green-500'
+  if (status === 'inactive') return 'bg-yellow-500'
+  return 'bg-red-500'
 }
 
+/* ===============================
+  FETCH DATA
+================================ */
+const fetchRows = async () => {
+  loading.value = true
+
+  try {
+    const res = await axiosInstance.get('/suppliers/option/list', {
+      params: {
+        name: nameValue.value || undefined,
+        phone: phoneValue.value || undefined,
+        page: currentPage.value,
+        per_page: perPage.value,
+        status: 'active',
+        sort_by: 'name',
+        sort_dir: 'asc',
+      }
+    })
+
+    rows.value = res.data.data
+    totalRows.value = res.data.meta.total
+    setMeta(res.data.meta)
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'Fetch failed')
+    }
+  } finally {
+    loading.value = false
+  }
+}
+
+/* ===============================
+  ACTIONS
+================================ */
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchRows()
+}
+
+const resetFilters = () => {
+  nameValue.value = ''
+  phoneValue.value = ''
+  statusValue.value = ''
+  currentPage.value = 1
+  fetchRows()
+}
 
 const getSupplier = (supplier) => {
-  router.push(`/purchase/create/${supplier.id}`)
+  router.push(`/purchase/create/${supplier.uuid}`)
 }
+
+
+// instant parents create
+import SupplierCreateForm from '@/components/modals/Supplier/SupplierCreateForm.vue'
+const showSupplierModal = ref(false)
+const onSupplierSaved = async () => {
+  showSupplierModal.value = false
+  await fetchRows() // dropdown refresh
+}
+
+/* ===============================
+  INIT
+================================ */
+onMounted(fetchRows)
+
 </script>
+
 
 <template>
   <div class="w-4xl m-auto p-4">
@@ -73,27 +135,52 @@ const getSupplier = (supplier) => {
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
 
+  <!-- modals -->
+    <!-- supplier modal -->
+    <div v-if="showSupplierModal"
+       class="fixed inset-0 bg-black/50 flex items-center justify-center z-100">
+
+      <div class="bg-white w-full max-w-xl rounded-xl p-6">
+
+        <h3 class="text-lg font-semibold mb-4">Add New Supplier</h3>
+
+        <SupplierCreateForm
+          @saved="onSupplierSaved"
+          @cancel="showSupplierModal = false"
+        />
+
+      </div>
+    </div>
+
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Get Supplier from Lists</h2>
+        <h2 class="text-2xl font-semibold text-gray-700">Supplier Lists</h2>
         <span class="text-gray-600 font-medium">Total Suppliers: {{ totalSuppliers }}</span>
       </div>
 
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
 
-        <router-link to="/purchase" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
+        <router-link to="/purchase" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-		        <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-		        <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
-		    </svg>
+            <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
+            <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
+            <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
+            <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
+        </svg>
           Back to All
         </router-link>
+
+        <button type="button" @click="showSupplierModal = true" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition cursor-pointer">
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Create
+        </button>
 
       </div>
     </div>
@@ -101,18 +188,22 @@ const getSupplier = (supplier) => {
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="searchQuery" type="text" placeholder="Search..."
+        <input v-model="nameValue" type="text" placeholder="Name..."
+               class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+      </div>
+      <div class="w-full md:w-1/3">
+        <input v-model="phoneValue" type="text" placeholder="Phone..."
                class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
       </div>
       <div class="flex gap-2 w-full md:w-auto">
-        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
+        <button @click="handleSearch" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
           </svg>
           Search
         </button>
-        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition cursor-pointer"
                 @click="resetFilters">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -129,20 +220,24 @@ const getSupplier = (supplier) => {
         <thead class="bg-gray-100">
           <tr>
             <th class="px-4 py-2 text-left">#</th>
-            <th class="px-4 py-2 text-left">Name</th>
+              <th class="px-4 py-2 text-left">Name</th>
+              <th class="px-4 py-2 text-left">Phone</th>
+              <th class="px-4 py-2 text-left">Address</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-gray-200">
 
-          <TableSkeleton :colspan="100" />
+          <TableSkeleton v-if="loading" :colspan="100" />
           
-          <tr v-for="(supplier, index) in filteredSuppliers" :key="supplier.id" class="hover:bg-gray-50">
+          <tr v-if="loading == false" v-for="(row, index) in rows" :key="row.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-            <td class="px-4 py-2">{{ supplier.name }}</td>
+            <td class="px-4 py-2">{{ row.name }}</td>
+            <td class="px-4 py-2">{{ row.phone }}</td>
+            <td class="px-4 py-2">{{ row.address }}</td>
             <td class="px-4 py-2">
               <div class="flex justify-center gap-2">
-                <button @click="getSupplier(supplier)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
+                <button @click="getSupplier(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
                       title="Go">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -161,18 +256,11 @@ const getSupplier = (supplier) => {
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-      <div>
-        Showing <span class="font-semibold">{{ (currentPage-1)*perPage + 1 }}</span> to
-        <span class="font-semibold">{{ Math.min(currentPage*perPage, filteredSuppliers.length) }}</span> of
-        <span class="font-semibold">{{ totalSuppliers }}</span> entries
-      </div>
-      <div class="flex gap-2">
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" v-for="n in Math.ceil(totalSuppliers/perPage)" :key="n" @click="currentPage=n">{{ n }}</button>
-        <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(totalSuppliers/perPage))">&raquo;</button>
-      </div>
-    </div>
+    <Pagination
+      :current-page="currentPage"
+      :last-page="lastPage"
+      @change="page => changePage(page, fetchRows)"
+    />
 
   </div>
 </template>

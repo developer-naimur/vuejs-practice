@@ -24,7 +24,7 @@ watch(
   <transition name="fade">
     <div
       v-if="messageStore.visible"
-      class="fixed top-5 right-5 z-500 w-[380px] p-4 rounded-xl shadow-xl flex items-start gap-3 border"
+      class="fixed top-5 right-5 z-5000 w-[380px] p-4 rounded-xl shadow-xl flex items-start gap-3 border"
       :class="messageStore.type === 'success'
         ? 'bg-white border-green-200'
         : 'bg-white border-red-200'"

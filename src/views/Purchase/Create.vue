@@ -1,11 +1,13 @@
-<script setup lang="">
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
 import { $routes, $labels } from '@/constants/purchase'
 import { useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 const router = useRouter()
+const route = useRoute()
 
 
 import { useMessageStore } from '@/stores/useMessageStore'
@@ -26,61 +28,6 @@ const breadcrumbs = [
   { label: 'Add New ' + $labels.singular_name, }
 ]
 
-
-/* ================= supplier INFO ================= */
-const supplier = ref({
-  name: 'Rahim Uddin',
-  phone: '017XXXXXXXX',
-  address: 'Dhaka, Bangladesh',
-  prev_due: 2500
-})
-
-// ------------------------
-// supplier List (for modal)
-// ------------------------
-const suppliers = ref([
-  { id: 1, name: 'Rahim Uddin', phone: '017XXXXXXXX', address: 'Dhaka' , prev_due: 2500},
-  { id: 2, name: 'John Doe', phone: '018XXXXXXXX', address: 'Chittagong', prev_due: 1500 },
-  { id: 3, name: 'Jane Smith', phone: '019XXXXXXXX', address: 'Sylhet', prev_due: 2000 },
-  { id: 4, name: 'Alex Brown', phone: '016XXXXXXXX', address: 'Khulna', prev_due: 2000 },
-  { id: 5, name: 'Mary Jane', phone: '015XXXXXXXX', address: 'Barishal', prev_due: 500 }
-])
-
-// ------------------------
-// Filters & Pagination
-// ------------------------
-const searchQuery = ref('')
-const currentPage = ref(1)
-const perPage = ref(5)
-
-const filteredSuppliers = computed(() =>
-  suppliers.value
-    .filter(c => c.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    .slice((currentPage.value-1)*perPage.value, currentPage.value*perPage.value)
-)
-
-// ------------------------
-// Modal State
-// ------------------------
-const modalOpen = ref(false)
-
-// ------------------------
-// Methods
-// ------------------------
-const changeSupplier = () => {
-  modalOpen.value = true
-}
-
-const selectSupplier = (c) => {
-  // Close modal
-  modalOpen.value = false
-
-  // Update supplier info locally
-  supplier.value = c
-
-  // Navigate to same page with selected supplier's id in the URL
-  router.push(`/purchase/create/${c.id}`)
-}
 
 const resetFilters = () => searchQuery.value = ''
 
@@ -166,6 +113,46 @@ const netTotal = computed(() =>
 const invoiceNote = ref('')
 const paymentMethod = ref('cash')
 const paymentNote = ref('')
+
+
+
+
+// modal component
+import SupplierList from '@/components/modals/supplier/SupplierList.vue'
+/* ===============================
+  STATE
+================================ */
+const showSupplierModal = ref(false)
+const supplier = ref<any>(null)
+
+/* ===============================
+  HANDLERS
+================================ */
+const openSupplierModal = () => {
+  showSupplierModal.value = true
+}
+const onSupplierSelected = (selected: any) => {
+  supplier.value = selected
+  showSupplierModal.value = false
+}
+
+onMounted(async () => {
+  const uuid = route.params.supplier_id
+  if (uuid) {
+    await fetchSupplier(uuid as string)
+  }
+})
+
+const fetchSupplier = async (uuid: string) => {
+  try {
+    const res = await axiosInstance.get(`/suppliers/option/single/${uuid}`)
+    supplier.value = res.data.data
+  } catch (err) {
+    console.error('Failed to fetch supplier', err)
+  }
+}
+
+
 </script>
 
 <template>
@@ -222,7 +209,7 @@ const paymentNote = ref('')
             Prev Due: ৳ {{ supplier.prev_due }}
           </span>
           <button
-            @click="changeSupplier"
+            @click="openSupplierModal"
             class="flex items-center gap-1 px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
           >
             Change
@@ -235,95 +222,16 @@ const paymentNote = ref('')
         <p class="md:col-span-2"><strong>Address:</strong> {{ supplier.address }}</p>
       </div>
     </div>
+
     <!-- ================= Supplier MODAL ================= -->
-    <div v-if="modalOpen" class="fixed inset-0 bg-black/60 flex items-center justify-center z-100">
+      
 
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[70vh] flex flex-col">
-        <!-- Header -->
-        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h3 class="text-xl font-semibold text-gray-700">Select Supplier</h3>
-          <button @click="modalOpen = false" class="text-gray-500 hover:text-red-600 text-2xl">✕</button>
-        </div>
-        <!-- Filters -->
-        <div class="px-4 py-3 border border-gray-200 bg-gray-50 flex gap-3">
-          <div class="w-full md:w-1/3">
-            <input v-model="searchQuery" type="text" placeholder="Search..."
-                   class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
-          </div>
-          <div class="flex gap-2 w-full md:w-auto">
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
-              </svg>
-              Search
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-                    @click="resetFilters">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Cancel
-            </button>
-          </div>
-        </div>
 
-        <!-- Body -->
-        <div class="p-4 overflow-hidden">
-          <!-- Table -->
-          <div class="overflow-x-auto max-h-64">
-            <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="px-4 py-2 text-left">#</th>
-                  <th class="px-4 py-2 text-left">Name</th>
-                  <th class="px-4 py-2 text-left">Phone</th>
-                  <th class="px-4 py-2 text-left">Address</th>
-                  <th class="px-4 py-2 text-center">Select</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
+        <SupplierList
+          v-model="showSupplierModal"
+          @selected="onSupplierSelected"
+        />
 
-                <TableSkeleton :colspan="100" />
-
-                <tr v-for="(c, index) in filteredSuppliers" :key="c.id" class="hover:bg-gray-50">
-                  <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-                  <td class="px-4 py-2">{{ c.name }}</td>
-                  <td class="px-4 py-2">{{ c.phone }}</td>
-                  <td class="px-4 py-2">{{ c.address }}</td>
-                  <td class="px-4 py-2 text-center">
-                    <button @click="selectSupplier(c)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-                        title="Go">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M19 8l4 4m0 0l-4 4m4-4H12" />
-                      </svg>
-                    </button>
-
-                  </td>
-                </tr>
-                <tr v-if="filteredSuppliers.length === 0">
-                  <td colspan="5" class="text-center py-6 text-gray-400">No supplier found</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Pagination -->
-          <div class="flex justify-end gap-2 mt-4">
-            <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-            <button v-for="n in Math.ceil(suppliers.length/perPage)" :key="n" class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage=n">{{ n }}</button>
-            <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(suppliers.length/perPage))">&raquo;</button>
-          </div>
-        </div><!-- end body -->
-
-      </div>
-    </div>
     <!-- ================= END MODAL ================= -->
 
 

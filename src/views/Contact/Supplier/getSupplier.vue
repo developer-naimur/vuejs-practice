@@ -235,20 +235,20 @@ onMounted(fetchRows)
             <td class="px-4 py-2">{{ row.name }}</td>
             <td class="px-4 py-2">{{ row.phone }}</td>
             <td class="px-4 py-2">{{ row.address }}</td>
-            <td class="px-4 py-2">
-              <div class="flex justify-center gap-2">
-                <button @click="getSupplier(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-                      title="Go">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+            <td class="px-4 py-2 text-center">
+
+              <button
+                @click="getSupplier(row)"
+                class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                      viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19 8l4 4m0 0l-4 4m4-4H12" />
+                        d="M5 13l4 4L19 7"/>
                 </svg>
               </button>
-              </div>
+
+
             </td>
           </tr>
         </tbody>

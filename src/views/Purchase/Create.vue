@@ -2,6 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import PurchaseMenu from '@/components/inc/SubSidebar/PurchaseMenu.vue'
+import FormSkeleton from '@/components/skeleton/Form-2.vue'
 import { $routes, $labels } from '@/constants/purchase'
 import { useRouter } from 'vue-router'
 import { useRoute } from 'vue-router'
@@ -29,60 +30,68 @@ const breadcrumbs = [
 ]
 
 
-const resetFilters = () => searchQuery.value = ''
 
+/* ===============================
+  SINGLE STATE
+================================ */
 
-/* ================= MODAL STATE ================= */
-const open = ref(false)
-
-/* ================= PRODUCTS DATA (demo) ================= */
-const allProducts = ref([
-  { id: 1, name: 'Apple', brand: 'Fruit', price: 120 },
-  { id: 2, name: 'Banana', brand: 'Fruit', price: 60 },
-  { id: 3, name: 'Laptop', brand: 'Electronics', price: 65000 },
-  { id: 4, name: 'Mouse', brand: 'Electronics', price: 1200 },
-  { id: 5, name: 'Keyboard', brand: 'Electronics', price: 2500 }
-])
-
-const selectedProducts = ref([])
-
-/* ================= FILTERS ================= */
-const search = ref('')
-const brand = ref('')
-const brands = computed(() => [...new Set(allProducts.value.map(p => p.brand))])
-
-const products = computed(() => {
-  return allProducts.value.filter(p => {
-    const matchName = p.name.toLowerCase().includes(search.value.toLowerCase())
-    const matchBrand = brand.value ? p.brand === brand.value : true
-    const notSelected = !selectedProducts.value.find(sp => sp.id === p.id)
-    return matchName && matchBrand && notSelected
-  })
+const row = ref({
+  supplier_id: null,
+  invoice_note: '',
+  account_id: '',
+  payment_note: '',
+  subtotal: 0,
+  tax: 0,
+  discount: 0,
+  discount_type: 'percent',
+  net_total: 0,
 })
 
-/* ================= ACTIONS ================= */
-const addProduct = (product) => {
-  selectedProducts.value.push({ ...product, qty: 1, tax: 0, discount: 0, discount_type: '%' })
+
+const invoiceNote = ref('')
+const accountId = ref('')
+const paymentNote = ref('')
+const grandTax = ref(0)
+const grandDiscount = ref(0)
+const grandDiscountType = ref('percent')
+
+
+const processing = ref<boolean>(false);
+const loading = ref(true)
+
+/* =====================================================
+   Product Popup Shared State
+===================================================== */
+import { useProductPopupStore } from '@/composables/useProductPopupStore'
+const productPopup = useProductPopupStore()
+const selectedProducts = computed(() => productPopup.selectedProducts)
+const updateQty = productPopup.updateQty
+const removeProduct = productPopup.removeProduct
+const openProductPopup = () => {
+  productPopup.openPopup()
 }
 
-const removeProduct = (product) => {
-  selectedProducts.value = selectedProducts.value.filter(p => p.id !== product.id)
-}
 
-const updateQty = (p, type) => {
-  if (type === 'plus') p.qty++
-  if (type === 'minus' && p.qty > 1) p.qty--
-}
-
+/* =====================================================
+   Calculation
+===================================================== */
 const productSubtotal = (p) => {
-  if (!p) return 0           // handle undefined/null product
+  if (!p) return 0
+
   const qty = Number(p.qty) || 0
-  const price = Number(p.price) || 0
-  const base = qty * price
-  const taxAmount = base * (Number(p.tax) || 0) / 100
+  const cost_price = Number(p.cost_price) || 0
+  const base = qty * cost_price
+
+  const taxRate = Number(p.tax?.tax_value) || 0
+  const taxAmount = base * taxRate / 100
+
   let discountAmount = 0
-  if (p.discount_type === '%') discountAmount = base * (Number(p.discount) || 0) / 100
-  else discountAmount = Number(p.discount) || 0
+  if (p.discount_type === 'percent') {
+    discountAmount = base * (Number(p.discount_value) || 0) / 100
+  } else if (p.discount_type === 'flat') {
+    discountAmount = Number(p.discount_value) || 0
+  }
+
   return base + taxAmount - discountAmount
 }
 
@@ -91,16 +100,12 @@ const grandSubTotal = computed(() =>
   selectedProducts.value.reduce((sum, p) => sum + productSubtotal(p), 0)
 )
 
-const grandTax = ref(0)
-const grandDiscount = ref(0)
-const grandDiscountType = ref('%')
-
 const grandTaxAmount = computed(() =>
   grandSubTotal.value * grandTax.value / 100
 )
 
 const grandDiscountAmount = computed(() => {
-  return grandDiscountType.value === '%'
+  return grandDiscountType.value === 'percent'
     ? grandSubTotal.value * grandDiscount.value / 100
     : grandDiscount.value
 })
@@ -108,14 +113,6 @@ const grandDiscountAmount = computed(() => {
 const netTotal = computed(() =>
   grandSubTotal.value + grandTaxAmount.value - grandDiscountAmount.value
 )
-
-/* ================= INVOICE & PAYMENT ================= */
-const invoiceNote = ref('')
-const paymentMethod = ref('cash')
-const paymentNote = ref('')
-
-
-
 
 // modal component
 import SupplierList from '@/components/modals/supplier/SupplierList.vue'
@@ -152,6 +149,88 @@ const fetchSupplier = async (uuid: string) => {
   }
 }
 
+
+
+//load accounts
+const accounts = ref([])
+const accountLoading = ref<boolean>(false);
+const loadAccounts = async () => {
+  loading.value = true
+  accountLoading.value = true
+  try {
+    const res = await axiosInstance.get('/accounts/option/list')
+    accounts.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    accountLoading.value = false
+    loading.value = false
+  }
+}
+
+/* =====================================================
+   Submit Rows
+===================================================== */
+const submitRows = async () => {
+  if (processing.value) return
+
+  if (!selectedProducts.value.length) {
+    messageStore.showError('Please select at least one product.')
+    return
+  }
+
+  processing.value = true
+
+  try {
+
+      row.value.supplier_id   = supplier.value?.id ?? null
+      row.value.invoice_note  = invoiceNote.value
+      row.value.account_id    = accountId.value
+      row.value.payment_note  = paymentNote.value
+      row.value.subtotal      = grandSubTotal.value
+      row.value.tax           = grandTax.value
+      row.value.discount      = grandDiscount.value
+      row.value.discount_type = grandDiscountType.value || 'percent'
+      row.value.net_total     = netTotal.value
+
+    await axiosInstance.post('/purchases', {
+      ...row.value,
+      details: selectedProducts.value.map(p => ({
+        product_id: p.id,
+        quantity: p.qty,
+        cost_price: p.cost_price,
+        tax_value: p.tax?.tax_value || 0,
+        discount_value: p.discount_value || 0,
+        discount_type: p.discount_type || 'percent',
+      })),
+    })
+
+    messageStore.showSuccess('Stock adjustment created successfully!')
+
+    // optional reset
+    productPopup.selectedProducts = []
+    router.push($routes.index)
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(
+        err.response?.data?.message || 'Failed to create stock adjustment.'
+      )
+    } else {
+      messageStore.showError('Unexpected error occurred.')
+    }
+  } finally {
+    processing.value = false
+  }
+}
+
+
+/* =====================================================
+   INIT
+===================================================== */
+onMounted(() => {
+  loadAccounts()
+})
 
 </script>
 
@@ -197,299 +276,201 @@ const fetchSupplier = async (uuid: string) => {
       </div>
     </div>
 
-    <!-- Supplier Info -->
-    <div v-if="supplier" class="border border-gray-200 bg-gray-50 p-4 space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-700">Supplier Information</h3>
-        <div class="flex items-center gap-2">
-          <span
-            class="px-3 py-1 text-sm rounded-full"
-            :class="supplier.prev_due > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'"
-          >
-            Prev Due: ৳ {{ supplier.prev_due }}
-          </span>
-          <button
-            @click="openSupplierModal"
-            class="flex items-center gap-1 px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-          >
-            Change
-          </button>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-        <p><strong>Name:</strong> {{ supplier.name }}</p>
-        <p><strong>Phone:</strong> {{ supplier.phone }}</p>
-        <p class="md:col-span-2"><strong>Address:</strong> {{ supplier.address }}</p>
-      </div>
+    <!-- Loading -->
+    <div v-if="loading" class="space-y-4">
+      <FormSkeleton :columns="3" :rows="4" />
     </div>
 
-    <!-- ================= Supplier MODAL ================= -->
-      
+    <form v-else @submit.prevent="submitRows" class="space-y-4" >
+      <!-- Supplier Info -->
+      <div v-if="supplier" class="border border-gray-200 bg-gray-50 p-4 space-y-3">
+        <div class="flex justify-between items-center">
+          <h3 class="text-lg font-semibold text-gray-700">Supplier Information</h3>
+          <div class="flex items-center gap-2">
+            <span
+              class="px-3 py-1 text-sm rounded-full"
+              :class="supplier.prev_due > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'"
+            >
+              Prev Due: ৳ {{ supplier.prev_due }}
+            </span>
+            <button
+              type="button"
+              @click="openSupplierModal"
+              class="flex items-center gap-1 px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
+            >
+              Change
+            </button>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+          <p><strong>Name:</strong> {{ supplier.name }}</p>
+          <p><strong>Phone:</strong> {{ supplier.phone }}</p>
+          <p class="md:col-span-2"><strong>Address:</strong> {{ supplier.address }}</p>
+        </div>
+      </div>
+
+      <!-- ================= Supplier MODAL ================= -->
+          <SupplierList
+            v-model="showSupplierModal"
+            @selected="onSupplierSelected"
+          />
+      <!-- ================= END MODAL ================= -->
 
 
-        <SupplierList
-          v-model="showSupplierModal"
-          @selected="onSupplierSelected"
-        />
+      <!-- Get Products Button -->
+      <button
+        type="button"
+        @click="openProductPopup"
+        class="text-2xl w-full bg-yellow-500 text-white font-semibold p-4 hover:bg-yellow-600 transition cursor-pointer"
+      >
+        Get Products
+      </button>
 
-    <!-- ================= END MODAL ================= -->
+      <!-- Selected Products Table -->
+      <div v-if="selectedProducts.length" class="border border-gray-200 p-4 bg-white space-y-4 mb-0">
+        <h3 class="text-lg font-semibold text-gray-700">Selected Products</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-2 text-left">Product</th>
+                <th class="px-4 py-2 text-center">Qty</th>
+                <th class="px-4 py-2 text-left">Price</th>
+                <th class="px-4 py-2 text-left">Tax %</th>
+                <th class="px-4 py-2 text-left">Discount</th>
+                <th class="px-4 py-2 text-left">Type</th>
+                <th class="px-4 py-2 text-right">Subtotal</th>
+                <th class="px-4 py-2 text-left">Remove</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
 
-
-    <!-- Get Products Button -->
-    <button
-      type="button"
-      @click="open = true"
-      class="text-2xl w-full bg-yellow-500 text-white font-semibold p-4 hover:bg-yellow-600 transition cursor-pointer"
-    >
-      Get Products
-    </button>
-
-    <!-- Selected Products Table -->
-    <div v-if="selectedProducts.length" class="border border-gray-200 p-4 bg-white space-y-4 mb-0">
-      <h3 class="text-lg font-semibold text-gray-700">Selected Products</h3>
-      <div class="overflow-x-auto">
-        <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-4 py-2 text-left">Product</th>
-              <th class="px-4 py-2 text-center">Qty</th>
-              <th class="px-4 py-2 text-left">Price</th>
-              <th class="px-4 py-2 text-left">Tax %</th>
-              <th class="px-4 py-2 text-left">Discount</th>
-              <th class="px-4 py-2 text-left">Type</th>
-              <th class="px-4 py-2 text-right">Subtotal</th>
-              <th class="px-4 py-2 text-left">Remove</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-
-            <TableSkeleton :colspan="100" />
-
-            <tr v-for="p in selectedProducts" :key="p.id" class="hover:bg-gray-50">
-              <td class="px-4 py-2">{{ p.name }}</td>
-              <td class="px-4 py-2 text-center">
-                <div class="flex justify-center">
-                  <div class="flex border rounded overflow-hidden">
-                    <!-- Minus Button -->
-                    <button
-                      @click="updateQty(p, 'minus')"
-                      class="px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition cursor-pointer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
-                    </svg>
-                    </button>
-
-                    <!-- Quantity Input -->
-                    <input
-                      type="number"
-                      v-model.number="p.qty"
-                      min="1"
-                      class="w-16 text-center border-l border-r focus:outline-none"
-                    />
-
-                    <!-- Plus Button -->
-                    <button
-                      @click="updateQty(p, 'plus')"
-                      class="px-4 py-2 bg-green-500 text-white hover:bg-green-600 transition cursor-pointer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+              <tr v-for="p in selectedProducts" :key="p.id" class="hover:bg-gray-50">
+                <td class="px-4 py-2">{{ p.name }} - {{ p.sku }}</td>
+                <td class="px-4 py-2 text-center">
+                  <div class="flex justify-center">
+                    <div class="flex border rounded overflow-hidden">
+                      <!-- Minus Button -->
+                      <button
+                        type="button"
+                        @click="updateQty(p, 'minus')"
+                        class="px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition cursor-pointer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
                       </svg>
-                    </button>
+                      </button>
+
+                      <!-- Quantity Input -->
+                      <input
+                        type="number"
+                        v-model.number="p.qty"
+                        min="1"
+                        class="w-16 text-center border-l border-r focus:outline-none"
+                      />
+
+                      <!-- Plus Button -->
+                      <button
+                        type="button"
+                        @click="updateQty(p, 'plus')"
+                        class="px-4 py-2 bg-green-500 text-white hover:bg-green-600 transition cursor-pointer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-4 py-2">
-                <input type="number" v-model.number="p.price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-              </td>
-              <td class="px-4 py-2">
-                <input type="number" v-model.number="p.tax" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
-              </td>
-              <td class="px-4 py-2">
-                <input type="number" v-model.number="p.discount" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
-              </td>
-              <td class="px-4 py-2">
-                <select v-model="p.discount_type" class="border p-1 focus:ring-2 focus:ring-gray-500">
-                  <option value="%">%</option>
-                  <option value="flat">Flat</option>
-                </select>
-              </td>
-              <td class="px-4 py-2 font-semibold text-right">৳ {{ productSubtotal(p).toFixed(2) }}</td>
-              <td class="px-4 py-2 text-center">
-                <button @click="removeProduct(p)" class="text-red-600 cursor-pointer">✕</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Grand Total Section -->
-    <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
-      <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal.toFixed(2) }}</strong></div>
-      <div class="flex gap-2 items-center">
-        <span>Tax %</span>
-        <input type="number" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-        <span>৳ {{ grandTaxAmount.toFixed(2) }}</span>
-      </div>
-      <div class="flex gap-2 items-center">
-        <span>Discount</span>
-        <input type="number" v-model.number="grandDiscount" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-        <select v-model="grandDiscountType" class="border p-1 focus:ring-2 focus:ring-gray-500">
-          <option value="%">%</option>
-          <option value="flat">Flat</option>
-        </select>
-        <span>৳ {{ grandDiscountAmount.toFixed(2) }}</span>
-      </div>
-      <div class="flex justify-between text-lg font-bold border-t pt-2">
-        <span>Net Total</span>
-        <span>৳ {{ netTotal.toFixed(2) }}</span>
-      </div>
-    </div>
-
-    <!-- Invoice Note -->
-    <div class="border border-gray-200 p-4 mb-0">
-      <label class="block font-medium mb-1">Invoice Note</label>
-      <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
-    </div>
-
-    <!-- Payment Section -->
-    <div class="border border-gray-200 p-4 space-y-3 mb">
-      <div>
-        <label class="block font-medium mb-1">Payment Method</label>
-        <select v-model="paymentMethod" class="w-full border p-2 focus:ring-2 focus:ring-gray-500">
-          <option value="cash">Cash</option>
-          <option value="bank">Bank</option>
-          <option value="mobile">Mobile Banking</option>
-        </select>
-      </div>
-      <div>
-        <label class="block font-medium mb-1">Payment Note</label>
-        <textarea v-model="paymentNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="2" placeholder="Payment note..."></textarea>
-      </div>
-    </div>
-
-
-
-    <!-- Submit -->
-    <button
-      type="button"
-      class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition cursor-pointer"
-    >
-      Submit
-    </button>
-
-    <!-- ================= PRODUCT POPUP ================= -->
-    <div
-      v-if="open"
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-100"
-    >
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[70vh] flex flex-col">
-        <!-- Header -->
-        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h3 class="text-xl font-semibold text-gray-700">Select Products</h3>
-          <button @click="open = false" class="text-gray-500 hover:text-red-600 text-2xl">✕</button>
+                </td>
+                <td class="px-4 py-2">
+                  <input type="number" v-model.number="p.cost_price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+                </td>
+                <td class="px-4 py-2">
+                  <input type="number" v-model.number="p.tax.tax_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
+                </td>
+                <td class="px-4 py-2">
+                  <input type="number" v-model.number="p.discount_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
+                </td>
+                <td class="px-4 py-2">
+                  <select v-model="p.discount_type" class="border p-1 focus:ring-2 focus:ring-gray-500">
+                    <option value="">Select</option>
+                    <option value="flat">Flat</option>
+                    <option value="percent">Percent</option>
+                  </select>
+                </td>
+                <td class="px-4 py-2 font-semibold text-right">৳ {{ productSubtotal(p).toFixed(2) }}</td>
+                <td class="px-4 py-2 text-center">
+                  <button type="button" @click="removeProduct(p)" class="text-red-600 cursor-pointer">✕</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <!-- Filters -->
-        <div class="px-4 py-3 border border-gray-200 bg-gray-50 flex gap-3">
-          <div class="w-full md:w-1/3">
-            <input v-model="searchQuery" type="text" placeholder="Search..."
-                   class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
-          </div>
-          <div class="w-full md:w-1/5">
-            <select v-model="brand" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
-            <option value="">All Brands</option>
-            <option v-for="b in brands" :key="b" :value="b">{{ b }}</option>
-            </select>
-          </div>
-          <div class="flex gap-2 w-full md:w-auto">
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
-              </svg>
-              Search
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-                    @click="resetFilters">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Cancel
-            </button>
-          </div>
-        </div>
-
-        <!-- Body -->
-        <div class="flex-1 grid grid-cols-3 gap-4 p-4 overflow-hidden">
-          <!-- Products -->
-          <div class="col-span-2 border border-gray-200 overflow-hidden flex flex-col">
-            <div class="px-4 py-2 font-semibold">Products</div>
-            <div class="flex-1 overflow-y-auto">
-              <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-                <thead class="bg-gray-100">
-                  <tr>
-                    <th class="px-4 py-2">Name</th>
-                    <th class="px-4 py-2">Brand</th>
-                    <th class="px-4 py-2 text-right">Price</th>
-                    <th class="px-4 py-2 text-center w-16">Add</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
-                  
-                  <TableSkeleton :colspan="100" />
-
-                  <tr v-for="p in products" :key="p.id" class="hover:bg-gray-50">
-                    <td class="px-4 py-2 font-medium">{{ p.name }}</td>
-                    <td class="px-4 py-2 text-gray-500">{{ p.brand }}</td>
-                    <td class="px-4 py-2 text-right">৳ {{ p.price }}</td>
-                    <td class="px-4 py-2 text-center">
-                      <button @click="addProduct(p)" class="w-8 h-8 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 cursor-pointer">+</button>
-                    </td>
-                  </tr>
-                  <tr v-if="products.length === 0" class="hover:bg-gray-50">
-                    <td colspan="4" class="text-center py-6 text-gray-400">No products found</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-          <!-- Selected Products in Popup -->
-          <div class="border border-gray-200 overflow-hidden flex flex-col">
-            <div class="bg-gray-100 px-4 py-2 font-semibold flex justify-between">
-              <span>Selected</span>
-              <span class="text-sm text-gray-600">{{ selectedProducts.length }} items</span>
-            </div>
-            <div class="flex-1 overflow-y-auto divide-y">
-              <div v-for="p in selectedProducts" :key="p.id" class="flex justify-between items-center px-4 py-2">
-                <div>
-                  <p class="font-medium">{{ p.name }}</p>
-                  <p class="text-xs text-gray-500">৳ {{ p.price }}</p>
-                </div>
-                <button @click="removeProduct(p)" class="w-7 h-7 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 cursor-pointer">−</button>
-              </div>
-              <div v-if="selectedProducts.length === 0" class="text-center text-gray-400 py-6">No product selected</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Footer -->
-        <div class="border-t border-gray-200 px-6 py-3 flex justify-end">
-          <button @click="open = false"
-                  class="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-2 cursor-pointer">
-            <!-- Icon (checkmark) -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            Done
-          </button>
-        </div>
-
       </div>
-    </div>
+
+      <!-- Grand Total Section -->
+      <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
+        <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal.toFixed(2) }}</strong></div>
+        <div class="flex gap-2 items-center">
+          <span>Tax %</span>
+          <input type="number" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+          <span>৳ {{ grandTaxAmount.toFixed(2) }}</span>
+        </div>
+        <div class="flex gap-2 items-center">
+          <span>Discount</span>
+          <input type="number" v-model.number="grandDiscount" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+          <select v-model="grandDiscountType" class="border p-1 focus:ring-2 focus:ring-gray-500">
+            <option value="">Select</option>
+            <option value="flat">Flat</option>
+            <option value="percent">Percent</option>
+          </select>
+          <span>৳ {{ grandDiscountAmount.toFixed(2) }}</span>
+        </div>
+        <div class="flex justify-between text-lg font-bold border-t pt-2">
+          <span>Net Total</span>
+          <span>৳ {{ netTotal.toFixed(2) }}</span>
+        </div>
+      </div>
+
+      <!-- Invoice Note -->
+      <div class="border border-gray-200 p-4 mb-0">
+        <label class="block font-medium mb-1">Invoice Note</label>
+        <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
+      </div>
+
+      <!-- Payment Section -->
+      <div class="border border-gray-200 p-4 space-y-3 mb">
+        <div>
+          <label class="block font-medium mb-1">Payment Method</label>
+          <select
+            v-model="accountId"
+            class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+            :disabled="accountLoading || !accounts.length"
+          >
+            <option value="">Select</option>
+            <option v-for="account in accounts" :key="account.id" :value="account.id">
+              {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Payment Note</label>
+          <textarea v-model="paymentNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="2" placeholder="Payment note..."></textarea>
+        </div>
+      </div>
+
+
+
+      <!-- Submit -->
+      <button
+        type="submit"
+        :disabled="processing"
+        class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ processing ? 'Processing...' : 'Submit' }}
+      </button>
+
+    </form>
 
   </div>
   

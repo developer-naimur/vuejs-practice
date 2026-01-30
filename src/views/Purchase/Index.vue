@@ -254,6 +254,8 @@ onMounted(() => {
             <th class="px-4 py-2 text-left">Supplier</th>
             <th class="px-4 py-2 text-left">Status</th>
             <th class="px-4 py-2 text-right">Net Total</th>
+            <th class="px-4 py-2 text-right">Paid</th>
+            <th class="px-4 py-2 text-right">Due</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
@@ -274,6 +276,8 @@ onMounted(() => {
               </span>
             </td>
             <td class="px-4 py-2 text-right">{{ row.grand_total }}</td>
+            <td class="px-4 py-2 text-right">{{ row.paid_amount }}</td>
+            <td class="px-4 py-2 text-right">{{ row.due_amount }}</td>
             <td class="px-4 py-2">
               <div class="flex justify-center gap-2">
                 <router-link :to="`/purchase/${row.uuid}/edit`" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer" title="Edit">

@@ -30,30 +30,37 @@ const breadcrumbs = [
 ]
 
 
+const getToday = () => {
+  return new Date().toISOString().slice(0, 10);
+}
 
 /* ===============================
   SINGLE STATE
 ================================ */
 
 const row = ref({
+  purchase_date: getToday(),
   supplier_id: null,
   invoice_note: '',
+  paid_amount: 0,
   account_id: '',
   payment_note: '',
-  subtotal: 0,
-  tax: 0,
-  discount: 0,
+  tax_rate: 0,
+  discount_value: 0,
   discount_type: 'percent',
-  net_total: 0,
+  status: '',
 })
 
 
+const date = ref(getToday())
 const invoiceNote = ref('')
+const paymentAmount = ref('')
 const accountId = ref('')
 const paymentNote = ref('')
 const grandTax = ref(0)
 const grandDiscount = ref(0)
 const grandDiscountType = ref('percent')
+const status = ref('pending')
 
 
 const processing = ref<boolean>(false);
@@ -183,29 +190,30 @@ const submitRows = async () => {
 
   try {
 
-      row.value.supplier_id   = supplier.value?.id ?? null
-      row.value.invoice_note  = invoiceNote.value
-      row.value.account_id    = accountId.value
-      row.value.payment_note  = paymentNote.value
-      row.value.subtotal      = grandSubTotal.value
-      row.value.tax           = grandTax.value
-      row.value.discount      = grandDiscount.value
-      row.value.discount_type = grandDiscountType.value || 'percent'
-      row.value.net_total     = netTotal.value
+      row.value.purchase_date       = date.value
+      row.value.supplier_id         = supplier.value?.id ?? null
+      row.value.invoice_note        = invoiceNote.value
+      row.value.tax_rate            = grandTax.value
+      row.value.discount_value      = grandDiscount.value
+      row.value.discount_type       = grandDiscountType.value || 'percent'
+      row.value.paid_amount         = paymentAmount.value
+      row.value.account_id          = accountId.value
+      row.value.payment_note        = paymentNote.value
+      row.value.status              = status.value
 
     await axiosInstance.post('/purchases', {
       ...row.value,
       details: selectedProducts.value.map(p => ({
         product_id: p.id,
         quantity: p.qty,
-        cost_price: p.cost_price,
-        tax_value: p.tax?.tax_value || 0,
+        unit_price: p.cost_price,
+        tax_rate: p.tax?.tax_value || 0,
         discount_value: p.discount_value || 0,
         discount_type: p.discount_type || 'percent',
       })),
     })
 
-    messageStore.showSuccess('Stock adjustment created successfully!')
+    messageStore.showSuccess('Purchase created successfully!')
 
     // optional reset
     productPopup.selectedProducts = []
@@ -214,7 +222,7 @@ const submitRows = async () => {
   } catch (err) {
     if (err instanceof AxiosError) {
       messageStore.showError(
-        err.response?.data?.message || 'Failed to create stock adjustment.'
+        err.response?.data?.message || 'Failed to create purchase.'
       )
     } else {
       messageStore.showError('Unexpected error occurred.')
@@ -441,6 +449,12 @@ onMounted(() => {
       <!-- Payment Section -->
       <div class="border border-gray-200 p-4 space-y-3 mb">
         <div>
+          <label class="block font-medium mb-1">Payment Amount</label>
+          <input v-model="paymentAmount" type="number" step="0.001" 
+            class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+          />
+        </div>
+        <div>
           <label class="block font-medium mb-1">Payment Method</label>
           <select
             v-model="accountId"
@@ -456,6 +470,19 @@ onMounted(() => {
         <div>
           <label class="block font-medium mb-1">Payment Note</label>
           <textarea v-model="paymentNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="2" placeholder="Payment note..."></textarea>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1">Status <span class="text-red-600">*</span></label>
+          <select
+            v-model="status"
+            class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+          >
+            <option value="">Select</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approve</option>
+            <option value="cancelled">Cancel</option>
+          </select>
         </div>
       </div>
 

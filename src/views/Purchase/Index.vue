@@ -283,7 +283,8 @@ onMounted(() => {
 
                 <!-- Return -->
                 <router-link
-                  :to="`/purchase-return/return/create/${row.uuid}`"
+                  v-if="row.status === 'approved'"
+                  :to="`/purchase-return/create/${row.uuid}`"
                   class="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition cursor-pointer"
                   title="Return"
                 >

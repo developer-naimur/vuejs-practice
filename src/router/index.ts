@@ -811,7 +811,7 @@ const routes = [
     },
     //Return
     {
-      path: '/purchase/return',
+      path: '/purchase-return',
       name: 'purchase-return.index',
       component: PurchaseReturnIndex,
       meta: {
@@ -820,7 +820,7 @@ const routes = [
       }
     },
     {
-      path: '/purchase-return/return/create/:purchase_id',
+      path: '/purchase-return/create/:purchase_id',
       name: 'purchase-return.create',
       component: PurchaseReturnCreate,
       meta: {
@@ -829,7 +829,7 @@ const routes = [
       }
     },
     {
-      path: '/purchase-return/return/trashed',
+      path: '/purchase-return/trashed',
       name: 'purchase-return.trashed',
       component: PurchaseReturnTrashed,
       meta: {
@@ -838,7 +838,7 @@ const routes = [
       }
     },
     {
-      path: '/purchase-return/return/:id/edit',
+      path: '/purchase-return/:id/edit',
       name: 'purchase-return.edit',
       component: PurchaseReturnEdit,
       meta: {
@@ -847,7 +847,7 @@ const routes = [
       }
     },
     {
-      path: '/purchase-return/return/:id',
+      path: '/purchase-return/:id',
       name: 'purchase-return.show',
       component: PurchaseReturnShow,
       meta: {

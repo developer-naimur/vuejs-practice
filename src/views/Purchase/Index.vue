@@ -280,6 +280,20 @@ onMounted(() => {
             <td class="px-4 py-2 text-right">{{ row.due_amount }}</td>
             <td class="px-4 py-2">
               <div class="flex justify-center gap-2">
+
+                <!-- Return -->
+                <router-link
+                  :to="`/purchase-return/return/create/${row.uuid}`"
+                  class="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition cursor-pointer"
+                  title="Return"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M3 10h11a4 4 0 110 8h-1M3 10l4-4M3 10l4 4" />
+                  </svg>
+                </router-link>
+
                 <router-link :to="`/purchase/${row.uuid}/edit`" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer" title="Edit">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -820,7 +820,7 @@ const routes = [
       }
     },
     {
-      path: '/purchase-return/return/create',
+      path: '/purchase-return/return/create/:purchase_id',
       name: 'purchase-return.create',
       component: PurchaseReturnCreate,
       meta: {

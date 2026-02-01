@@ -9,6 +9,7 @@ const menus = ref([
   { label: 'Area/Route', to: '/setting/route' },
   { label: 'Warehouse', to: '/setting/warehouse' },
   { label: 'Tax', to: '/setting/tax' },
+  { label: 'Adjustment Head', to: '/setting/adjustment-head' },
   //{ label: 'Inventory / Product Settings', to: '/setting/inventory-product' },
   //{ label: 'Purchase / Supplier Settings', to: '/setting/purchase-supplier' },
   //{ label: 'Sales / Transaction Settings', to: '/setting/sale-transaction' },

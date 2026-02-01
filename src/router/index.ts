@@ -192,6 +192,14 @@ import PaymentMethodShow from '../views/Setting/PaymentMethod/Show.vue'
 import PaymentMethodTrashed from '../views/Setting/PaymentMethod/Trashed.vue'
 
 
+// Adjustment Head
+import AdjustmentHeadIndex from '../views/Setting/AdjustmentHead/Index.vue'
+import AdjustmentHeadCreate from '../views/Setting/AdjustmentHead/Create.vue'
+import AdjustmentHeadEdit from '../views/Setting/AdjustmentHead/Edit.vue'
+import AdjustmentHeadShow from '../views/Setting/AdjustmentHead/Show.vue'
+import AdjustmentHeadTrashed from '../views/Setting/AdjustmentHead/Trashed.vue'
+
+
 // Price Groups 
 import PriceGroupIndex from '../views/Setting/PriceGroup/Index.vue'
 import PriceGroupCreate from '../views/Setting/PriceGroup/Create.vue'
@@ -1353,6 +1361,54 @@ const routes = [
         permission: 'setting.create'
       }
     },
+
+    //Adjustment Head
+    {
+      path: '/setting/adjustment-head',
+      name: 'adjustment-head.index',
+      component: AdjustmentHeadIndex,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/adjustment-head/create',
+      name: 'adjustment-head.create',
+      component: AdjustmentHeadCreate,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/adjustment-head/trashed',
+      name: 'adjustment-head.trashed',
+      component: AdjustmentHeadTrashed,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/adjustment-head/:id/edit',
+      name: 'adjustment-head.edit',
+      component: AdjustmentHeadEdit,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    {
+      path: '/setting/adjustment-head/:id',
+      name: 'adjustment-head.show',
+      component: AdjustmentHeadShow,
+      meta: {
+        requiresAuth: true, 
+        permission: 'setting.create'
+      }
+    },
+    
 
     //Price Groups
     {

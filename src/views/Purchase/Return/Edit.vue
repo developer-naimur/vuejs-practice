@@ -116,17 +116,17 @@ const fetchPurchaseReturn = async () => {
     /* ===== PURCHASE & SUPPLIER ===== */
     supplier.value = data.purchase.supplier
     purchase.value = {
+      id: data.purchase.uuid,
       invoice_no: data.purchase.invoice_no,
       date: data.purchase.date,
       status: data.purchase.status,
-      total_amount: data.purchase.net_total,
-      returned_amount: data.purchase.returned_amount ?? 0
+      total_amount: data.purchase.grand_total,
     }
 
     /* ===== PRODUCTS ===== */
     // Map all products from the original purchase
     products.value = data.purchase.details.map((d: any) => {
-      const returnedDetail = data.details.find((rd: any) => rd.product_id === d.product.id)
+      const returnedDetail = data.details.find((rd: any) => rd.product.id === d.product.id)
       const alreadyReturnedQty = returnedDetail?.quantity ?? 0
       return {
         product_id: d.product.id,
@@ -200,7 +200,7 @@ const submitReturn = async () => {
     })
 
     messageStore.showSuccess('Purchase return updated')
-    router.push('/purchase-returns')
+    router.push('/purchase-return')
   } catch (err) {
     if (err instanceof AxiosError) {
       messageStore.showError(err.response?.data?.message || 'Update failed')
@@ -260,7 +260,6 @@ onMounted(async () => {
 
           <p><strong>Total Items:</strong> {{ products.length }}</p>
           <p><strong>Purchased Total:</strong> ৳ {{ purchase.total_amount }}</p>
-          <p><strong>Already Returned:</strong> ৳ {{ purchase.returned_amount }}</p>
         </div>
       </div>
 
@@ -276,8 +275,8 @@ onMounted(async () => {
               <tr>
                 <th class="px-4 py-2 text-left">Product</th>
                 <th class="px-4 py-2 text-center">Purchased</th>
-                <th class="px-4 py-2 text-center">Returned</th>
-                <th class="px-4 py-2 text-center">Remaining</th>
+                <!-- <th class="px-4 py-2 text-center">Returned</th> -->
+                <!-- <th class="px-4 py-2 text-center">Remaining</th> -->
                 <th class="px-4 py-2 text-center">Return Qty</th>
                 <th class="px-4 py-2 text-left">Price</th>
                 <th class="px-4 py-2 text-left">Tax %</th>
@@ -291,8 +290,8 @@ onMounted(async () => {
               <tr v-for="p in products" :key="p.product_id" class="hover:bg-gray-50">
                 <td class="px-4 py-2">{{ p.name }} - {{ p.sku }}</td>
                 <td class="px-4 py-2 text-center">{{ p.purchased_qty }}</td>
-                <td class="px-4 py-2 text-center">{{ p.returned_qty }}</td>
-                <td class="px-4 py-2 text-center font-semibold">{{ p.remaining_qty }}</td>
+                <!-- <td class="px-4 py-2 text-center">{{ p.returned_qty }}</td> -->
+                <!-- <td class="px-4 py-2 text-center font-semibold">{{ p.remaining_qty }}</td> -->
 
                 <!-- Return Qty +/- -->
                 <td class="px-4 py-2 text-center">

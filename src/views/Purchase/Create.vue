@@ -51,6 +51,7 @@ const row = ref({
   status: '',
 })
 
+const rounded = (val: number) => Math.round(val * 10000) / 10000;
 
 const date = ref(getToday())
 const invoiceNote = ref('')
@@ -87,19 +88,19 @@ const productSubtotal = (p) => {
 
   const qty = Number(p.qty) || 0
   const cost_price = Number(p.cost_price) || 0
-  const base = qty * cost_price
+  const base = rounded(qty * cost_price)
 
   const taxRate = Number(p.tax?.tax_value) || 0
-  const taxAmount = base * taxRate / 100
+  const taxAmount = rounded(base * taxRate / 100)
 
   let discountAmount = 0
   if (p.discount_type === 'percent') {
-    discountAmount = base * (Number(p.discount_value) || 0) / 100
+    discountAmount = rounded(base * (Number(p.discount_value) || 0) / 100)
   } else if (p.discount_type === 'flat') {
     discountAmount = Number(p.discount_value) || 0
   }
 
-  return base + taxAmount - discountAmount
+  return rounded(base + taxAmount - discountAmount)
 }
 
 /* ================= GRAND TOTAL ================= */
@@ -108,17 +109,54 @@ const grandSubTotal = computed(() =>
 )
 
 const grandTaxAmount = computed(() =>
-  grandSubTotal.value * grandTax.value / 100
+  rounded(grandSubTotal.value * grandTax.value / 100)
 )
 
-const grandDiscountAmount = computed(() => {
-  return grandDiscountType.value === 'percent'
-    ? grandSubTotal.value * grandDiscount.value / 100
-    : grandDiscount.value
+const grandDiscountAmount = computed(() =>
+  grandDiscountType.value === 'percent'
+    ? rounded(grandSubTotal.value * grandDiscount.value / 100)
+    : rounded(grandDiscount.value)
+)
+
+
+const netBeforeAdjustment = computed(() =>
+  rounded(grandSubTotal.value
+  + grandTaxAmount.value
+  - grandDiscountAmount.value)
+)
+
+/* =====================================================
+   Adjustments
+===================================================== */
+const adjustments = ref<any>([])
+
+const addAdjustment = () => {
+  adjustments.value.push({
+    adjustment_head_id: '',
+    type: 'add',
+    value_type: 'flat',
+    value: 0,
+    note: '',
+  })
+}
+const removeAdjustment = (index: number) => {
+  adjustments.value.splice(index, 1)
+}
+
+const adjustmentTotal = computed(() => {
+  return rounded(adjustments.value.reduce((sum, a) => {
+    let amount = 0
+    if (a.value_type === 'percent') {
+      amount = rounded(netBeforeAdjustment.value * a.value / 100)
+    } else {
+      amount = rounded(Number(a.value) || 0)
+    }
+    return a.type === 'add' ? rounded(sum + amount) : rounded(sum - amount)
+  }, 0))
 })
 
 const netTotal = computed(() =>
-  grandSubTotal.value + grandTaxAmount.value - grandDiscountAmount.value
+  rounded(netBeforeAdjustment.value + adjustmentTotal.value)
 )
 
 // modal component
@@ -175,6 +213,24 @@ const loadAccounts = async () => {
   }
 }
 
+
+//load adjustment head
+const adjustmentHeads = ref([])
+const adjustmentHeadLoading = ref<boolean>(false);
+const loadadjustmentHeads = async () => {
+  loading.value = true
+  adjustmentHeadLoading.value = true
+  try {
+    const res = await axiosInstance.get('/adjustment-heads/option/list')
+    adjustmentHeads.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    adjustmentHeadLoading.value = false
+    loading.value = false
+  }
+}
+
 /* =====================================================
    Submit Rows
 ===================================================== */
@@ -211,6 +267,15 @@ const submitRows = async () => {
         discount_value: p.discount_value || 0,
         discount_type: p.discount_type || 'percent',
       })),
+
+      adjustments: adjustments.value.map(a => ({
+        adjustment_head_id: a.adjustment_head_id,
+        type: a.type,
+        value_type: a.value_type,
+        value: a.value,
+        note: a.note,
+      })),
+
     })
 
     messageStore.showSuccess('Purchase created successfully!')
@@ -238,6 +303,7 @@ const submitRows = async () => {
 ===================================================== */
 onMounted(() => {
   loadAccounts()
+  loadadjustmentHeads()
 })
 
 </script>
@@ -406,7 +472,7 @@ onMounted(() => {
                     <option value="percent">Percent</option>
                   </select>
                 </td>
-                <td class="px-4 py-2 font-semibold text-right">৳ {{ productSubtotal(p).toFixed(2) }}</td>
+                <td class="px-4 py-2 font-semibold text-right">৳ {{ productSubtotal(p) }}</td>
                 <td class="px-4 py-2 text-center">
                   <button type="button" @click="removeProduct(p)" class="text-red-600 cursor-pointer">✕</button>
                 </td>
@@ -418,11 +484,11 @@ onMounted(() => {
 
       <!-- Grand Total Section -->
       <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
-        <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal.toFixed(2) }}</strong></div>
+        <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal }}</strong></div>
         <div class="flex gap-2 items-center">
           <span>Tax %</span>
           <input type="number" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-          <span>৳ {{ grandTaxAmount.toFixed(2) }}</span>
+          <span>৳ {{ grandTaxAmount }}</span>
         </div>
         <div class="flex gap-2 items-center">
           <span>Discount</span>
@@ -432,12 +498,99 @@ onMounted(() => {
             <option value="flat">Flat</option>
             <option value="percent">Percent</option>
           </select>
-          <span>৳ {{ grandDiscountAmount.toFixed(2) }}</span>
+          <span>৳ {{ grandDiscountAmount }}</span>
         </div>
-        <div class="flex justify-between text-lg font-bold border-t pt-2">
-          <span>Net Total</span>
-          <span>৳ {{ netTotal.toFixed(2) }}</span>
+
+
+        <div class="border-t pt-2">
+
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Grand Total</span>
+            <span>৳ {{ netBeforeAdjustment }}</span>
+          </div>
+
+          <!-- ================= Adjustments ================= -->
+          <div class="border border-gray-200 p-4 bg-white space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-lg font-semibold text-gray-700">Adjustments</h3>
+
+              <button
+                type="button"
+                @click="addAdjustment"
+                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                + Add Adjustment
+              </button>
+            </div>
+
+            <div
+              v-for="(adj, index) in adjustments"
+              :key="index"
+              class="grid grid-cols-12 gap-2 items-center"
+            >
+              <!-- Adjustment Head -->
+              <select
+                v-model="adj.adjustment_head_id"
+                class="col-span-3 border p-2"
+                :disabled="adjustmentHeadLoading || !adjustmentHeads.length"
+              >
+                <option value="">Select Head</option>
+                <option v-for="h in adjustmentHeads" :value="h.id">{{ h.head_name }}</option>
+              </select>
+
+              <!-- Type -->
+              <select
+                v-model="adj.type"
+                class="col-span-2 border p-2"
+              >
+                <option value="add">Add</option>
+                <option value="subtract">Subtract</option>
+              </select>
+
+              <select v-model="adj.value_type" class="border p-2">
+                <option value="flat">Flat</option>
+                <option value="percent">Percent (%)</option>
+              </select>
+
+              <input
+                type="number"
+                v-model.number="adj.value"
+                class="border p-2"
+                :placeholder="adj.value_type === 'percent' ? '%' : 'Amount'"
+              />
+
+              <!-- Note -->
+              <input
+                type="text"
+                v-model="adj.note"
+                class="col-span-3 border p-2"
+                placeholder="Note"
+              />
+
+              <!-- Remove -->
+              <button
+                type="button"
+                @click="removeAdjustment(index)"
+                class="col-span-1 text-red-600 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="flex justify-between font-semibold border-t pt-2">
+              <span>Adjustment Total</span>
+              <span>৳ {{ adjustmentTotal }}</span>
+            </div>
+          </div>
+          <!-- end other adjustments -->
+
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Net Total</span>
+            <span>৳ {{ netTotal }}</span>
+          </div>
         </div>
+
+
       </div>
 
       <!-- Invoice Note -->

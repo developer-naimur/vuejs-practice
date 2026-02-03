@@ -438,8 +438,8 @@ onMounted(() => {
                       <!-- Quantity Input -->
                       <input
                         type="number"
+                        min="0" step="0.0001"
                         v-model.number="p.qty"
-                        min="1"
                         class="w-16 text-center border-l border-r focus:outline-none"
                       />
 
@@ -457,13 +457,13 @@ onMounted(() => {
                   </div>
                 </td>
                 <td class="px-4 py-2">
-                  <input type="number" v-model.number="p.cost_price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+                  <input type="number" min="0" step="0.0001" v-model.number="p.cost_price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
                 </td>
                 <td class="px-4 py-2">
-                  <input type="number" v-model.number="p.tax.tax_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
+                  <input type="number" min="0" step="0.0001" v-model.number="p.tax.tax_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
                 </td>
                 <td class="px-4 py-2">
-                  <input type="number" v-model.number="p.discount_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
+                  <input type="number" min="0" step="0.0001" v-model.number="p.discount_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
                 </td>
                 <td class="px-4 py-2">
                   <select v-model="p.discount_type" class="border p-1 focus:ring-2 focus:ring-gray-500">
@@ -487,12 +487,12 @@ onMounted(() => {
         <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal }}</strong></div>
         <div class="flex gap-2 items-center">
           <span>Tax %</span>
-          <input type="number" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+          <input type="number" min="0" step="0.0001" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
           <span>৳ {{ grandTaxAmount }}</span>
         </div>
         <div class="flex gap-2 items-center">
           <span>Discount</span>
-          <input type="number" v-model.number="grandDiscount" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+          <input type="number" min="0" step="0.0001" v-model.number="grandDiscount" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
           <select v-model="grandDiscountType" class="border p-1 focus:ring-2 focus:ring-gray-500">
             <option value="">Select</option>
             <option value="flat">Flat</option>
@@ -554,6 +554,7 @@ onMounted(() => {
 
               <input
                 type="number"
+                min="0" step="0.0001"
                 v-model.number="adj.value"
                 class="border p-2"
                 :placeholder="adj.value_type === 'percent' ? '%' : 'Amount'"
@@ -603,7 +604,7 @@ onMounted(() => {
       <div class="border border-gray-200 p-4 space-y-3 mb">
         <div>
           <label class="block font-medium mb-1">Payment Amount</label>
-          <input v-model="paymentAmount" type="number" step="0.001" 
+          <input v-model="paymentAmount" type="number" min="0" step="0.0001" 
             class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
           />
         </div>

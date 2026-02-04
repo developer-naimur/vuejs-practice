@@ -22,6 +22,8 @@ const processing = ref(false)
 /* ================= ROUTE PARAM ================= */
 const purchaseReturnId = route.params.id
 
+const rounded = (val: number) => Math.round(val * 10000) / 10000;
+
 /* ================= FORM STATE ================= */
 const returnDate = ref(new Date().toISOString().slice(0, 10))
 const note = ref('')
@@ -54,22 +56,40 @@ const loadAccounts = async () => {
   }
 }
 
+//load adjustment head
+const adjustmentHeads = ref([])
+const adjustmentHeadLoading = ref<boolean>(false);
+const loadadjustmentHeads = async () => {
+  loading.value = true
+  adjustmentHeadLoading.value = true
+  try {
+    const res = await axiosInstance.get('/adjustment-heads/option/list')
+    adjustmentHeads.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    adjustmentHeadLoading.value = false
+    loading.value = false
+  }
+}
+
+
 /* ================= CALCULATION ================= */
 const lineSubtotal = (p: any) => {
   const qty = Number(p.return_qty) || 0
   const price = Number(p.unit_price) || 0
-  const base = qty * price
+  const base = rounded(qty * price)
 
-  const tax = base * (Number(p.tax_rate) || 0) / 100
+  const tax = rounded(base * (Number(p.tax_rate) || 0) / 100)
 
   let discount = 0
   if (p.discount_type === 'percent') {
-    discount = base * (Number(p.discount_value) || 0) / 100
+    discount = rounded(base * (Number(p.discount_value) || 0) / 100)
   } else {
     discount = Number(p.discount_value) || 0
   }
 
-  return base + tax - discount
+  return rounded(base + tax - discount)
 }
 
 const grandSubTotal = computed(() =>
@@ -77,17 +97,51 @@ const grandSubTotal = computed(() =>
 )
 
 const grandTaxAmount = computed(() =>
-  grandSubTotal.value * grandTax.value / 100
+  rounded(grandSubTotal.value * grandTax.value / 100)
 )
 
 const grandDiscountAmount = computed(() =>
   grandDiscountType.value === 'percent'
-    ? grandSubTotal.value * grandDiscount.value / 100
-    : grandDiscount.value
+    ? rounded(grandSubTotal.value * grandDiscount.value / 100)
+    : rounded(grandDiscount.value)
 )
 
+const netBeforeAdjustment = computed(() =>
+  rounded(grandSubTotal.value + grandTaxAmount.value - grandDiscountAmount.value)
+)
+
+/* =====================================================
+   Adjustments
+===================================================== */
+const adjustments = ref<any>([])
+
+const addAdjustment = () => {
+  adjustments.value.push({
+    adjustment_head_id: '',
+    type: 'add',
+    value_type: 'flat',
+    value: 0,
+    note: '',
+  })
+}
+const removeAdjustment = (index: number) => {
+  adjustments.value.splice(index, 1)
+}
+
+const adjustmentTotal = computed(() => {
+  return rounded(adjustments.value.reduce((sum, a) => {
+    let amount = 0
+    if (a.value_type === 'percent') {
+      amount = rounded(netBeforeAdjustment.value * a.value / 100)
+    } else {
+      amount = rounded(Number(a.value) || 0)
+    }
+    return a.type === 'add' ? rounded(sum + amount) : rounded(sum - amount)
+  }, 0))
+})
+
 const netTotal = computed(() =>
-  grandSubTotal.value + grandTaxAmount.value - grandDiscountAmount.value
+  rounded(netBeforeAdjustment.value + adjustmentTotal.value)
 )
 
 /* ================= FETCH PURCHASE RETURN ================= */
@@ -145,8 +199,18 @@ const fetchPurchaseReturn = async () => {
         discount_type: d.discount?.type ?? 'percent',
       }
     })
+
+    /* ===== ADJUSTMENTS ===== */
+    adjustments.value = data.adjustments.map((a: any) => ({
+      id: a.id,
+      adjustment_head_id: a.head.id,
+      type: a.type,
+      value_type: a.value_type,
+      value: a.value,
+      note: a.note,
+    }))
+
   } catch (error) {
-  	console.log(error)
     messageStore.showError('Failed to load purchase return')
   } finally {
     loading.value = false
@@ -196,7 +260,14 @@ const submitReturn = async () => {
       account_id: accountId.value || null,
       status: status.value,
       note: note.value,
-      details
+      details,
+      adjustments: adjustments.value.map(a => ({
+        adjustment_head_id: a.adjustment_head_id,
+        type: a.type,
+        value_type: a.value_type,
+        value: a.value,
+        note: a.note,
+      })),
     })
 
     messageStore.showSuccess('Purchase return updated')
@@ -215,6 +286,7 @@ const submitReturn = async () => {
 /* ================= INIT ================= */
 onMounted(async () => {
   await loadAccounts()
+  await loadadjustmentHeads()
   await fetchPurchaseReturn()
 })
 </script>
@@ -244,7 +316,7 @@ onMounted(async () => {
       <!-- SUPPLIER -->
       <div class="border border-gray-200 bg-gray-50 p-4">
         <h3 class="text-lg font-semibold">Supplier</h3>
-        <p>{{ supplier.name }} - {{ supplier.phone }}</p>
+        <p>{{ supplier?.name }} - {{ supplier?.phone }}</p>
       </div>
 
       <!-- PURCHASE SHORT DETAILS -->
@@ -254,12 +326,12 @@ onMounted(async () => {
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm text-gray-600">
-          <p><strong>Invoice No:</strong> {{ purchase.invoice_no }}</p>
-          <p><strong>Purchase Date:</strong> {{ purchase.date }}</p>
-          <p><strong>Status:</strong> {{ purchase.status }}</p>
+          <p><strong>Invoice No:</strong> {{ purchase?.invoice_no }}</p>
+          <p><strong>Purchase Date:</strong> {{ purchase?.date }}</p>
+          <p><strong>Status:</strong> {{ purchase?.status }}</p>
 
           <p><strong>Total Items:</strong> {{ products.length }}</p>
-          <p><strong>Purchased Total:</strong> ৳ {{ purchase.total_amount }}</p>
+          <p><strong>Purchased Total:</strong> ৳ {{ purchase?.total_amount }}</p>
         </div>
       </div>
 
@@ -361,9 +433,93 @@ onMounted(async () => {
           <span>৳ {{ grandDiscountAmount.toFixed(2) }}</span>
         </div>
 
-        <div class="flex justify-between font-bold text-lg border-t pt-2">
-          <span>Net Total</span>
-          <span>৳ {{ netTotal.toFixed(2) }}</span>
+        <div class="border-t pt-2">
+
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Grand Total</span>
+            <span>৳ {{ netBeforeAdjustment }}</span>
+          </div>
+
+          <!-- ================= Adjustments ================= -->
+          <div class="border border-gray-200 p-4 bg-white space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-lg font-semibold text-gray-700">Adjustments</h3>
+
+              <button
+                type="button"
+                @click="addAdjustment"
+                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                + Add Adjustment
+              </button>
+            </div>
+
+            <div
+              v-for="(adj, index) in adjustments"
+              :key="index"
+              class="grid grid-cols-12 gap-2 items-center"
+            >
+              <!-- Adjustment Head -->
+              <select
+                v-model="adj.adjustment_head_id"
+                class="col-span-3 border p-2"
+                :disabled="adjustmentHeadLoading || !adjustmentHeads.length"
+              >
+                <option value="">Select Head</option>
+                <option v-for="h in adjustmentHeads" :value="h.id">{{ h.head_name }}</option>
+              </select>
+
+              <!-- Type -->
+              <select
+                v-model="adj.type"
+                class="col-span-2 border p-2"
+              >
+                <option value="add">Add</option>
+                <option value="subtract">Subtract</option>
+              </select>
+
+              <select v-model="adj.value_type" class="border p-2">
+                <option value="flat">Flat</option>
+                <option value="percent">Percent (%)</option>
+              </select>
+
+              <input
+                type="number"
+                min="0" step="0.0001"
+                v-model.number="adj.value"
+                class="border p-2"
+                :placeholder="adj.value_type === 'percent' ? '%' : 'Amount'"
+              />
+
+              <!-- Note -->
+              <input
+                type="text"
+                v-model="adj.note"
+                class="col-span-3 border p-2"
+                placeholder="Note"
+              />
+
+              <!-- Remove -->
+              <button
+                type="button"
+                @click="removeAdjustment(index)"
+                class="col-span-1 text-red-600 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="flex justify-between font-semibold border-t pt-2">
+              <span>Adjustment Total</span>
+              <span>৳ {{ adjustmentTotal }}</span>
+            </div>
+          </div>
+          <!-- end other adjustments -->
+
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Net Total</span>
+            <span>৳ {{ netTotal }}</span>
+          </div>
         </div>
       </div>
 

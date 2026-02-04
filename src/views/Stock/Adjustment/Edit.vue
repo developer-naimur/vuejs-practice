@@ -6,7 +6,7 @@ import { AxiosError } from 'axios'
 
 import FormSkeleton from '@/components/Skeleton/Form-1.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
-import ContactMenu from '@/components/inc/SubSidebar/ContactMenu.vue'
+import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import { useMessageStore } from '@/stores/useMessageStore'
 
 const messageStore = useMessageStore()
@@ -71,6 +71,7 @@ const fetchRow = async () => {
         name: d.product?.name || '',
         qty: Number(d.quantity),
         cost_price: Number(d.cost_price),
+        sale_price: Number(d.sale_price),
         note: d.note,
       })
     })
@@ -97,6 +98,8 @@ const submitUpdate = async () => {
       ...row.value,
       details: selectedProducts.value.map(p => ({
         product_id: p.id,
+        cost_price: p.cost_price,
+        sale_price: p.sale_price,
         quantity: p.qty,
       })),
     })
@@ -188,6 +191,15 @@ watch(
   }
 )
 
+const showCostPrice = computed(() => {
+  if (row.value.operation_type === 'free') return false
+  return row.value.party_type === 'supplier'
+})
+
+const showSalePrice = computed(() => {
+  if (row.value.operation_type === 'free') return false
+  return row.value.party_type === 'customer'
+})
 
 </script>
 
@@ -195,7 +207,7 @@ watch(
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
-    <ContactMenu />
+    <StockMenu />
   </div>
 
   <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
@@ -366,6 +378,8 @@ watch(
               <tr>
                 <th class="px-4 py-2 text-left">Product</th>
                 <th class="px-4 py-2 text-center">Qty</th>
+                  <th class="px-4 py-2 text-left" v-if="showCostPrice">Cost Price</th>
+                  <th class="px-4 py-2 text-left" v-if="showSalePrice">Sale Price</th>
                 <th class="px-4 py-2 text-left">Remove</th>
               </tr>
             </thead>
@@ -408,6 +422,24 @@ watch(
                     </div>
                   </div>
                 </td>
+                  <td v-if="showCostPrice" class="px-4 py-2">
+                    <input
+                      type="number"
+                      v-model.number="p.cost_price"
+                      min="0"
+                      step="0.0001"
+                      class="w-20 border p-1 focus:ring-2 focus:ring-gray-500"
+                    />
+                  </td>
+                  <td v-if="showSalePrice" class="px-4 py-2">
+                    <input
+                      type="number"
+                      v-model.number="p.sale_price"
+                      min="0"
+                      step="0.0001"
+                      class="w-20 border p-1 focus:ring-2 focus:ring-gray-500"
+                    />
+                  </td>
                 <td class="px-4 py-2 text-center">
                   <button @click="removeProduct(p)" class="text-red-600 cursor-pointer">✕</button>
                 </td>

@@ -3,10 +3,12 @@ import { ref, onMounted, watch, computed } from 'vue'
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import FormSkeleton from '@/components/skeleton/Form-2.vue'
 import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import PurchaseSummary from '@/components/PurchaseSummary.vue'
 import { $routes, $labels } from '@/constants/stockAdjustment'
 const router = useRouter()
+const route = useRoute()
 
 import { useMessageStore } from '@/stores/useMessageStore'
 const messageStore = useMessageStore()
@@ -62,47 +64,10 @@ const row = ref({
   supplier_id: '',
   status: '',
   note: '',
+  adjustable_type: '',
+  adjustable_id: 0,
 })
 
-const submitRows = async () => {
-  if (processing.value) return
-
-  if (!selectedProducts.value.length) {
-    messageStore.showError('Please select at least one product.')
-    return
-  }
-
-  processing.value = true
-
-  try {
-    await axiosInstance.post('/stock-adjustments', {
-      ...row.value,
-      details: selectedProducts.value.map(p => ({
-        product_id: p.id,
-        cost_price: p.cost_price,
-        sale_price: p.sale_price,
-        quantity: p.qty,
-      })),
-    })
-
-    messageStore.showSuccess('Stock adjustment created successfully!')
-
-    // optional reset
-    productPopup.selectedProducts = []
-    router.push($routes.index)
-
-  } catch (err) {
-    if (err instanceof AxiosError) {
-      messageStore.showError(
-        err.response?.data?.message || 'Failed to create stock adjustment.'
-      )
-    } else {
-      messageStore.showError('Unexpected error occurred.')
-    }
-  } finally {
-    processing.value = false
-  }
-}
 
 
 
@@ -156,10 +121,47 @@ const loadSuppliers = async () => {
   }
 }
 
+//get purchase summery
+const purchaseId = computed(() => route.query.purchase_id as string | undefined)
+const purchase = ref<any>(null)
+const purchaseLoading = ref(false)
+const fetchPurchaseSummary = async (uuid: string) => {
+  loading.value = true
+  purchaseLoading.value = true
+  try {
+    const res = await axiosInstance.get(`/purchases/${uuid}`)
+    const data = res.data.data
+    purchase.value = data
+    /* ================= AUTO SELECT ================= */
+    if (data) {
+      row.value.operation_date = data.date          // 1. Operation Date
+      row.value.operation_type = 'free'              // 2. Operation Type
+      row.value.direction = 'in'                     // 3. Direction
+      row.value.party_type = 'supplier'              // 4. Party Type
+      row.value.supplier_id = data.supplier?.id ?? null // 5. Supplier
+
+      //  Polymorphic Adjustable
+      row.value.adjustable_type = 'Purchase'
+      row.value.adjustable_id   = data.id
+    }
+    /* ================================================= */
+
+  } catch (err) {
+    messageStore.showError('Failed to load purchase summary.')
+  } finally {
+    loading.value = false
+    purchaseLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadAccounts()
   loadCustomers()
   loadSuppliers()
+
+  if (purchaseId.value) {
+    fetchPurchaseSummary(purchaseId.value)
+  }
 })
 
 watch(
@@ -190,6 +192,53 @@ const showSalePrice = computed(() => {
   return row.value.party_type === 'customer'
 })
 
+const redirectToPurchase = ref(false)
+const submitRows = async () => {
+  if (processing.value) return
+
+  if (!selectedProducts.value.length) {
+    messageStore.showError('Please select at least one product.')
+    return
+  }
+
+  processing.value = true
+
+  try {
+    await axiosInstance.post('/stock-adjustments', {
+      ...row.value,
+      details: selectedProducts.value.map(p => ({
+        product_id: p.id,
+        cost_price: p.cost_price,
+        sale_price: p.sale_price,
+        quantity: p.qty,
+      })),
+    })
+
+    messageStore.showSuccess('Stock adjustment created successfully!')
+
+    // optional reset
+    productPopup.selectedProducts = []
+
+    if (redirectToPurchase.value) {
+      router.push(`/purchase/${purchaseId}`)
+    } else {
+      router.push($routes.index)
+    }
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(
+        err.response?.data?.message || 'Failed to create stock adjustment.'
+      )
+    } else {
+      messageStore.showError('Unexpected error occurred.')
+    }
+  } finally {
+    processing.value = false
+  }
+}
+
+
 </script>
 
 <template>
@@ -203,6 +252,13 @@ const showSalePrice = computed(() => {
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
+
+    <PurchaseSummary
+    :purchase-id="purchaseId"
+    :purchase="purchase"
+    :loading="purchaseLoading"
+  />
+
 
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
@@ -473,13 +529,31 @@ const showSalePrice = computed(() => {
         </div>
 
 
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  
+        <!-- Normal Submit -->
         <button
           type="submit"
           :disabled="processing"
-          class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+          class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+          @click="redirectToPurchase = false"
         >
-          {{ processing ? 'Processing...' : 'Submit All ' + $labels.plural_name }}
+          {{ processing ? 'Processing...' : 'Submit ' + $labels.plural_name }}
         </button>
+
+          <!-- Save & Go -->
+        <template v-if="purchaseId">
+          <button
+            type="submit"
+            :disabled="processing"
+            class="bg-blue-600 text-white font-semibold p-3 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+            @click="redirectToPurchase = true"
+          >
+            Save & Redirect
+          </button>
+        </template>
+
+      </div>
 
     </form>
 

@@ -234,6 +234,7 @@ const loadadjustmentHeads = async () => {
 /* =====================================================
    Submit Rows
 ===================================================== */
+const redirectToStock = ref(false)
 const submitRows = async () => {
   if (processing.value) return
 
@@ -257,7 +258,7 @@ const submitRows = async () => {
       row.value.payment_note        = paymentNote.value
       row.value.status              = status.value
 
-    await axiosInstance.post('/purchases', {
+    const res = await axiosInstance.post('/purchases', {
       ...row.value,
       details: selectedProducts.value.map(p => ({
         product_id: p.id,
@@ -280,9 +281,15 @@ const submitRows = async () => {
 
     messageStore.showSuccess('Purchase created successfully!')
 
+    const purchaseId = res.data.data.uuid
     // optional reset
     productPopup.selectedProducts = []
-    router.push($routes.index)
+    
+    if (redirectToStock.value) {
+      router.push(`/stock/operation/create?purchase_id=${purchaseId}`)
+    } else {
+      router.push($routes.index)
+    }
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -294,6 +301,7 @@ const submitRows = async () => {
     }
   } finally {
     processing.value = false
+    redirectToStock.value = false
   }
 }
 
@@ -643,13 +651,38 @@ onMounted(() => {
 
 
       <!-- Submit -->
-      <button
+      <!-- <button
         type="submit"
         :disabled="processing"
         class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition shadow-sm cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {{ processing ? 'Processing...' : 'Submit' }}
-      </button>
+      </button> -->
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  
+        <!-- Normal Submit -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+          @click="redirectToStock = false"
+        >
+          {{ processing ? 'Processing...' : 'Save Purchase' }}
+        </button>
+
+        <!-- Save & Go -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-blue-600 text-white font-semibold p-3 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+          @click="redirectToStock = true"
+        >
+          Save & Create Stock Adjustment
+        </button>
+
+      </div>
+
 
     </form>
 

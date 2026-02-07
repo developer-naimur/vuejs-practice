@@ -7,13 +7,15 @@ import { AxiosError } from 'axios'
 import FormSkeleton from '@/components/Skeleton/Form-1.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
+
+import PurchaseSummary from '@/components/PurchaseSummary.vue'
 import { useMessageStore } from '@/stores/useMessageStore'
 
 const messageStore = useMessageStore()
 const route = useRoute()
 const router = useRouter()
 
-const rowId = route.params.id
+const rowId = ref(route.params.id)
 
 const breadcrumbs = [
   { label: 'Home', to: '/' },
@@ -47,8 +49,9 @@ const row = ref({})
 const fetchRow = async () => {
   loading.value = true
   try {
-    const res = await axiosInstance.get(`/stock-adjustments/${rowId}`)
+    const res = await axiosInstance.get(`/stock-adjustments/${rowId.value}`)
     const data = res.data.data
+
 
     // Main row fields
     row.value = {
@@ -60,11 +63,19 @@ const fetchRow = async () => {
       supplier_id: data.supplier?.id || '',
       status: data.status,
       note: data.note,
+      adjustable_type: '',
+      adjustable_id: 0,
     }
+
+    if (data.adjustable_type === 'Purchase' && data.adjustable_id) {
+      fetchPurchaseSummary(data.adjustable.uuid)
+      row.value.adjustable_type = 'Purchase'
+      row.value.adjustable_id = data.adjustable_id
+    }
+
 
     // Load selected products into Pinia store
     productPopup.selectedProducts.splice(0, productPopup.selectedProducts.length) // clear old
-
     data.details?.forEach((d: any) => {
       productPopup.selectedProducts.push({
         id: d.product_id,
@@ -84,6 +95,27 @@ const fetchRow = async () => {
 }
 
 
+//get purchase summery
+const purchaseId = ref(0)
+const purchase = ref<any>(null)
+const purchaseLoading = ref(false)
+const fetchPurchaseSummary = async (uuid: string) => {
+  loading.value = true
+  purchaseLoading.value = true
+  try {
+    const res = await axiosInstance.get(`/purchases/${uuid}`)
+    const data = res.data.data
+    purchaseId.value = data.uuid
+    purchase.value = data
+  } catch (err) {
+    messageStore.showError('Failed to load purchase summary.')
+  } finally {
+    loading.value = false
+    purchaseLoading.value = false
+  }
+}
+
+
 /* ===============================
   UPDATE
 ================================ */
@@ -94,7 +126,7 @@ const submitUpdate = async () => {
 
   try {
 
-    await axiosInstance.put(`/stock-adjustments/${rowId}`, {
+    const res = await axiosInstance.put(`/stock-adjustments/${rowId.value}`, {
       ...row.value,
       details: selectedProducts.value.map(p => ({
         product_id: p.id,
@@ -105,7 +137,16 @@ const submitUpdate = async () => {
     })
 
     messageStore.showSuccess('Row updated successfully!')
-    router.push('/stock/operation')
+
+    const nextUuid = res.data.next_stock_adjustment_uuid
+    if (nextUuid) {
+      rowId.value = nextUuid      // update ref
+      await fetchRow()            // reload data for new rowId
+      router.push(`/stock/operation/${nextUuid}/edit`) // optional, URL update
+    } else {
+      router.push('/stock/operation')
+    }
+
   } catch (err) {
     if (err instanceof AxiosError) {
       messageStore.showError(err.response?.data?.message || 'Update failed')
@@ -214,6 +255,13 @@ const showSalePrice = computed(() => {
 
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
+
+
+    <PurchaseSummary
+    :purchase-id="purchaseId"
+    :purchase="purchase"
+    :loading="purchaseLoading"
+  />
 
     <!-- Title -->
     <div class="flex justify-between items-center">
@@ -474,7 +522,7 @@ const showSalePrice = computed(() => {
                hover:bg-gray-600 transition cursor-pointer
                disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ processing ? 'Updating...' : 'Update Operation' }}
+        {{ processing ? 'Updating...' : 'Update ' + row.operation_type }}
       </button>
 
     </form>

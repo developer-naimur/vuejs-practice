@@ -185,7 +185,6 @@ const fetchPurchase = async () => {
     const p = res.data.data
 
 
-
     /* ===== BASIC INFO ===== */
     date.value        = p.date
     invoiceNote.value = p.description ?? ''
@@ -258,7 +257,7 @@ const submitRows = async () => {
   processing.value = true
 
   try {
-    await axiosInstance.put(`/purchases/${rowId}`, {
+    const res = await axiosInstance.put(`/purchases/${rowId}`, {
       purchase_date: date.value,
       supplier_id: supplier.value?.id,
       note: invoiceNote.value,
@@ -291,7 +290,15 @@ const submitRows = async () => {
 
     messageStore.showSuccess('Purchase updated successfully!')
     productPopup.selectedProducts = []
-    router.push($routes.index)
+
+     // Redirect to first stock adjustment edit if exists
+    const updatedPurchase = res.data.data
+    if (updatedPurchase.stock_adjustments && updatedPurchase.stock_adjustments.length) {
+      const firstStock = updatedPurchase.stock_adjustments[0]
+      router.push(`/stock/operation/${firstStock.uuid}/edit`)
+    } else {
+      router.push($routes.index)
+    }
 
   } catch (err) {
     if (err instanceof AxiosError) {

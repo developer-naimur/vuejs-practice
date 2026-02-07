@@ -139,6 +139,7 @@ const fetchPurchaseSummary = async (uuid: string) => {
       row.value.direction = 'in'                     // 3. Direction
       row.value.party_type = 'supplier'              // 4. Party Type
       row.value.supplier_id = data.supplier?.id ?? null // 5. Supplier
+      row.value.status = data.status ?? ''
 
       //  Polymorphic Adjustable
       row.value.adjustable_type = 'Purchase'
@@ -218,12 +219,15 @@ const submitRows = async () => {
 
     // optional reset
     productPopup.selectedProducts = []
+    row.value.note = ''
 
     if (redirectToPurchase.value) {
       router.push(`/purchase/${purchaseId}`)
     } else {
-      router.push($routes.index)
+      //
     }
+
+
 
   } catch (err) {
     if (err instanceof AxiosError) {
@@ -312,9 +316,9 @@ const submitRows = async () => {
     	    <select v-model="row.operation_type"
     	            class="w-full border p-2 focus:ring-2 focus:ring-gray-500">
     	      <option value="">Select</option>
+            <option value="damage">Damage</option>
+            <option value="free">Free</option>
     	      <option value="adjustment">Adjustment</option>
-    	      <option value="damage">Damage</option>
-    	      <option value="free">Free</option>
             <option value="return">Return</option>
             <option value="lost">Lost</option>
 
@@ -538,7 +542,7 @@ const submitRows = async () => {
           class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
           @click="redirectToPurchase = false"
         >
-          {{ processing ? 'Processing...' : 'Submit ' + $labels.plural_name }}
+          {{ processing ? 'Processing...' : 'Submit & Next ' + $labels.plural_name }}
         </button>
 
           <!-- Save & Go -->

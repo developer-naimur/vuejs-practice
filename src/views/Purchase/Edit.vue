@@ -246,6 +246,8 @@ const fetchPurchase = async () => {
 
 
 /* ================= UPDATE ================= */
+
+const redirectToStock = ref(false)
 const submitRows = async () => {
   if (processing.value) return
 
@@ -291,11 +293,17 @@ const submitRows = async () => {
     messageStore.showSuccess('Purchase updated successfully!')
     productPopup.selectedProducts = []
 
+
      // Redirect to first stock adjustment edit if exists
     const updatedPurchase = res.data.data
-    if (updatedPurchase.stock_adjustments && updatedPurchase.stock_adjustments.length) {
-      const firstStock = updatedPurchase.stock_adjustments[0]
-      router.push(`/stock/operation/${firstStock.uuid}/edit`)
+
+    if (redirectToStock.value) {
+      if (updatedPurchase.stock_adjustments && updatedPurchase.stock_adjustments.length) {
+        const firstStock = updatedPurchase.stock_adjustments[0]
+        router.push(`/stock/operation/${firstStock.uuid}/edit`)
+      } else {
+        router.push(`/stock/operation/create?purchase_id=${updatedPurchase.uuid}`)
+      }
     } else {
       router.push($routes.index)
     }
@@ -617,13 +625,29 @@ onMounted(async () => {
       </div>
 
         <!-- ================= SUBMIT ================= -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+  
+        <!-- Normal Submit -->
         <button
           type="submit"
           :disabled="processing"
-          class="w-full bg-gray-500 text-white font-semibold p-3 disabled:opacity-50"
+          class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+          @click="redirectToStock = false"
         >
-          {{ processing ? 'Processing...' : 'Update' }}
+          {{ processing ? 'Processing...' : 'Update Purchase' }}
         </button>
+
+        <!-- Save & Go -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-blue-600 text-white font-semibold p-3 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+          @click="redirectToStock = true"
+        >
+          Save & Update Stock Adjustment
+        </button>
+
+      </div>
 
       </form>
     </div>

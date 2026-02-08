@@ -19,6 +19,7 @@ import { AxiosError } from "axios";
 import { useUserStore } from "@/stores/useUserStore";
 const userStore = useUserStore();
 
+const rounded = (val: number) => Math.round(val * 10000) / 10000;
 
 /* =====================================================
    BREADCRUMB
@@ -66,6 +67,9 @@ const row = ref({
   note: '',
   adjustable_type: '',
   adjustable_id: 0,
+  payment_amount: '',
+  account_id: '',
+  payment_note: '',
 })
 
 
@@ -241,7 +245,30 @@ const submitRows = async () => {
     processing.value = false
   }
 }
+/* ================= GRAND TOTAL ================= */
+const productSubtotal = (p) => {
+  if (!p) return 0
 
+  const qty = Number(p.qty) || 0
+  let price = 0
+  if(showCostPrice.value){
+    price = Number(p.cost_price) || 0
+  }
+  else if(showSalePrice.value){
+    price = Number(p.sale_price) || 0
+  }
+  else{
+    price = 0
+  }
+   
+  const base = rounded(qty * price)
+
+  return rounded(base)
+}
+
+const netAdjustment = computed(() =>
+  selectedProducts.value.reduce((sum, p) => sum + productSubtotal(p), 0)
+)
 
 </script>
 
@@ -514,11 +541,52 @@ const submitRows = async () => {
           </div>
         </div>
 
+
+      <!-- Total Section -->
+      <template v-if="showCostPrice || showSalePrice">
+        <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Total</span>
+            <span>৳ {{ netAdjustment }}</span>
+          </div>
+        </div>
+      </template>
+
         <!-- Note -->
         <div class="border border-gray-200 p-4 mb-0">
           <label class="block text-sm text-gray-600 mb-1">Note</label>
           <textarea v-model="row.note" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="note..."></textarea>
         </div>
+
+        <!-- Payment Section -->
+        <template v-if="showCostPrice || showSalePrice">
+          <div class="border border-gray-200 p-4 space-y-3 mb">
+            <div>
+              <label class="block font-medium mb-1">Payment Amount</label>
+              <input v-model="row.payment_amount" type="number" min="0" step="0.0001" 
+                class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+              />
+            </div>
+            <div>
+              <label class="block font-medium mb-1">Payment Method</label>
+              <select
+                v-model="row.account_id"
+                class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+                :disabled="accountLoading || !accounts.length"
+              >
+                <option value="">Select</option>
+                <option v-for="account in accounts" :key="account.id" :value="account.id">
+                  {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+                </option>
+              </select>
+            </div>
+            <div>
+              <label class="block font-medium mb-1">Payment Note</label>
+              <textarea v-model="row.payment_note" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="2" placeholder="Payment note..."></textarea>
+            </div>
+          </div>
+        </template>
+
 
         <!-- Status -->
         <div class="border border-gray-200 p-4 mb-0">

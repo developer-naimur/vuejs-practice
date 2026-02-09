@@ -300,7 +300,7 @@ const submitRows = async () => {
     if (redirectToStock.value) {
       if (updatedPurchase.stock_adjustments && updatedPurchase.stock_adjustments.length) {
         const firstStock = updatedPurchase.stock_adjustments[0]
-        router.push(`/stock/operation/${firstStock.uuid}/edit`)
+        router.push(`/stock/operation/${firstStock.uuid}/edit?purchase_id=${updatedPurchase.uuid}`)
       } else {
         router.push(`/stock/operation/create?purchase_id=${updatedPurchase.uuid}`)
       }

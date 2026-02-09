@@ -48,13 +48,20 @@ const row = ref({})
 /* ===============================
   FETCH TAX DATA
 ================================ */
+const hasNext = ref(false)
 const fetchRow = async () => {
   loading.value = true
   try {
     const res = await axiosInstance.get(`/stock-adjustments/${rowId.value}`)
     const data = res.data.data
+    hasNext.value = res.data.next_stock_adjustment_uuid ? true : false
 
-
+    // Preserve manual sale prices
+    const manualPrices: Record<number, number> = {}
+    productPopup.selectedProducts.forEach(p => {
+      if (p.manual_sale_price) manualPrices[p.id] = p.sale_price
+    })
+    
     // Main row fields
     row.value = {
       operation_date: data.date,
@@ -88,6 +95,7 @@ const fetchRow = async () => {
         qty: Number(d.quantity),
         cost_price: Number(d.cost_price),
         sale_price: Number(d.sale_price),
+        manual_sale_price: false,
         note: d.note,
       })
     })
@@ -101,7 +109,7 @@ const fetchRow = async () => {
 
 
 //get purchase summery
-const purchaseId = ref(0)
+const purchaseId = computed(() => route.query.purchase_id as string | undefined)
 const purchase = ref<any>(null)
 const purchaseLoading = ref(false)
 const fetchPurchaseSummary = async (uuid: string) => {
@@ -144,12 +152,18 @@ const submitUpdate = async () => {
     messageStore.showSuccess('Row updated successfully!')
 
     const nextUuid = res.data.next_stock_adjustment_uuid
-    if (nextUuid) {
+    if (nextUuid && route.query.purchase_id) {
       rowId.value = nextUuid      // update ref
       await fetchRow()            // reload data for new rowId
-      router.push(`/stock/operation/${nextUuid}/edit`) // optional, URL update
+      router.push(`/stock/operation/${nextUuid}/edit?purchase_id=${route.query.purchase_id}`) // optional, URL update
     } else {
-      router.push('/stock/operation')
+      if(route.query.purchase_id){
+        //redirect to purcahse invoice - back
+        router.push(`/purchase/${route.query.purchase_id}`)
+      }else{
+        router.push('/stock/operation')
+      }
+      
     }
 
   } catch (err) {
@@ -213,13 +227,6 @@ const loadSuppliers = async () => {
   }
 }
 
-onMounted(() => {
-  loadAccounts()
-  loadCustomers()
-  loadSuppliers()
-  fetchRow()
-})
-
 watch(
   () => row.value.party_type,
   (partyType) => {
@@ -273,6 +280,17 @@ const netAdjustment = computed(() =>
   selectedProducts.value.reduce((sum, p) => sum + productSubtotal(p), 0)
 )
 
+//get prices by customer
+onMounted(() => {
+  loadAccounts()
+  loadCustomers()
+  loadSuppliers()
+  fetchRow()
+})
+
+import { useCustomerPriceGroup } from '@/composables/useCustomerPriceGroup'
+const { watchCustomerAndProducts } = useCustomerPriceGroup()
+watchCustomerAndProducts(row, customers, selectedProducts)
 
 </script>
 
@@ -515,6 +533,7 @@ const netAdjustment = computed(() =>
                     <input
                       type="number"
                       v-model.number="p.sale_price"
+                      @input="p.manual_sale_price = true"
                       min="0"
                       step="0.0001"
                       class="w-20 border p-1 focus:ring-2 focus:ring-gray-500"
@@ -594,7 +613,12 @@ const netAdjustment = computed(() =>
                hover:bg-gray-600 transition cursor-pointer
                disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {{ processing ? 'Updating...' : 'Update ' + row.operation_type }}
+        <template v-if="hasNext && route.query.purchase_id">
+          {{ processing ? 'Updating...' : 'Update & Move to Next' }}
+        </template>
+        <template v-else>
+          {{ processing ? 'Updating...' : 'Update Operation' }}
+        </template>
       </button>
 
     </form>

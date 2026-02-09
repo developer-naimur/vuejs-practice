@@ -270,6 +270,12 @@ const netAdjustment = computed(() =>
   selectedProducts.value.reduce((sum, p) => sum + productSubtotal(p), 0)
 )
 
+
+//get prices by customer
+import { useCustomerPriceGroup } from '@/composables/useCustomerPriceGroup'
+const { watchCustomerAndProducts } = useCustomerPriceGroup()
+watchCustomerAndProducts(row, customers, selectedProducts)
+
 </script>
 
 <template>
@@ -527,6 +533,7 @@ const netAdjustment = computed(() =>
                     <input
                       type="number"
                       v-model.number="p.sale_price"
+                      @input="p.manual_sale_price = true"
                       min="0"
                       step="0.0001"
                       class="w-20 border p-1 focus:ring-2 focus:ring-gray-500"
@@ -601,7 +608,7 @@ const netAdjustment = computed(() =>
         </div>
 
 
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3" v-if="purchaseId">
   
         <!-- Normal Submit -->
         <button
@@ -610,7 +617,7 @@ const netAdjustment = computed(() =>
           class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
           @click="redirectToPurchase = false"
         >
-          {{ processing ? 'Processing...' : 'Submit & Next ' + $labels.plural_name }}
+          {{ processing ? 'Processing...' : 'Submit ' + $labels.singular_name }}
         </button>
 
           <!-- Save & Go -->
@@ -624,6 +631,20 @@ const netAdjustment = computed(() =>
             Save & Redirect
           </button>
         </template>
+
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-1 gap-3" v-else>
+  
+        <!-- Normal Submit -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+          @click="redirectToPurchase = false"
+        >
+          {{ processing ? 'Processing...' : 'Submit ' + $labels.singular_name }}
+        </button>
 
       </div>
 

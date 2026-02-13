@@ -159,13 +159,11 @@ const fetchPurchaseReturn = async () => {
     grandDiscount.value = data.discount_value ?? 0
     grandDiscountType.value = data.discount_type ?? 'percent'
 
+    /* ===== PAYMENT ===== */
     refundAmount.value = data.refund_amount ?? 0
     accountId.value = data.account_id ?? ''
-
-    /* ===== PAYMENT ===== */
-    if (data.purchase_refund) { 
-      paymentNote.value = data.purchase_refund.note ?? ''
-    }
+    paymentNote.value = data.payment_note ?? ''
+    
 
     /* ===== PURCHASE & SUPPLIER ===== */
     supplier.value = data.purchase.supplier

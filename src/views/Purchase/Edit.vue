@@ -198,11 +198,9 @@ const fetchPurchase = async () => {
     grandTax.value = p.tax?.value ?? 0
 
     /* ===== PAYMENT ===== */
-    if (p.purchase_payment) {
-      paymentAmount.value = p.purchase_payment.credit ?? 0
-      accountId.value = p.purchase_payment.account_id ?? ''
-      paymentNote.value = p.purchase_payment.note ?? ''
-    }
+    paymentAmount.value = p.paid_amount ?? 0
+    accountId.value = p.account_id ?? ''
+    paymentNote.value = p.payment_note ?? ''
 
 
     /* ===== SUPPLIER ===== */

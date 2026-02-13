@@ -31,6 +31,7 @@ const returnDate = ref(getToday())
 const note = ref('')
 const refundAmount = ref(0)
 const accountId = ref('')
+const paymentNote = ref('')
 const status = ref('pending')
 
 const grandTax = ref(0)
@@ -195,6 +196,7 @@ const submitReturn = async () => {
       discount_type: grandDiscountType.value,
       refund_amount: refundAmount.value,
       account_id: accountId.value || null,
+      payment_note: paymentNote.value || null,
       status: status.value,
       note: note.value,
       details,

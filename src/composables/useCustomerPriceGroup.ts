@@ -35,7 +35,7 @@ export function useCustomerPriceGroup() {
         const matched = prices.find(pr => pr.product_id === p.id)
         if (matched) {
           // Only update if user did NOT manually edit
-          if (!forceUpdate && p.manual_sale_price) return
+          if (p.manual_sale_price) return
           p.sale_price = Number(matched.price)
         }
       })

@@ -57,10 +57,10 @@ const fetchRow = async () => {
     hasNext.value = res.data.next_stock_adjustment_uuid ? true : false
 
     // Preserve manual sale prices
-    const manualPrices: Record<number, number> = {}
-    productPopup.selectedProducts.forEach(p => {
-      if (p.manual_sale_price) manualPrices[p.id] = p.sale_price
-    })
+    // const manualPrices: Record<number, number> = {}
+    // productPopup.selectedProducts.forEach(p => {
+    //   if (p.manual_sale_price) manualPrices[p.id] = p.sale_price
+    // })
     
     // Main row fields
     row.value = {
@@ -95,7 +95,7 @@ const fetchRow = async () => {
         qty: Number(d.quantity),
         cost_price: Number(d.cost_price),
         sale_price: Number(d.sale_price),
-        manual_sale_price: false,
+        manual_sale_price: true,
         note: d.note,
       })
     })

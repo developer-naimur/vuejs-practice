@@ -284,8 +284,13 @@ onMounted(() => {
                 <!-- Return -->
                 <router-link
                   v-if="row.status === 'approved'"
-                  :to="`/purchase-return/create/${row.uuid}`"
+
+                  :to="row.return
+                      ? `/purchase-return/${row.return.uuid}/edit`
+                      : `/purchase-return/create/${row.uuid}`"
+
                   class="p-2 rounded-full bg-purple-100 text-purple-600 hover:bg-purple-600 hover:text-white transition cursor-pointer"
+
                   title="Return"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
@@ -295,12 +300,24 @@ onMounted(() => {
                   </svg>
                 </router-link>
 
-                <router-link :to="`/purchase/${row.uuid}/edit`" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer" title="Edit">
+                <router-link
+                  :to="row.return ? '' : `/purchase/${row.uuid}/edit`"
+                  :class="[
+                    'p-2 rounded-full transition flex items-center justify-center',
+                    row.return
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : 'bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white cursor-pointer'
+                  ]"
+                  :title="row.return ? 'Return invoice cannot be edited' : 'Edit'"
+                  @click.prevent="row.return && alert('Return invoice cannot be edited')"
+                >
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
                   </svg>
                 </router-link>
+                
                 <button @click="deleteRow(row)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer" title="Delete">
                   <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
                        viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

@@ -120,6 +120,7 @@ const fetchPurchaseSummary = async (uuid: string) => {
     const data = res.data.data
     purchaseId.value = data.uuid
     purchase.value = data
+    row.value.status = data.status
   } catch (err) {
     messageStore.showError('Failed to load purchase summary.')
   } finally {

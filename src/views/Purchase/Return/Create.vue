@@ -29,7 +29,7 @@ const getToday = () => new Date().toISOString().slice(0, 10)
 /* ================= FORM ================= */
 const returnDate = ref(getToday())
 const note = ref('')
-const refundAmount = ref(0)
+const refundAmount = ref('')
 const accountId = ref('')
 const paymentNote = ref('')
 const status = ref('pending')
@@ -141,11 +141,11 @@ const fetchPurchase = async () => {
       returned_qty: d.returned_qty || 0,
       remaining_qty: d.quantity - (d.returned_qty || 0),
 
-      return_qty: 0,
+      return_qty: '',
       unit_price: d.unit_price,
 
-      tax_rate: d.tax?.tax_rate ?? 0,
-      discount_value: d.discount?.value ?? 0,
+      tax_rate: d.tax?.tax_rate || '',
+      discount_value: d.discount?.value || '',
       discount_type: d.discount?.type ?? 'percent',
     }))
   } catch {
@@ -194,9 +194,9 @@ const submitReturn = async () => {
       tax_rate: grandTax.value,
       discount_value: grandDiscount.value,
       discount_type: grandDiscountType.value,
-      refund_amount: refundAmount.value,
-      account_id: accountId.value || null,
-      payment_note: paymentNote.value || null,
+      refund_amount: refundAmount.value || '',
+      account_id: accountId.value || '',
+      payment_note: paymentNote.value || '',
       status: status.value,
       note: note.value,
       details,
@@ -614,7 +614,7 @@ onMounted(async () => {
       <button
         type="submit"
         :disabled="processing"
-        class="w-full bg-gray-600 text-white p-3 font-semibold"
+        class="w-full bg-gray-600 text-white p-3 font-semibold cursor-pointer"
       >
         {{ processing ? 'Processing...' : 'Create Return' }}
       </button>

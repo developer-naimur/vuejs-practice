@@ -256,6 +256,7 @@ const submitReturn = async () => {
       discount_type: grandDiscountType.value,
       refund_amount: refundAmount.value,
       account_id: accountId.value || null,
+      payment_note: paymentNote.value || null,
       status: status.value,
       note: note.value,
       details,
@@ -553,7 +554,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <button type="submit" :disabled="processing" class="w-full bg-gray-600 text-white p-3 font-semibold">
+      <button type="submit" :disabled="processing" class="w-full bg-gray-600 text-white p-3 font-semibold cursor-pointer">
         {{ processing ? 'Processing...' : 'Update Return' }}
       </button>
 

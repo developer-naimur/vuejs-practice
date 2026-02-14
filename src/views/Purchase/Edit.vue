@@ -198,9 +198,10 @@ const fetchPurchase = async () => {
     grandTax.value = p.tax?.value ?? 0
 
     /* ===== PAYMENT ===== */
-    paymentAmount.value = p.paid_amount ?? 0
-    accountId.value = p.account_id ?? ''
+    paymentAmount.value = p.paid_amount || ''
+    accountId.value = p.account_id || ''
     paymentNote.value = p.payment_note ?? ''
+
 
 
     /* ===== SUPPLIER ===== */
@@ -577,9 +578,16 @@ onMounted(async () => {
       </div>
 
       <!-- Invoice Note -->
-      <div class="border border-gray-200 p-4 mb-0">
-        <label class="block font-medium mb-1">Invoice Note</label>
-        <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
+      <div class="bborder border-gray-200 p-4 space-y-3 mb-0">
+        <div>
+          <label class="block font-medium mb-1">Date <span class="text-red-600">*</span></label>
+          <input type="date" v-model="date" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" />
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1">Invoice Note</label>
+          <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
+        </div>
       </div>
 
       <!-- Payment Section -->

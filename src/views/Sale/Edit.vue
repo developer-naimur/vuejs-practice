@@ -1,579 +1,661 @@
-<script setup>
-import { ref, computed } from 'vue'
+<script setup lang="ts">
+import { ref, computed, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import axiosInstance from '@/axiosInstance'
+import { AxiosError } from 'axios'
+
 import TableSkeleton from '@/components/Skeleton/Table.vue'
 import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
-import { $routes, $labels } from '@/constants/sale'
-import { useRouter } from 'vue-router'
+import FormSkeleton from '@/components/skeleton/Form-2.vue'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import CustomerList from '@/components/modals/customer/CustomerList.vue'
 
+import { $routes, $labels } from '@/constants/sale'
+import { useMessageStore } from '@/stores/useMessageStore'
+import { useProductPopupStore } from '@/composables/useProductPopupStore'
+
+
+const rounded = (val: number) => Math.round(val * 10000) / 10000;
+
+/* ================= BASIC ================= */
 const router = useRouter()
+const route  = useRoute()
+const messageStore = useMessageStore()
+const productPopup = useProductPopupStore()
 
-/* =====================================================
-   BREADCRUMB
-===================================================== */
+const processing = ref(false)
+const loading = ref(true)
+
+/* ================= UUID ================= */
+const rowId = route.params.id
+
+/* ================= BREADCRUMB ================= */
 const breadcrumbs = [
   { label: 'Home', to: '/' },
   { label: $labels.plural_name, to: $routes.index },
-  { label: 'Add New ' + $labels.singular_name, }
+  { label: 'Edit ' + $labels.singular_name }
 ]
 
-/* ================= CUSTOMER INFO ================= */
-const customer = ref({
-  name: 'Rahim Uddin',
-  phone: '017XXXXXXXX',
-  address: 'Dhaka, Bangladesh',
-  prev_due: 2500
-})
+/* ================= HELPERS ================= */
+const getToday = () => new Date().toISOString().slice(0, 10)
 
-// ------------------------
-// Customer List (for modal)
-// ------------------------
-const customers = ref([
-  { id: 1, name: 'Rahim Uddin', phone: '017XXXXXXXX', address: 'Dhaka' , prev_due: 2500},
-  { id: 2, name: 'John Doe', phone: '018XXXXXXXX', address: 'Chittagong', prev_due: 1500 },
-  { id: 3, name: 'Jane Smith', phone: '019XXXXXXXX', address: 'Sylhet', prev_due: 2000 },
-  { id: 4, name: 'Alex Brown', phone: '016XXXXXXXX', address: 'Khulna', prev_due: 2000 },
-  { id: 5, name: 'Mary Jane', phone: '015XXXXXXXX', address: 'Barishal', prev_due: 500 }
-])
-
-// ------------------------
-// Filters & Pagination
-// ------------------------
-const searchQuery = ref('')
-const currentPage = ref(1)
-const perPage = ref(5)
-
-const filteredCustomers = computed(() =>
-  customers.value
-    .filter(c => c.name.toLowerCase().includes(searchQuery.value.toLowerCase()))
-    .slice((currentPage.value-1)*perPage.value, currentPage.value*perPage.value)
-)
-
-// ------------------------
-// Modal State
-// ------------------------
-const modalOpen = ref(false)
-
-// ------------------------
-// Methods
-// ------------------------
-const changeCustomer = () => {
-  modalOpen.value = true
-}
-
-const selectCustomer = (c) => {
-  // Close modal
-  modalOpen.value = false
-
-  // Update customer info locally
-  customer.value = c
-
-  // Navigate to same page with selected customer's id in the URL
-  router.push(`/sale/create/${c.id}`)
-}
-
-const resetFilters = () => searchQuery.value = ''
-
-
-/* ================= MODAL STATE ================= */
-const open = ref(false)
-
-/* ================= PRODUCTS DATA (demo) ================= */
-const allProducts = ref([
-  { id: 1, name: 'Apple', brand: 'Fruit', price: 120 },
-  { id: 2, name: 'Banana', brand: 'Fruit', price: 60 },
-  { id: 3, name: 'Laptop', brand: 'Electronics', price: 65000 },
-  { id: 4, name: 'Mouse', brand: 'Electronics', price: 1200 },
-  { id: 5, name: 'Keyboard', brand: 'Electronics', price: 2500 }
-])
-
-const selectedProducts = ref([])
-
-/* ================= FILTERS ================= */
-const search = ref('')
-const brand = ref('')
-const brands = computed(() => [...new Set(allProducts.value.map(p => p.brand))])
-
-const products = computed(() => {
-  return allProducts.value.filter(p => {
-    const matchName = p.name.toLowerCase().includes(search.value.toLowerCase())
-    const matchBrand = brand.value ? p.brand === brand.value : true
-    const notSelected = !selectedProducts.value.find(sp => sp.id === p.id)
-    return matchName && matchBrand && notSelected
-  })
-})
-
-/* ================= ACTIONS ================= */
-const addProduct = (product) => {
-  selectedProducts.value.push({ ...product, qty: 1, tax: 0, discount: 0, discount_type: '%' })
-}
-
-const removeProduct = (product) => {
-  selectedProducts.value = selectedProducts.value.filter(p => p.id !== product.id)
-}
-
-const updateQty = (p, type) => {
-  if (type === 'plus') p.qty++
-  if (type === 'minus' && p.qty > 1) p.qty--
-}
-
-const productSubtotal = (p) => {
-  if (!p) return 0           // handle undefined/null product
-  const qty = Number(p.qty) || 0
-  const price = Number(p.price) || 0
-  const base = qty * price
-  const taxAmount = base * (Number(p.tax) || 0) / 100
-  let discountAmount = 0
-  if (p.discount_type === '%') discountAmount = base * (Number(p.discount) || 0) / 100
-  else discountAmount = Number(p.discount) || 0
-  return base + taxAmount - discountAmount
-}
-
-/* ================= GRAND TOTAL ================= */
-const grandSubTotal = computed(() =>
-  selectedProducts.value.reduce((sum, p) => sum + productSubtotal(p), 0)
-)
-
+/* ================= FORM STATE ================= */
+const date = ref(getToday())
+const invoiceNote = ref('')
+const paymentAmount = ref(0)
+const accountId = ref('')
+const paymentNote = ref('')
 const grandTax = ref(0)
 const grandDiscount = ref(0)
-const grandDiscountType = ref('%')
+const grandDiscountType = ref('percent')
+const status = ref('pending')
 
-const grandTaxAmount = computed(() =>
-  grandSubTotal.value * grandTax.value / 100
+/* ================= CUSTOMER ================= */
+const customer = ref<any>(null)
+const showCustomerModal = ref(false)
+
+const openCustomerModal = () => {
+  showCustomerModal.value = true
+}
+
+const onCustomerSelected = (s: any) => {
+  customer.value = s
+  showCustomerModal.value = false
+}
+
+/* ================= PRODUCTS ================= */
+const selectedProducts = computed(() => productPopup.selectedProducts)
+const updateQty = productPopup.updateQty
+const removeProduct = productPopup.removeProduct
+const openProductPopup = () => productPopup.openPopup()
+
+/* ================= CALCULATION ================= */
+const productSubtotal = (p: any) => {
+  const qty = Number(p.qty) || 0
+  const price = Number(p.cost_price) || 0
+  const base = rounded(qty * price)
+
+  const tax = rounded(base * (Number(p.tax?.tax_value) || 0) / 100)
+
+  let discount = 0
+  if (p.discount_type === 'percent') {
+    discount = rounded(base * (Number(p.discount_value) || 0) / 100)
+  } else if (p.discount_type === 'flat') {
+    discount = Number(p.discount_value) || 0
+  }
+
+  return rounded(base + tax - discount)
+}
+
+const grandSubTotal = computed(() =>
+  selectedProducts.value.reduce((s, p) => s + productSubtotal(p), 0)
 )
 
-const grandDiscountAmount = computed(() => {
-  return grandDiscountType.value === '%'
-    ? grandSubTotal.value * grandDiscount.value / 100
-    : grandDiscount.value
+const grandTaxAmount = computed(() =>
+  rounded(grandSubTotal.value * grandTax.value / 100)
+)
+
+const grandDiscountAmount = computed(() =>
+  grandDiscountType.value === 'percent'
+    ? rounded(grandSubTotal.value * grandDiscount.value / 100)
+    : rounded(grandDiscount.value)
+)
+
+const netBeforeAdjustment = computed(() =>
+  rounded(grandSubTotal.value
+  + grandTaxAmount.value
+  - grandDiscountAmount.value)
+)
+
+
+/* =====================================================
+   Adjustments
+===================================================== */
+const adjustments = ref<any>([])
+
+const addAdjustment = () => {
+  adjustments.value.push({
+    adjustment_head_id: '',
+    type: 'add',
+    value_type: 'flat',
+    value: 0,
+    note: '',
+  })
+}
+const removeAdjustment = (index: number) => {
+  adjustments.value.splice(index, 1)
+}
+
+const adjustmentTotal = computed(() => {
+  return rounded(adjustments.value.reduce((sum, a) => {
+    let amount = 0
+    if (a.value_type === 'percent') {
+      amount = rounded(netBeforeAdjustment.value * a.value / 100)
+    } else {
+      amount = rounded(Number(a.value) || 0)
+    }
+    return a.type === 'add' ? rounded(sum + amount) : rounded(sum - amount)
+  }, 0))
 })
 
 const netTotal = computed(() =>
-  grandSubTotal.value + grandTaxAmount.value - grandDiscountAmount.value
+  rounded(netBeforeAdjustment.value + adjustmentTotal.value)
 )
 
-/* ================= INVOICE & PAYMENT ================= */
-const invoiceNote = ref('')
-const paymentMethod = ref('cash')
-const paymentNote = ref('')
+/* ================= ACCOUNTS ================= */
+const accounts = ref<any[]>([])
+const accountLoading = ref(false)
+
+const loadAccounts = async () => {
+  accountLoading.value = true
+  try {
+    const res = await axiosInstance.get('/accounts/option/list')
+    accounts.value = res.data.data
+  } catch {
+    messageStore.showError('Account load failed')
+  } finally {
+    accountLoading.value = false
+  }
+}
+
+
+//load adjustment head
+const adjustmentHeads = ref([])
+const adjustmentHeadLoading = ref<boolean>(false);
+const loadadjustmentHeads = async () => {
+  loading.value = true
+  adjustmentHeadLoading.value = true
+  try {
+    const res = await axiosInstance.get('/adjustment-heads/option/list')
+    adjustmentHeads.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Account load failed. Please check permission.')
+  } finally {
+    adjustmentHeadLoading.value = false
+    loading.value = false
+  }
+}
+
+
+/* ================= FETCH sale ================= */
+const fetchSale = async () => {
+  loading.value = true
+  try {
+    const res = await axiosInstance.get(`/sales/${rowId}`)
+    const p = res.data.data
+
+
+    /* ===== BASIC INFO ===== */
+    date.value        = p.date
+    invoiceNote.value = p.description ?? ''
+    status.value      = p.status ?? 'pending'
+
+    /* ===== DISCOUNT ===== */
+    grandDiscount.value = p.discount?.value ?? 0
+    grandDiscountType.value = p.discount?.type ?? 'percent'
+
+    /* ===== TAX ===== */
+    grandTax.value = p.tax?.value ?? 0
+
+    /* ===== PAYMENT ===== */
+    paymentAmount.value = p.paid_amount || ''
+    accountId.value = p.account_id || ''
+    paymentNote.value = p.payment_note ?? ''
+
+
+
+    /* ===== customer ===== */
+    customer.value = p.customer
+
+
+
+    /* ===== PRODUCTS ===== */
+    productPopup.selectedProducts = p.details.map((d: any) => ({
+      id: d.product?.id,
+      name: d.product?.name,
+      sku: d.product?.sku,
+      qty: d.quantity,
+      cost_price: d.unit_price,
+
+      discount_value: d.discount?.value ?? 0,
+      discount_type: d.discount?.type ?? 'percent',
+
+      tax: {
+        tax_value: d.tax?.tax_rate ?? 0
+      }
+    }))
+    /* ===== ADJUSTMENTS ===== */
+    adjustments.value = p.adjustments.map((a: any) => ({
+      id: a.id,
+      adjustment_head_id: a.head.id,
+      type: a.type,
+      value_type: a.value_type,
+      value: a.value,
+      note: a.note,
+
+    }))
+
+  } catch (error) {
+    messageStore.showError('Failed to load sale')
+    // router.push($routes.index)
+  } finally {
+    loading.value = false
+  }
+}
+
+
+/* ================= UPDATE ================= */
+
+const redirectToStock = ref(false)
+const submitRows = async () => {
+  if (processing.value) return
+
+  if (!selectedProducts.value.length) {
+    messageStore.showError('Please select at least one product.')
+    return
+  }
+
+  processing.value = true
+
+  try {
+    const res = await axiosInstance.put(`/sales/${rowId}`, {
+      sale_date: date.value,
+      customer_id: customer.value?.id,
+      note: invoiceNote.value,
+      tax_rate: grandTax.value,
+      discount_value: grandDiscount.value,
+      discount_type: grandDiscountType.value,
+      paid_amount: paymentAmount.value,
+      account_id: accountId.value,
+      payment_note: paymentNote.value,
+      status: status.value,
+
+      details: selectedProducts.value.map(p => ({
+        product_id: p.id,
+        quantity: p.qty,
+        unit_price: p.cost_price,
+        tax_rate: p.tax?.tax_value || 0,
+        discount_value: p.discount_value || 0,
+        discount_type: p.discount_type || 'percent',
+      })),
+
+      adjustments: adjustments.value.map(a => ({
+        adjustment_head_id: a.adjustment_head_id,
+        type: a.type,
+        value_type: a.value_type,
+        value: a.value,
+        note: a.note,
+      })),
+
+    })
+
+    messageStore.showSuccess('Sale updated successfully!')
+    productPopup.selectedProducts = []
+
+
+     // Redirect to first stock adjustment edit if exists
+    const updatedsale = res.data.data
+
+    if (redirectToStock.value) {
+      if (updatedsale.stock_adjustments && updatedsale.stock_adjustments.length) {
+        const firstStock = updatedsale.stock_adjustments[0]
+        router.push(`/stock/operation/${firstStock.uuid}/edit?sale_id=${updatedsale.uuid}`)
+      } else {
+        router.push(`/stock/operation/create?sale_id=${updatedsale.uuid}`)
+      }
+    } else {
+      router.push($routes.index)
+    }
+
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'Update failed')
+    } else {
+      messageStore.showError('Unexpected error')
+    }
+  } finally {
+    processing.value = false
+  }
+}
+
+/* ================= INIT ================= */
+onMounted(async () => {
+  await loadAccounts()
+  await loadadjustmentHeads()
+  await fetchSale()
+})
 </script>
 
 <template>
   <div class="flex gap-4">
 
-  <div class="hidden lg:block flex-none">
-    <SalesMenu />
-  </div>
-
-  <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
-
-    <!-- Breadcrumb -->
-    <Breadcrumb :items="breadcrumbs" />
-
-    <!-- Top Bar -->
-    <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
-      <h2 class="text-2xl font-semibold text-gray-700">Add New {{ $labels.singular_name }}</h2>
-
-      <div class="flex gap-2 flex-wrap">
-        
-        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition">
-           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-            <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-            <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-            <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
-        </svg>
-          View All
-        </router-link>
-
-        <router-link :to="$routes.trash" class="flex items-center gap-2 px-4 py-2 rounded bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-               viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round"
-                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0
-                     01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0
-                     011-1h4a1 1 0 011 1v2" />
-          </svg>
-          Trash
-        </router-link>
-        
-      </div>
+    <div class="hidden lg:block flex-none">
+      <SalesMenu />
     </div>
 
-    <!-- Customer Info -->
-    <div v-if="customer" class="border border-gray-200 bg-gray-50 p-4 space-y-3">
-      <div class="flex justify-between items-center">
-        <h3 class="text-lg font-semibold text-gray-700">Customer Information</h3>
-        <div class="flex items-center gap-2">
-          <span
-            class="px-3 py-1 text-sm rounded-full"
-            :class="customer.prev_due > 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'"
-          >
-            Prev Due: ৳ {{ customer.prev_due }}
-          </span>
-          <button
-            @click="changeCustomer"
-            class="flex items-center gap-1 px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-          >
-            Change
-          </button>
-        </div>
-      </div>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
-        <p><strong>Name:</strong> {{ customer.name }}</p>
-        <p><strong>Phone:</strong> {{ customer.phone }}</p>
-        <p class="md:col-span-2"><strong>Address:</strong> {{ customer.address }}</p>
-      </div>
-    </div>
-    <!-- ================= CUSTOMER MODAL ================= -->
-    <div v-if="modalOpen" class="fixed inset-0 bg-black/60 flex items-center justify-center z-100">
+    <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
 
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[70vh] flex flex-col">
-        <!-- Header -->
-        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h3 class="text-xl font-semibold text-gray-700">Select Customer</h3>
-          <button @click="modalOpen = false" class="text-gray-500 hover:text-red-600 text-2xl">✕</button>
-        </div>
-        <!-- Filters -->
-        <div class="px-4 py-3 border border-gray-200 bg-gray-50 flex gap-3">
-          <div class="w-full md:w-1/3">
-            <input v-model="searchQuery" type="text" placeholder="Search..."
-                   class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
-          </div>
-          <div class="flex gap-2 w-full md:w-auto">
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
-              </svg>
-              Search
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-                    @click="resetFilters">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Cancel
+      <Breadcrumb :items="breadcrumbs" />
+
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-2xl font-semibold text-gray-700">
+          Edit {{ $labels.singular_name }}
+        </h2>
+      </div>
+
+      <div v-if="loading" class="space-y-4">
+        <FormSkeleton :columns="3" :rows="4" />
+      </div>
+
+      <form v-else @submit.prevent="submitRows" class="space-y-4">
+
+        <!-- ================= CUSTOMER INFO ================= -->
+        <div v-if="customer" class="border border-gray-200 bg-gray-50 p-4 space-y-3">
+          <div class="flex justify-between items-center">
+            <h3 class="text-lg font-semibold text-gray-700">
+              Customer Information
+            </h3>
+            <button
+              type="button"
+              @click="openCustomerModal"
+              class="px-3 py-1 text-sm rounded bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white"
+            >
+              Change
             </button>
           </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600">
+            <p><strong>Name:</strong> {{ customer.name }}</p>
+            <p><strong>Phone:</strong> {{ customer.phone }}</p>
+            <p class="md:col-span-2">
+              <strong>Address:</strong> {{ customer.address }}
+            </p>
+          </div>
         </div>
 
-        <!-- Body -->
-        <div class="p-4 overflow-hidden">
-          <!-- Table -->
-          <div class="overflow-x-auto max-h-64">
-            <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-              <thead class="bg-gray-100">
-                <tr>
-                  <th class="px-4 py-2 text-left">#</th>
-                  <th class="px-4 py-2 text-left">Name</th>
-                  <th class="px-4 py-2 text-left">Phone</th>
-                  <th class="px-4 py-2 text-left">Address</th>
-                  <th class="px-4 py-2 text-center">Select</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-gray-200">
+        <CustomerList v-model="showCustomerModal" @selected="onCustomerSelected" />
 
-                <TableSkeleton :colspan="100" />
+        <!-- ================= PRODUCTS ================= -->
+        <button
+          type="button"
+          @click="openProductPopup"
+          class="text-2xl w-full bg-yellow-500 text-white font-semibold p-4"
+        >
+          Get Products
+        </button>
 
-                <tr v-for="(c, index) in filteredCustomers" :key="c.id" class="hover:bg-gray-50">
-                  <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
-                  <td class="px-4 py-2">{{ c.name }}</td>
-                  <td class="px-4 py-2">{{ c.phone }}</td>
-                  <td class="px-4 py-2">{{ c.address }}</td>
-                  <td class="px-4 py-2 text-center">
-                    <button @click="selectCustomer(c)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-                        title="Go">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                           viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                        <circle cx="9" cy="7" r="4" />
-                        <path stroke-linecap="round" stroke-linejoin="round"
-                              d="M19 8l4 4m0 0l-4 4m4-4H12" />
+      <!-- Selected Products Table -->
+      <div v-if="selectedProducts.length" class="border border-gray-200 p-4 bg-white space-y-4 mb-0">
+        <h3 class="text-lg font-semibold text-gray-700">Selected Products</h3>
+        <div class="overflow-x-auto">
+          <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-2 text-left">Product</th>
+                <th class="px-4 py-2 text-center">Qty</th>
+                <th class="px-4 py-2 text-left">Price</th>
+                <th class="px-4 py-2 text-left">Tax %</th>
+                <th class="px-4 py-2 text-left">Discount</th>
+                <th class="px-4 py-2 text-left">Type</th>
+                <th class="px-4 py-2 text-right">Subtotal</th>
+                <th class="px-4 py-2 text-left">Remove</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200">
+
+              <tr v-for="p in selectedProducts" :key="p.id" class="hover:bg-gray-50">
+                <td class="px-4 py-2">{{ p.name }} - {{ p.sku }}</td>
+                <td class="px-4 py-2 text-center">
+                  <div class="flex justify-center">
+                    <div class="flex border rounded overflow-hidden">
+                      <!-- Minus Button -->
+                      <button
+                        type="button"
+                        @click="updateQty(p, 'minus')"
+                        class="px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition cursor-pointer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
                       </svg>
-                    </button>
+                      </button>
 
-                  </td>
-                </tr>
-                <tr v-if="filteredCustomers.length === 0">
-                  <td colspan="5" class="text-center py-6 text-gray-400">No customer found</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+                      <!-- Quantity Input -->
+                      <input
+                        type="number"
+                        v-model.number="p.qty"
+                        min="1"
+                        step="0.0001"
+                        class="w-16 text-center border-l border-r focus:outline-none"
+                      />
 
-          <!-- Pagination -->
-          <div class="flex justify-end gap-2 mt-4">
-            <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.max(currentPage-1,1)">&laquo;</button>
-            <button v-for="n in Math.ceil(customers.length/perPage)" :key="n" class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage=n">{{ n }}</button>
-            <button class="px-3 py-1 border rounded hover:bg-gray-100" @click="currentPage = Math.min(currentPage+1, Math.ceil(customers.length/perPage))">&raquo;</button>
-          </div>
-        </div><!-- end body -->
-
-      </div>
-    </div>
-    <!-- ================= END MODAL ================= -->
-
-
-    <!-- Get Products Button -->
-    <button
-      type="button"
-      @click="open = true"
-      class="text-2xl w-full bg-yellow-500 text-white font-semibold p-4 hover:bg-yellow-600 transition cursor-pointer"
-    >
-      Get Products
-    </button>
-
-    <!-- Selected Products Table -->
-    <div v-if="selectedProducts.length" class="border border-gray-200 p-4 bg-white space-y-4 mb-0">
-      <h3 class="text-lg font-semibold text-gray-700">Selected Products</h3>
-      <div class="overflow-x-auto">
-        <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-4 py-2 text-left">Product</th>
-              <th class="px-4 py-2 text-center">Qty</th>
-              <th class="px-4 py-2 text-left">Price</th>
-              <th class="px-4 py-2 text-left">Tax %</th>
-              <th class="px-4 py-2 text-left">Discount</th>
-              <th class="px-4 py-2 text-left">Type</th>
-              <th class="px-4 py-2 text-right">Subtotal</th>
-              <th class="px-4 py-2 text-left">Remove</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200">
-            
-            <TableSkeleton :colspan="100" />
-
-            <tr v-for="p in selectedProducts" :key="p.id" class="hover:bg-gray-50">
-              <td class="px-4 py-2">{{ p.name }}</td>
-              <td class="px-4 py-2 text-center">
-                <div class="flex justify-center">
-                  <div class="flex border rounded overflow-hidden">
-                    <!-- Minus Button -->
-                    <button
-                      @click="updateQty(p, 'minus')"
-                      class="px-4 py-2 bg-red-500 text-white hover:bg-red-600 transition cursor-pointer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" />
-                    </svg>
-                    </button>
-
-                    <!-- Quantity Input -->
-                    <input
-                      type="number"
-                      v-model.number="p.qty"
-                      min="1"
-                      class="w-16 text-center border-l border-r focus:outline-none"
-                    />
-
-                    <!-- Plus Button -->
-                    <button
-                      @click="updateQty(p, 'plus')"
-                      class="px-4 py-2 bg-green-500 text-white hover:bg-green-600 transition cursor-pointer"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                      </svg>
-                    </button>
+                      <!-- Plus Button -->
+                      <button
+                        type="button"
+                        @click="updateQty(p, 'plus')"
+                        class="px-4 py-2 bg-green-500 text-white hover:bg-green-600 transition cursor-pointer"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
+                    </div>
                   </div>
-                </div>
-              </td>
-              <td class="px-4 py-2">
-                <input type="number" v-model.number="p.price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-              </td>
-              <td class="px-4 py-2">
-                <input type="number" v-model.number="p.tax" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
-              </td>
-              <td class="px-4 py-2">
-                <input type="number" v-model.number="p.discount" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
-              </td>
-              <td class="px-4 py-2">
-                <select v-model="p.discount_type" class="border p-1 focus:ring-2 focus:ring-gray-500">
-                  <option value="%">%</option>
-                  <option value="flat">Flat</option>
-                </select>
-              </td>
-              <td class="px-4 py-2 font-semibold text-right">৳ {{ productSubtotal(p).toFixed(2) }}</td>
-              <td class="px-4 py-2 text-center">
-                <button @click="removeProduct(p)" class="text-red-600 cursor-pointer">✕</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-
-    <!-- Grand Total Section -->
-    <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
-      <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal.toFixed(2) }}</strong></div>
-      <div class="flex gap-2 items-center">
-        <span>Tax %</span>
-        <input type="number" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-        <span>৳ {{ grandTaxAmount.toFixed(2) }}</span>
-      </div>
-      <div class="flex gap-2 items-center">
-        <span>Discount</span>
-        <input type="number" v-model.number="grandDiscount" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
-        <select v-model="grandDiscountType" class="border p-1 focus:ring-2 focus:ring-gray-500">
-          <option value="%">%</option>
-          <option value="flat">Flat</option>
-        </select>
-        <span>৳ {{ grandDiscountAmount.toFixed(2) }}</span>
-      </div>
-      <div class="flex justify-between text-lg font-bold border-t pt-2">
-        <span>Net Total</span>
-        <span>৳ {{ netTotal.toFixed(2) }}</span>
-      </div>
-    </div>
-
-    <!-- Invoice Note -->
-    <div class="border border-gray-200 p-4 mb-0">
-      <label class="block font-medium mb-1">Invoice Note</label>
-      <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
-    </div>
-
-    <!-- Payment Section -->
-    <div class="border border-gray-200 p-4 space-y-3 mb">
-      <div>
-        <label class="block font-medium mb-1">Payment Method</label>
-        <select v-model="paymentMethod" class="w-full border p-2 focus:ring-2 focus:ring-gray-500">
-          <option value="cash">Cash</option>
-          <option value="bank">Bank</option>
-          <option value="mobile">Mobile Banking</option>
-        </select>
-      </div>
-      <div>
-        <label class="block font-medium mb-1">Payment Note</label>
-        <textarea v-model="paymentNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="2" placeholder="Payment note..."></textarea>
-      </div>
-    </div>
-
-
-
-    <!-- Submit -->
-    <button
-      type="button"
-      class="w-full bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 transition cursor-pointer"
-    >
-      Submit
-    </button>
-
-    <!-- ================= PRODUCT POPUP ================= -->
-    <div
-      v-if="open"
-      class="fixed inset-0 bg-black/60 flex items-center justify-center z-100"
-    >
-      <div class="bg-white rounded-lg shadow-xl max-w-3xl w-full h-[70vh] flex flex-col">
-        <!-- Header -->
-        <div class="flex justify-between items-center px-6 py-4 border-b border-gray-200">
-          <h3 class="text-xl font-semibold text-gray-700">Select Products</h3>
-          <button @click="open = false" class="text-gray-500 hover:text-red-600 text-2xl">✕</button>
+                </td>
+                <td class="px-4 py-2">
+                  <input type="number" min="0" step="0.0001" v-model.number="p.cost_price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+                </td>
+                <td class="px-4 py-2">
+                  <input type="number" min="0" step="0.0001" v-model.number="p.tax.tax_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
+                </td>
+                <td class="px-4 py-2">
+                  <input type="number" min="0" step="0.0001" v-model.number="p.discount_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />
+                </td>
+                <td class="px-4 py-2">
+                  <select v-model="p.discount_type" class="border p-1 focus:ring-2 focus:ring-gray-500">
+                    <option value="">Select</option>
+                    <option value="flat">Flat</option>
+                    <option value="percent">Percent</option>
+                  </select>
+                </td>
+                <td class="px-4 py-2 font-semibold text-right">৳ {{ productSubtotal(p) }}</td>
+                <td class="px-4 py-2 text-center">
+                  <button type="button" @click="removeProduct(p)" class="text-red-600 cursor-pointer">✕</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-        <!-- Filters -->
-        <div class="px-4 py-3 border border-gray-200 bg-gray-50 flex gap-3">
-          <div class="w-full md:w-1/3">
-            <input v-model="searchQuery" type="text" placeholder="Search..."
-                   class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
-          </div>
-          <div class="w-full md:w-1/5">
-            <select v-model="brand" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
-            <option value="">All Brands</option>
-            <option v-for="b in brands" :key="b" :value="b">{{ b }}</option>
-            </select>
-          </div>
-          <div class="flex gap-2 w-full md:w-auto">
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
-              </svg>
-              Search
-            </button>
-            <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
-                    @click="resetFilters">
-              <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
-                   viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-              Cancel
-            </button>
-          </div>
+      </div>
+
+      <!-- Grand Total Section -->
+      <div class="border border-gray-200 p-4 bg-gray-50 space-y-3 mb-0">
+        <div class="flex justify-between"><span>Subtotal</span><strong>৳ {{ grandSubTotal }}</strong></div>
+        <div class="flex gap-2 items-center">
+          <span>Tax %</span>
+          <input type="number" min="0" step="0.0001" v-model.number="grandTax" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+          <span>৳ {{ grandTaxAmount }}</span>
+        </div>
+        <div class="flex gap-2 items-center">
+          <span>Discount</span>
+          <input type="number" min="0" step="0.0001" v-model.number="grandDiscount" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+          <select v-model="grandDiscountType" class="border p-1 focus:ring-2 focus:ring-gray-500">
+            <option value="">Select</option>
+            <option value="flat">Flat</option>
+            <option value="percent">Percent</option>
+          </select>
+          <span>৳ {{ grandDiscountAmount }}</span>
         </div>
 
-        <!-- Body -->
-        <div class="flex-1 grid grid-cols-3 gap-4 p-4 overflow-hidden">
-          <!-- Products -->
-          <div class="col-span-2 border border-gray-200 overflow-hidden flex flex-col">
-            <div class="px-4 py-2 font-semibold">Products</div>
-            <div class="flex-1 overflow-y-auto">
-              <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
-                <thead class="bg-gray-100">
-                  <tr>
-                    <th class="px-4 py-2">Name</th>
-                    <th class="px-4 py-2">Brand</th>
-                    <th class="px-4 py-2 text-right">Price</th>
-                    <th class="px-4 py-2 text-center w-16">Add</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-gray-200">
+        <div class="border-t pt-2">
 
-                  <TableSkeleton :colspan="100" />
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Grand Total</span>
+            <span>৳ {{ netBeforeAdjustment }}</span>
+          </div>
 
-                  <tr v-for="p in products" :key="p.id" class="hover:bg-gray-50">
-                    <td class="px-4 py-2 font-medium">{{ p.name }}</td>
-                    <td class="px-4 py-2 text-gray-500">{{ p.brand }}</td>
-                    <td class="px-4 py-2 text-right">৳ {{ p.price }}</td>
-                    <td class="px-4 py-2 text-center">
-                      <button @click="addProduct(p)" class="w-8 h-8 flex items-center justify-center rounded-full bg-green-500 text-white hover:bg-green-600 cursor-pointer">+</button>
-                    </td>
-                  </tr>
-                  <tr v-if="products.length === 0" class="hover:bg-gray-50">
-                    <td colspan="4" class="text-center py-6 text-gray-400">No products found</td>
-                  </tr>
-                </tbody>
-              </table>
+          <!-- ================= Adjustments ================= -->
+          <div class="border border-gray-200 p-4 bg-white space-y-3">
+            <div class="flex justify-between items-center">
+              <h3 class="text-lg font-semibold text-gray-700">Adjustments</h3>
+
+              <button
+                type="button"
+                @click="addAdjustment"
+                class="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                + Add Adjustment
+              </button>
+            </div>
+
+            <div
+              v-for="(adj, index) in adjustments"
+              :key="index"
+              class="grid grid-cols-12 gap-2 items-center"
+            >
+              <!-- Adjustment Head -->
+              <select
+                v-model="adj.adjustment_head_id"
+                class="col-span-3 border p-2"
+                :disabled="adjustmentHeadLoading || !adjustmentHeads.length"
+              >
+                <option value="">Select Head</option>
+                <option v-for="h in adjustmentHeads" :value="h.id">{{ h.head_name }}</option>
+              </select>
+
+              <!-- Type -->
+              <select
+                v-model="adj.type"
+                class="col-span-2 border p-2"
+              >
+                <option value="add">Add</option>
+                <option value="subtract">Subtract</option>
+              </select>
+
+              <select v-model="adj.value_type" class="border p-2">
+                <option value="flat">Flat</option>
+                <option value="percent">Percent (%)</option>
+              </select>
+
+              <input
+                type="number"
+                min="0" step="0.0001"
+                v-model.number="adj.value"
+                class="border p-2"
+                :placeholder="adj.value_type === 'percent' ? '%' : 'Amount'"
+              />
+
+              <!-- Note -->
+              <input
+                type="text"
+                v-model="adj.note"
+                class="col-span-3 border p-2"
+                placeholder="Note"
+              />
+
+              <!-- Remove -->
+              <button
+                type="button"
+                @click="removeAdjustment(index)"
+                class="col-span-1 text-red-600 text-xl"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div class="flex justify-between font-semibold border-t pt-2">
+              <span>Adjustment Total</span>
+              <span>৳ {{ adjustmentTotal }}</span>
             </div>
           </div>
-          <!-- Selected Products in Popup -->
-          <div class="border border-gray-200 overflow-hidden flex flex-col">
-            <div class="bg-gray-100 px-4 py-2 font-semibold flex justify-between">
-              <span>Selected</span>
-              <span class="text-sm text-gray-600">{{ selectedProducts.length }} items</span>
-            </div>
-            <div class="flex-1 overflow-y-auto divide-y">
-              <div v-for="p in selectedProducts" :key="p.id" class="flex justify-between items-center px-4 py-2">
-                <div>
-                  <p class="font-medium">{{ p.name }}</p>
-                  <p class="text-xs text-gray-500">৳ {{ p.price }}</p>
-                </div>
-                <button @click="removeProduct(p)" class="w-7 h-7 flex items-center justify-center rounded-full bg-red-500 text-white hover:bg-red-600 cursor-pointer">−</button>
-              </div>
-              <div v-if="selectedProducts.length === 0" class="text-center text-gray-400 py-6">No product selected</div>
-            </div>
+          <!-- end other adjustments -->
+
+          <div class="flex justify-between text-lg font-bold ">
+            <span>Net Total</span>
+            <span>৳ {{ netTotal }}</span>
           </div>
         </div>
 
-        <!-- Footer -->
-        <div class="border-t border-gray-200 px-6 py-3 flex justify-end">
-          <button @click="open = false"
-                  class="px-6 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-2 cursor-pointer">
-            <!-- Icon (checkmark) -->
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none"
-                 viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-            </svg>
-            Done
-          </button>
+      </div>
+
+      <!-- Invoice Note -->
+      <div class="bborder border-gray-200 p-4 space-y-3 mb-0">
+        <div>
+          <label class="block font-medium mb-1">Date <span class="text-red-600">*</span></label>
+          <input type="date" v-model="date" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" />
         </div>
 
+        <div>
+          <label class="block font-medium mb-1">Invoice Note</label>
+          <textarea v-model="invoiceNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="3" placeholder="Invoice note..."></textarea>
+        </div>
       </div>
-    </div>
 
-  </div>
+      <!-- Payment Section -->
+      <div class="border border-gray-200 p-4 space-y-3 mb">
+        <div>
+          <label class="block font-medium mb-1">Payment Amount</label>
+          <input v-model="paymentAmount" type="number" min="0" step="0.0001" 
+            class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+          />
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Payment Method</label>
+          <select
+            v-model="accountId"
+            class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+            :disabled="accountLoading || !accounts.length"
+          >
+            <option value="">Select</option>
+            <option v-for="account in accounts" :key="account.id" :value="account.id">
+              {{ account.account_name }} <template v-if="account.account_number"> - {{ account.account_number }}</template>
+            </option>
+          </select>
+        </div>
+        <div>
+          <label class="block font-medium mb-1">Payment Note</label>
+          <textarea v-model="paymentNote" class="w-full border p-2 focus:ring-2 focus:ring-gray-500" rows="2" placeholder="Payment note..."></textarea>
+        </div>
+
+        <div>
+          <label class="block font-medium mb-1">Status <span class="text-red-600">*</span></label>
+          <select
+            v-model="status"
+            class="w-full border p-2 focus:ring-2 focus:ring-gray-500"
+          >
+            <option value="">Select</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approve</option>
+            <option value="cancelled">Cancel</option>
+          </select>
+        </div>
+      </div>
+
+        <!-- ================= SUBMIT ================= -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
   
-</div>
+        <!-- Normal Submit -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+          @click="redirectToStock = false"
+        >
+          {{ processing ? 'Processing...' : 'Update Sale' }}
+        </button>
+
+        <!-- Save & Go -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-blue-600 text-white font-semibold p-3 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+          @click="redirectToStock = true"
+        >
+          Save & Update Stock Adjustment
+        </button>
+
+      </div>
+
+      </form>
+    </div>
+  </div>
 </template>

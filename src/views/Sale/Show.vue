@@ -8,12 +8,12 @@ const router = useRouter()
 
 const breadcrumbs = [
   { label: 'Home', to: '/' },
-  { label: 'Sale Details' }
+  { label: 'Purchase Details' }
 ]
 
 // ------------------------
-// Sale Data
-const sale = ref({
+// purchase Data
+const purchase = ref({
   id: 1,
   reference: 'S-1001',
   customer: 'John Doe',
@@ -40,21 +40,21 @@ const rowSubtotal = (item) => {
   return base + taxAmount - discountAmount
 }
 
-const totalAmount = () => sale.value.items.reduce((sum, i) => sum + (i.qty * i.price), 0)
-const totalTax = () => sale.value.items.reduce((sum, i) => sum + (i.qty * i.price * (i.tax || 0)/100), 0)
-const totalDiscount = () => sale.value.items.reduce((sum, i) => {
+const totalAmount = () => purchase.value.items.reduce((sum, i) => sum + (i.qty * i.price), 0)
+const totalTax = () => purchase.value.items.reduce((sum, i) => sum + (i.qty * i.price * (i.tax || 0)/100), 0)
+const totalDiscount = () => purchase.value.items.reduce((sum, i) => {
   if (i.discount_type === '%') return sum + (i.qty * i.price * (i.discount || 0)/100)
   return sum + (i.discount || 0)
 }, 0)
-const grandTotal = () => totalAmount() + totalTax() - totalDiscount() + (showPrevDue.value ? sale.value.prevDue : 0)
-const balance = () => grandTotal() - sale.value.paid
+const grandTotal = () => totalAmount() + totalTax() - totalDiscount() + (showPrevDue.value ? purchase.value.prevDue : 0)
+const balance = () => grandTotal() - purchase.value.paid
 
 // ------------------------
 // Buttons
-const goBack = () => router.push('/sale/index')
-const createSale = () => alert('Create new sale!')
-const deleteSale = () => {
-  if (confirm('Are you sure you want to delete this sale?')) alert('Deleted!')
+const goBack = () => router.push('/purchase/index')
+const createPurchase = () => alert('Create new purchase!')
+const deletePurchase = () => {
+  if (confirm('Are you sure you want to delete this purchase?')) alert('Deleted!')
 }
 
 // ------------------------
@@ -77,24 +77,25 @@ const printInvoice = () => {
   </div>
 
   <div class="flex-1 lg:ml-[320px] p-4 space-y-6">
+
     <!-- Breadcrumb -->
     <Breadcrumb :items="breadcrumbs" />
 
     <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
-        <h2 class="text-2xl font-semibold text-gray-700">Sales Invoice</h2>
+        <h2 class="text-2xl font-semibold text-gray-700">Purchases Invoice</h2>
       </div>
 
       <div class="flex gap-2 flex-wrap">
-	        <button @click="createSale" class="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition cursor-pointer">
+	        <button @click="createPurchase" class="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition cursor-pointer">
 	        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 	          <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
 	        </svg>
-	        Create Sale
+	        Create purchase
 	      </button>
 
-	      <button @click="deleteSale" class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition cursor-pointer">
+	      <button @click="deletePurchase" class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition cursor-pointer">
 	        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
 	          <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
 	        </svg>
@@ -136,11 +137,11 @@ const printInvoice = () => {
       <!-- Invoice Header -->
       <div class="flex justify-between mb-4">
         <div>
-          <h3 class="font-bold text-lg">Invoice: {{ sale.reference }}</h3>
-          <p>Date: {{ sale.date }}</p>
+          <h3 class="font-bold text-lg">Invoice: {{ purchase.reference }}</h3>
+          <p>Date: {{ purchase.date }}</p>
         </div>
         <div>
-          <p>Customer: {{ sale.customer }}</p>
+          <p>Customer: {{ purchase.customer }}</p>
         </div>
       </div>
 
@@ -158,7 +159,7 @@ const printInvoice = () => {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(item, index) in sale.items" :key="index" class="divide-y divide-gray-200">
+          <tr v-for="(item, index) in purchase.items" :key="index" class="divide-y divide-gray-200">
             <td class="px-4 py-2">{{ index + 1 }}</td>
             <td class="px-4 py-2">{{ item.name }}</td>
             <td class="px-4 py-2 text-center">{{ item.qty }}</td>
@@ -178,9 +179,9 @@ const printInvoice = () => {
         <div>Total Amount: {{ totalAmount().toFixed(2) }}</div>
         <div>Total Tax: {{ totalTax().toFixed(2) }}</div>
         <div>Total Discount: {{ totalDiscount().toFixed(2) }}</div>
-        <div v-if="showPrevDue">Previous Due: {{ sale.prevDue.toFixed(2) }}</div>
+        <div v-if="showPrevDue">Previous Due: {{ purchase.prevDue.toFixed(2) }}</div>
         <div class="font-bold text-lg">Grand Total: {{ grandTotal().toFixed(2) }}</div>
-        <div>Paid: {{ sale.paid.toFixed(2) }}</div>
+        <div>Paid: {{ purchase.paid.toFixed(2) }}</div>
         <div class="font-semibold">Balance: {{ balance().toFixed(2) }}</div>
       </div>
 

@@ -1,90 +1,157 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
-import TableSkeleton from '@/components/Skeleton/Table.vue'
-import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
-import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import { ref, onMounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import axiosInstance from '@/axiosInstance'
+import { AxiosError } from 'axios'
 import { $routes, $labels } from '@/constants/sale'
 
+/* ===============================
+  GLOBAL / SHARED
+================================ */
+import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
+import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
+import TableSkeleton from '@/components/Skeleton/Table.vue'
+import Pagination from '@/components/Pagination.vue'
+import RowActions from '@/components/Table/RowActions.vue'
+
+import { useMessageStore } from '@/stores/useMessageStore'
+import { usePagination } from '@/composables/usePagination'
+
+const messageStore = useMessageStore()
+const router = useRouter()
+
+/* ===============================
+  PAGINATION (GLOBAL)
+================================ */
+const {
+  currentPage,
+  perPage,
+  lastPage,
+  setMeta,
+  changePage,
+} = usePagination(10)
 
 /* =====================================================
    BREADCRUMB
 ===================================================== */
 const $breadcrumbs = [
   { label: 'Home', to: '/' },
+  { label: $labels.singular_name + ' Lists', to: $routes.index },
   { label: $labels.singular_name + ' Trash Lists' }
 ]
 
-/* =====================================================
-   TABLE STATE
-===================================================== */
-const $currentPage = ref(1)
-const $perPage = ref(5)
+/* ===============================
+  FILTERS
+================================ */
+const customerId = ref('')
+const invoiceNo = ref('')
+const statusValue = ref('')
 
-/* =====================================================
-   FILTERS
-===================================================== */
-const $searchText = ref('')
-const $statusValue = ref('')
+/* ===============================
+  TABLE DATA
+================================ */
+const rows = ref<any[]>([])
+const totalRows = ref(0)
+const loading = ref(false)
 
-/* =====================================================
-   DATA (API READY)
-===================================================== */
-const $rows = ref([])
-
-/* future API loader */
-const loadData = async () => {
-  // replace with axios later
-  $rows.value = [
-    { id: 1, reference: 'S-1001', customer: 'John Doe', total: 250, date: '2025-12-20', status: 'Completed' },
-    { id: 2, reference: 'S-1002', customer: 'Jane Smith', total: 150, date: '2025-12-21', status: 'Pending' },
-    { id: 3, reference: 'S-1003', customer: 'Alex Brown', total: 300, date: '2025-12-21', status: 'Cancelled' },
-    { id: 4, reference: 'S-1004', customer: 'Mary Jane', total: 400, date: '2025-12-22', status: 'Completed' },
-    { id: 5, reference: 'S-1005', customer: 'Peter Parker', total: 500, date: '2025-12-22', status: 'Pending' }
-  ]
+/* ===============================
+  STATUS BADGE
+================================ */
+const statusClass = (status: string) => {
+  if (status === 'pending') return 'bg-yellow-500'
+  if (status === 'approved') return 'bg-green-500'
+  return 'bg-red-500'
 }
-onMounted(loadData)
 
-/* =====================================================
-   COMPUTED
-===================================================== */
-const $rowsFiltered = computed(() => {
-  return $rows.value.filter(r => {
-    const matchSearch =
-      r.reference.toLowerCase().includes($searchText.value.toLowerCase())
-    const matchStatus =
-      $statusValue.value ? r.status === $statusValue.value : true
-    return matchSearch && matchStatus
-  })
-})
+/* ===============================
+  FETCH DATA
+================================ */
+const fetchRows = async () => {
+  loading.value = true
 
-const $rowsPaginated = computed(() => {
-  const start = ($currentPage.value - 1) * $perPage.value
-  return $rowsFiltered.value.slice(start, start + $perPage.value)
-})
+  try {
+    const res = await axiosInstance.get('/sales', {
+      params: {
+        customer_id: customerId.value || undefined,
+        invoice_no: invoiceNo.value || undefined,
+        status: statusValue.value || undefined,
+        page: currentPage.value,
+        per_page: perPage.value,
+        trashed: 'only',
+      }
+    })
 
-const $totalItems = computed(() => $rows.value.length)
-const $totalPages = computed(() =>
-  Math.ceil($rowsFiltered.value.length / $perPage.value)
-)
+    rows.value = res.data.data
+    totalRows.value = res.data.meta.total
+    setMeta(res.data.meta)
 
-/* =====================================================
-   ACTIONS
-===================================================== */
-const editItem = item => alert(`Edit ${item.name}`)
-const deleteItem = item => {
-  if (confirm(`Delete ${item.name}?`)) {
-    $rows.value = $rows.value.filter(r => r.id !== item.id)
+  } catch (err) {
+    if (err instanceof AxiosError) {
+      messageStore.showError(err.response?.data?.message || 'Fetch failed')
+    }
+  } finally {
+    loading.value = false
   }
 }
 
-const resetFilters = () => {
-  $searchText.value = ''
-  $statusValue.value = ''
-  $currentPage.value = 1
+/* ===============================
+  ACTIONS
+================================ */
+const handleSearch = () => {
+  currentPage.value = 1
+  fetchRows()
 }
+
+const resetFilters = () => {
+  customerId.value = ''
+  invoiceNo.value = ''
+  statusValue.value = ''
+  currentPage.value = 1
+  fetchRows()
+}
+
+/* ===============================
+  Soft Delete
+================================ */
+import { useSoftDeleteStore } from '@/stores/useSoftDeleteStore'
+const deleteStore = useSoftDeleteStore()
+const deleteRow = (row) => {
+  row.deleteUrl = `/sales/${row.uuid}`
+  row.onSuccess = fetchRows
+  row.label = row.unit_name || 'this item'
+  deleteStore.openDeleteModal(row)
+}
+
+
+//load customers
+const customers = ref([])
+const customerLoading = ref<boolean>(false);
+const loadCustomers = async () => {
+  loading.value = true
+  customerLoading.value = true
+  try {
+    const res = await axiosInstance.get('/customers/option/list')
+    customers.value = res.data.data
+  } catch (err) {
+    messageStore.showError('Customer load failed. Please check permission.')
+  } finally {
+    customerLoading.value = false
+    loading.value = false
+  }
+}
+
+/* ===============================
+  INIT
+================================ */
+onMounted(() => {
+  loadCustomers()
+  fetchRows()
+})
+
 </script>
 
 <template>
+
 <div class="flex gap-4">
 
   <div class="hidden lg:block flex-none">
@@ -93,29 +160,33 @@ const resetFilters = () => {
 
   <div class="flex-1 lg:ml-[320px] p-4">
 
+    <!-- Breadcrumb -->
     <Breadcrumb :items="$breadcrumbs" />
 
-    <!-- Header -->
+    <!-- Top Bar -->
     <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-4">
 
       <!-- Title + Total -->
       <div class="flex flex-col md:flex-row items-start md:items-center gap-2">
         <h2 class="text-2xl font-semibold text-gray-700">{{ $labels.singular_name }} Trash Lists</h2>
-        <span class="text-gray-600 font-medium">Total {{ $labels.plural_name }}: {{ $totalItems }}</span>
+        <span class="text-gray-600 font-medium">Totats: {{ totalRows }}</span>
       </div>
 
+      <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
-
-        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-green-500 text-white hover:bg-green-600 transition cursor-pointer">
-          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
-              <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1" ry="1"/>
-              <rect x="14" y="14" width="7" height="7" rx="1" ry="1"/>
+    
+        <router-link :to="$routes.index" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600 transition">
+          <svg xmlns="http://www.w3.org/2000/svg"
+               class="w-4 h-4"
+               fill="none"
+               viewBox="0 0 24 24"
+               stroke="currentColor"
+               stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round"
+                  d="M15 19l-7-7 7-7" />
           </svg>
           Back to All
         </router-link>
-
         
       </div>
     </div>
@@ -123,26 +194,42 @@ const resetFilters = () => {
     <!-- Filters -->
     <div class="flex flex-col md:flex-row gap-4 mb-4 items-end">
       <div class="w-full md:w-1/3">
-        <input v-model="$searchText" placeholder="Search..." class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
-
+        <input type="text"
+          v-model="invoiceNo"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none" />
+      </div>
+      <div class="w-full md:w-1/3">
+        <select
+          v-model="customerId"
+          class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+          <option value="">All Customers</option>
+          <option
+            v-for="customer in customers"
+            :key="customer.id"
+            :value="customer.id"
+          >
+            {{ customer.name }}
+            <template v-if="customer.phone"> - {{ customer.phone }}</template>
+          </option>
+        </select>
       </div>
       <div class="w-full md:w-1/5">
-        <select v-model="$statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
-          <option value="">Status</option>
-          <option>Active</option>
-          <option>Inactive</option>
-          <option>Pending</option>
+        <select v-model="statusValue" class="border border-gray-300 p-2 w-full focus:ring-2 focus:ring-gray-500 focus:outline-none">
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="cancelled">Cancelled</option>
         </select>
       </div>
       <div class="flex gap-2 w-full md:w-auto">
-        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition">
+        <button @click="handleSearch" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-700 text-white hover:bg-gray-800 transition cursor-pointer">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M10 18a8 8 0 100-16 8 8 0 000 16z"/>
           </svg>
           Search
         </button>
-        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition"
+        <button class="flex items-center gap-2 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 transition cursor-pointer"
                 @click="resetFilters">
           <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -153,91 +240,64 @@ const resetFilters = () => {
       </div>
     </div>
 
-
     <!-- Table -->
     <div class="overflow-x-auto">
       <table class="min-w-full border border-gray-200 divide-y divide-gray-200">
         <thead class="bg-gray-100">
-          <tr>    
+          <tr>
             <th class="px-4 py-2 text-left">#</th>
-            <th class="px-4 py-2 text-left">Reference</th>
-            <th class="px-4 py-2 text-left">Customer</th>
-            <th class="px-4 py-2 text-right">Total</th>
             <th class="px-4 py-2 text-left">Date</th>
+            <th class="px-4 py-2 text-left">INV. No</th>
+            <th class="px-4 py-2 text-left">Customer</th>
             <th class="px-4 py-2 text-left">Status</th>
+            <th class="px-4 py-2 text-right">Net Total</th>
             <th class="px-4 py-2 text-center">Actions</th>
           </tr>
         </thead>
-
         <tbody class="divide-y divide-gray-200">
 
-          <TableSkeleton :colspan="100" />
+          <TableSkeleton v-if="loading" :colspan="100" />
           
-          <tr v-for="(row, i) in $rowsPaginated" :key="row.id" class="hover:bg-gray-50">
-            <td class="px-4 py-2">{{ ($currentPage-1)*$perPage + i + 1 }}</td>
-            
-             <td class="px-4 py-2 font-medium">
-              {{ row.reference }}
-            </td>
-
+          <tr v-if="loading == false" v-for="(row, index) in rows" :key="row.id" class="hover:bg-gray-50">
+            <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
+            <td class="px-4 py-2">{{ row.date }}</td>
+            <td class="px-4 py-2">{{ row.invoice_no }}</td>
             <td class="px-4 py-2">
-              {{ row.customer }}
+              {{ row.customer.name }} - {{ row.customer?.phone  }}
             </td>
-
-            <td class="px-4 py-2 text-right">
-              ৳ {{ row.total }}
-            </td>
-
             <td class="px-4 py-2">
-              {{ row.date }}
-            </td>
-
-            <!-- Status -->
-            <td class="px-4 py-2">
-              <span
-                class="inline-block px-3 py-1 text-xs font-semibold text-white rounded-full"
-                :class="{
-                  'bg-green-500': row.status === 'Completed',
-                  'bg-yellow-500': row.status === 'Pending',
-                  'bg-red-500': row.status === 'Cancelled'
-                }"
-              >
+              <span class="px-3 py-1 rounded-full text-white text-sm" :class="statusClass(row.status)">
                 {{ row.status }}
               </span>
             </td>
-
-            <td class="px-4 py-2 text-center">
-              <div class="flex justify-center gap-2">
-                <button @click="editItem(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition" title="Edit">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="M11 4h2m2.121 2.121a3 3 0 010 4.243L9 16l-4 1 1-4 6.121-6.121a3 3 0 014.243 0z"/>
-                    </svg>
-                  </button>
-                  <button @click="deleteItem(row)" class="p-2 rounded-full bg-red-100 text-red-600 hover:bg-red-600 hover:text-white transition" title="Delete">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                         viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                      <path stroke-linecap="round" stroke-linejoin="round"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0V5a1 1 0 011-1h4a1 1 0 011 1v2"/>
-                    </svg>
-                  </button>
-                </div>
+            <td class="px-4 py-2 text-right">{{ row.grand_total }}</td>
+            <td class="px-4 py-2">
+              <RowActions
+                :row="row"
+                routeBase="sales"
+                :onDeleted="() => {
+                  rows = rows.filter(r => r.uuid !== row.uuid)
+                  totalRows--
+                }"
+              />
             </td>
+          </tr>
+          <tr v-if="rows.length === 0 && loading == false">
+            <td colspan="100" class="text-center">No record found.</td>
           </tr>
         </tbody>
       </table>
     </div>
 
     <!-- Pagination -->
-    <div class="flex justify-between items-center mt-4">
-      <span>Page {{ $currentPage }} of {{ $totalPages }}</span>
-      <div class="flex gap-2">
-        <button @click="$currentPage--" :disabled="$currentPage===1">«</button>
-        <button v-for="n in $totalPages" :key="n" @click="$currentPage=n">{{ n }}</button>
-        <button @click="$currentPage++" :disabled="$currentPage===$totalPages">»</button>
-      </div>
-    </div>
+    <Pagination
+      :current-page="currentPage"
+      :last-page="lastPage"
+      @change="page => changePage(page, fetchRows)"
+    />
+
 
   </div>
+
 </div>
 </template>

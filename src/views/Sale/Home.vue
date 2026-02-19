@@ -13,7 +13,7 @@ import SalesMenu from '@/components/inc/SubSidebar/SalesMenu.vue'
 
   <div class="flex-1 lg:ml-[320px] p-4">
 
-    Sales Page
+    Sale Page
 
   </div>
 

@@ -74,17 +74,17 @@ import PaymentAndReceiveTrashed from '../views/Contact/PaymentAndReceive/Trashed
 //---------------------------------------------------
 import SaleHome from '../views/Sale/Home.vue'
 // Retail Sale
-import Index from '../views/Sale/Index.vue'
-import Create from '../views/Sale/Create.vue'
-import Edit from '../views/Sale/Edit.vue'
-import Show from '../views/Sale/Show.vue'
-import Trashed from '../views/Sale/Trashed.vue'
+import SaleIndex from '../views/Sale/Index.vue'
+import SaleCreate from '../views/Sale/Create.vue'
+import SaleEdit from '../views/Sale/Edit.vue'
+import SaleShow from '../views/Sale/Show.vue'
+import SaleTrashed from '../views/Sale/Trashed.vue'
 // Retail Return Sale
-import ReturnIndex from '../views/Sale/Return/Index.vue'
-import ReturnCreate from '../views/Sale/Return/Create.vue'
-import ReturnEdit from '../views/Sale/Return/Edit.vue'
-import ReturnShow from '../views/Sale/Return/Show.vue'
-import ReturnTrashed from '../views/Sale/Return/Trashed.vue'
+import SaleReturnIndex from '../views/Sale/Return/Index.vue'
+import SaleReturnCreate from '../views/Sale/Return/Create.vue'
+import SaleReturnEdit from '../views/Sale/Return/Edit.vue'
+import SaleReturnShow from '../views/Sale/Return/Show.vue'
+import SaleReturnTrashed from '../views/Sale/Return/Trashed.vue'
 
 //---------------------------------------------------
 // Purchase
@@ -672,7 +672,7 @@ const routes = [
     {
       path: '/sale',
       name: 'sale.index',
-      component: Index,
+      component: SaleIndex,
       meta: {
         requiresAuth: true, 
         permission: 'sale.read'
@@ -681,7 +681,7 @@ const routes = [
     {
       path: '/sale/create/:customer_id',
       name: 'sale.create',
-      component: Create,
+      component: SaleCreate,
       meta: {
         requiresAuth: true, 
         permission: 'sale.read'
@@ -690,7 +690,7 @@ const routes = [
     {
       path: '/sale/trashed',
       name: 'sale.trashed',
-      component: Trashed,
+      component: SaleTrashed,
       meta: {
         requiresAuth: true, 
         permission: 'sale.read'
@@ -699,7 +699,7 @@ const routes = [
     {
       path: '/sale/:id/edit',
       name: 'sale.edit',
-      component: Edit,
+      component: SaleEdit,
       meta: {
         requiresAuth: true, 
         permission: 'sale.read'
@@ -708,7 +708,7 @@ const routes = [
     {
       path: '/sale/:id',
       name: 'sale.show',
-      component: Show,
+      component: SaleShow,
       meta: {
         requiresAuth: true, 
         permission: 'sale.read'
@@ -716,45 +716,45 @@ const routes = [
     },
     //Return
     {
-      path: '/sale/return',
+      path: '/sale-return',
       name: 'sale-return.index',
-      component: ReturnIndex,
+      component: SaleReturnIndex,
       meta: {
         requiresAuth: true, 
         permission: 'sale_return.read'
       }
     },
     {
-      path: '/sale/return/create',
+      path: '/sale-return/create',
       name: 'sale-return.create',
-      component: ReturnCreate,
+      component: SaleReturnCreate,
       meta: {
         requiresAuth: true, 
         permission: 'sale_return.create'
       }
     },
     {
-      path: '/sale/return/trashed',
+      path: '/sale-return/trashed',
       name: 'sale-return.trashed',
-      component: ReturnTrashed,
+      component: SaleReturnTrashed,
       meta: {
         requiresAuth: true, 
         permission: 'sale_return.read'
       }
     },
     {
-      path: '/sale/return/:id/edit',
+      path: '/sale-return/:id/edit',
       name: 'sale-return.edit',
-      component: ReturnEdit,
+      component: SaleReturnEdit,
       meta: {
         requiresAuth: true, 
         permission: 'sale_return.update'
       }
     },
     {
-      path: '/sale/return/:id',
+      path: '/sale-return/:id',
       name: 'sale-return.show',
-      component: ReturnShow,
+      component: SaleReturnShow,
       meta: {
         requiresAuth: true, 
         permission: 'sale_return.read'

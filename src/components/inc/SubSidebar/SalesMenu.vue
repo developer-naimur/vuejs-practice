@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 
 const menus = ref([
-  { label: 'Sales Lists', to: '/sale/retail-sale' },
+  { label: 'Sales Lists', to: '/sale' },
   { label: 'Add New Sale', to: '/get-customer' },
   { label: 'Sales Return', to: '/sale-return' } // আগের empty link-টা ঠিক করে proper route add করা হলো
 ])

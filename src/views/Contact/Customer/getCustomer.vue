@@ -206,7 +206,7 @@ onMounted(() => {
       <!-- Buttons -->
       <div class="flex gap-2 flex-wrap">
 
-        <router-link to="/purchase" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600 transition">
+        <router-link to="/sale" class="flex items-center gap-2 px-4 py-2 rounded bg-gray-500 text-white hover:bg-gray-600 transition">
            <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <rect x="3" y="3" width="7" height="7" rx="1" ry="1"/>
             <rect x="14" y="3" width="7" height="7" rx="1" ry="1"/>
@@ -307,17 +307,16 @@ onMounted(() => {
             <td class="px-4 py-2"><b>{{ row.route.route_name }}</b> - {{ row.address }}</td>
             <td class="px-4 py-2">
               <div class="flex justify-center gap-2">
-                <button @click="getCustomer(row)" class="p-2 rounded-full bg-blue-100 text-blue-600 hover:bg-blue-600 hover:text-white transition cursor-pointer"
-                      title="Go">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                     viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path stroke-linecap="round" stroke-linejoin="round"
-                        d="M19 8l4 4m0 0l-4 4m4-4H12" />
-                </svg>
-              </button>
+                <button
+                  @click="getCustomer(row)"
+                  class="w-8 h-8 flex items-center justify-center rounded-full bg-blue-500 text-white hover:bg-blue-600 cursor-pointer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none"
+                       viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                          d="M5 13l4 4L19 7"/>
+                  </svg>
+                </button>
               </div>
             </td>
           </tr>

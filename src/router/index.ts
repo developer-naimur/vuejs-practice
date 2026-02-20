@@ -725,7 +725,7 @@ const routes = [
       }
     },
     {
-      path: '/sale-return/create',
+      path: '/sale-return/create/:sale_id',
       name: 'sale-return.create',
       component: SaleReturnCreate,
       meta: {

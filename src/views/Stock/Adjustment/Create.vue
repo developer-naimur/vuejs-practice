@@ -6,6 +6,7 @@ import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 import { useRouter, useRoute } from 'vue-router'
 import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import PurchaseSummary from '@/components/PurchaseSummary.vue'
+import SaleSummary from '@/components/SaleSummary.vue'
 import { $routes, $labels } from '@/constants/stockAdjustment'
 const router = useRouter()
 const route = useRoute()
@@ -159,6 +160,41 @@ const fetchPurchaseSummary = async (uuid: string) => {
   }
 }
 
+
+//get sale summery
+const saleId = computed(() => route.query.sale_id as string | undefined)
+const sale = ref<any>(null)
+const saleLoading = ref(false)
+const fetchSaleSummary = async (uuid: string) => {
+  loading.value = true
+  saleLoading.value = true
+  try {
+    const res = await axiosInstance.get(`/sales/${uuid}`)
+    const data = res.data.data
+    sale.value = data
+    /* ================= AUTO SELECT ================= */
+    if (data) {
+      row.value.operation_date = data.date           // 1. Operation Date
+      row.value.operation_type = 'free'              // 2. Operation Type
+      row.value.direction = 'out'                    // 3. Direction
+      row.value.party_type = 'customer'              // 4. Party Type
+      row.value.customer_id = data.customer?.id ?? null // 5. Customer
+      row.value.status = data.status ?? ''
+
+      //  Polymorphic Adjustable
+      row.value.adjustable_type = 'Sale'
+      row.value.adjustable_id   = data.id
+    }
+    /* ================================================= */
+
+  } catch (err) {
+    messageStore.showError('Failed to load sale summary.')
+  } finally {
+    loading.value = false
+    saleLoading.value = false
+  }
+}
+
 onMounted(() => {
   loadAccounts()
   loadCustomers()
@@ -166,6 +202,9 @@ onMounted(() => {
 
   if (purchaseId.value) {
     fetchPurchaseSummary(purchaseId.value)
+  }
+  if (saleId.value) {
+    fetchSaleSummary(saleId.value)
   }
 })
 
@@ -198,6 +237,7 @@ const showSalePrice = computed(() => {
 })
 
 const redirectToPurchase = ref(false)
+const redirectToSale = ref(false)
 const submitRows = async () => {
   if (processing.value) return
 
@@ -227,6 +267,8 @@ const submitRows = async () => {
 
     if (redirectToPurchase.value) {
       router.push(`/purchase/${purchaseId}`)
+    }else if (redirectToSale.value) {
+      router.push(`/sale/${saleId}`)
     } else {
       //
     }
@@ -291,10 +333,16 @@ watchCustomerAndProducts(row, customers, selectedProducts)
     <Breadcrumb :items="breadcrumbs" />
 
     <PurchaseSummary
-    :purchase-id="purchaseId"
-    :purchase="purchase"
-    :loading="purchaseLoading"
-  />
+      :purchase-id="purchaseId"
+      :purchase="purchase"
+      :loading="purchaseLoading"
+    />
+
+    <SaleSummary
+      :sale-id="saleId"
+      :sale="sale"
+      :loading="saleLoading"
+    />
 
 
     <!-- Top Bar -->
@@ -627,6 +675,32 @@ watchCustomerAndProducts(row, customers, selectedProducts)
             :disabled="processing"
             class="bg-blue-600 text-white font-semibold p-3 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
             @click="redirectToPurchase = true"
+          >
+            Save & Redirect
+          </button>
+        </template>
+
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-3" v-if="saleId">
+  
+        <!-- Normal Submit -->
+        <button
+          type="submit"
+          :disabled="processing"
+          class="bg-gray-500 text-white font-semibold p-3 hover:bg-gray-600 disabled:opacity-50 cursor-pointer"
+          @click="redirectToSale = false"
+        >
+          {{ processing ? 'Processing...' : 'Submit ' + $labels.singular_name }}
+        </button>
+
+          <!-- Save & Go -->
+        <template v-if="saleId">
+          <button
+            type="submit"
+            :disabled="processing"
+            class="bg-blue-600 text-white font-semibold p-3 hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+            @click="redirectToSale = true"
           >
             Save & Redirect
           </button>

@@ -9,6 +9,7 @@ import Breadcrumb from '@/demoDesign/Breadcrumb.vue'
 import StockMenu from '@/components/inc/SubSidebar/StockMenu.vue'
 
 import PurchaseSummary from '@/components/PurchaseSummary.vue'
+import SaleSummary from '@/components/SaleSummary.vue'
 import { useMessageStore } from '@/stores/useMessageStore'
 
 const messageStore = useMessageStore()
@@ -84,6 +85,11 @@ const fetchRow = async () => {
       row.value.adjustable_type = 'Purchase'
       row.value.adjustable_id = data.adjustable_id
     }
+    if (data.adjustable_type === 'Sale' && data.adjustable_id) {
+      fetchSaleSummary(data.adjustable.uuid)
+      row.value.adjustable_type = 'Sale'
+      row.value.adjustable_id = data.adjustable_id
+    }
 
 
     // Load selected products into Pinia store
@@ -129,6 +135,27 @@ const fetchPurchaseSummary = async (uuid: string) => {
   }
 }
 
+//get sale summery
+const saleId = computed(() => route.query.sale_id as string | undefined)
+const sale = ref<any>(null)
+const saleLoading = ref(false)
+const fetchSaleSummary = async (uuid: string) => {
+  loading.value = true
+  saleLoading.value = true
+  try {
+    const res = await axiosInstance.get(`/sales/${uuid}`)
+    const data = res.data.data
+    saleId.value = data.uuid
+    sale.value = data
+    row.value.status = data.status
+  } catch (err) {
+    messageStore.showError('Failed to load sale summary.')
+  } finally {
+    loading.value = false
+    saleLoading.value = false
+  }
+}
+
 
 /* ===============================
   UPDATE
@@ -153,15 +180,28 @@ const submitUpdate = async () => {
     messageStore.showSuccess('Row updated successfully!')
 
     const nextUuid = res.data.next_stock_adjustment_uuid
+
     if (nextUuid && route.query.purchase_id) {
       rowId.value = nextUuid      // update ref
       await fetchRow()            // reload data for new rowId
       router.push(`/stock/operation/${nextUuid}/edit?purchase_id=${route.query.purchase_id}`) // optional, URL update
-    } else {
+    }
+    else if(nextUuid && route.query.sale_id){
+      rowId.value = nextUuid      // update ref
+      await fetchRow()            // reload data for new rowId
+      router.push(`/stock/operation/${nextUuid}/edit?sale_id=${route.query.sale_id}`) // optional, URL update
+    }
+    else {
+
       if(route.query.purchase_id){
         //redirect to purcahse invoice - back
         router.push(`/purchase/${route.query.purchase_id}`)
-      }else{
+      }
+      else if(route.query.sale_id){
+        //redirect to purcahse invoice - back
+        router.push(`/sale/${route.query.sale_id}`)
+      }
+      else{
         router.push('/stock/operation')
       }
       
@@ -614,9 +654,10 @@ watchCustomerAndProducts(row, customers, selectedProducts)
                hover:bg-gray-600 transition cursor-pointer
                disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        <template v-if="hasNext && route.query.purchase_id">
+        <template v-if="(hasNext && route.query.purchase_id) || hasNext && route.query.sale_id">
           {{ processing ? 'Updating...' : 'Update & Move to Next' }}
         </template>
+
         <template v-else>
           {{ processing ? 'Updating...' : 'Update Operation' }}
         </template>

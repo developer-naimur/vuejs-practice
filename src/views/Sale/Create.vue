@@ -87,8 +87,8 @@ const productSubtotal = (p) => {
   if (!p) return 0
 
   const qty = Number(p.qty) || 0
-  const cost_price = Number(p.cost_price) || 0
-  const base = rounded(qty * cost_price)
+  const sale_price = Number(p.sale_price) || 0
+  const base = rounded(qty * sale_price)
 
   const taxRate = Number(p.tax?.tax_value) || 0
   const taxAmount = rounded(base * taxRate / 100)
@@ -173,8 +173,25 @@ const customer = ref<any>(null)
 const opencustomerModal = () => {
   showCustomerModal.value = true
 }
+
+const customers = ref<any[]>([])
 const onCustomerSelected = (selected: any) => {
+  // set selected customer
   customer.value = selected
+
+  // VERY IMPORTANT: watcher trigger করার জন্য
+  row.value.customer_id = selected.id
+
+  // VERY IMPORTANT: composable price_group lookup এর জন্য
+  const index = customers.value.findIndex(c => c.id === selected.id)
+
+  if (index === -1) {
+    customers.value.push(selected)
+  } else {
+    // ensure reactive update
+    customers.value[index] = selected
+  }
+
   showCustomerModal.value = false
 }
 
@@ -188,12 +205,22 @@ onMounted(async () => {
 const fetchCustomer = async (uuid: string) => {
   try {
     const res = await axiosInstance.get(`/customers/option/single/${uuid}`)
+
     customer.value = res.data.data
+
+    // important: row.customer_id set
+    row.value.customer_id = customer.value.id
+
+    // important: customers ref এ add করো (duplicate prevent)
+    const exists = customers.value.find(c => c.id === customer.value.id)
+    if (!exists) {
+      customers.value.push(customer.value)
+    }
+
   } catch (err) {
     console.error('Failed to fetch customer', err)
   }
 }
-
 
 
 //load accounts
@@ -263,7 +290,7 @@ const submitRows = async () => {
       details: selectedProducts.value.map(p => ({
         product_id: p.id,
         quantity: p.qty,
-        unit_price: p.cost_price,
+        unit_price: p.sale_price,
         tax_rate: p.tax?.tax_value || 0,
         discount_value: p.discount_value || 0,
         discount_type: p.discount_type || 'percent',
@@ -313,6 +340,13 @@ onMounted(() => {
   loadAccounts()
   loadadjustmentHeads()
 })
+
+
+
+//get prices by customer
+import { useCustomerPriceGroup } from '@/composables/useCustomerPriceGroup'
+const { watchCustomerAndProducts } = useCustomerPriceGroup()
+watchCustomerAndProducts(row, customers, selectedProducts)
 
 </script>
 
@@ -465,7 +499,7 @@ onMounted(() => {
                   </div>
                 </td>
                 <td class="px-4 py-2">
-                  <input type="number" min="0" step="0.0001" v-model.number="p.cost_price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+                  <input type="number" min="0" step="0.0001" v-model.number="p.sale_price" @input="p.manual_sale_price = true" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
                 </td>
                 <td class="px-4 py-2">
                   <input type="number" min="0" step="0.0001" v-model.number="p.tax.tax_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />

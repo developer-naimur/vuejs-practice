@@ -58,10 +58,30 @@ const openCustomerModal = () => {
   showCustomerModal.value = true
 }
 
-const onCustomerSelected = (s: any) => {
-  customer.value = s
+const row = ref({
+  customer_id: null
+})
+const customers = ref<any[]>([])
+const onCustomerSelected = (selected: any) => {
+  // set selected customer
+  customer.value = selected
+
+  // VERY IMPORTANT: watcher trigger করার জন্য
+  row.value.customer_id = selected.id
+
+  // VERY IMPORTANT: composable price_group lookup এর জন্য
+  const index = customers.value.findIndex(c => c.id === selected.id)
+
+  if (index === -1) {
+    customers.value.push(selected)
+  } else {
+    // ensure reactive update
+    customers.value[index] = selected
+  }
+
   showCustomerModal.value = false
 }
+
 
 /* ================= PRODUCTS ================= */
 const selectedProducts = computed(() => productPopup.selectedProducts)
@@ -72,7 +92,7 @@ const openProductPopup = () => productPopup.openPopup()
 /* ================= CALCULATION ================= */
 const productSubtotal = (p: any) => {
   const qty = Number(p.qty) || 0
-  const price = Number(p.cost_price) || 0
+  const price = Number(p.sale_price) || 0
   const base = rounded(qty * price)
 
   const tax = rounded(base * (Number(p.tax?.tax_value) || 0) / 100)
@@ -205,9 +225,8 @@ const fetchSale = async () => {
 
 
     /* ===== customer ===== */
+    row.value.customer_id = p.customer.id
     customer.value = p.customer
-
-
 
     /* ===== PRODUCTS ===== */
     productPopup.selectedProducts = p.details.map((d: any) => ({
@@ -215,15 +234,15 @@ const fetchSale = async () => {
       name: d.product?.name,
       sku: d.product?.sku,
       qty: d.quantity,
-      cost_price: d.unit_price,
-
+      sale_price: d.unit_price,
+      manual_sale_price: true,
       discount_value: d.discount?.value ?? 0,
       discount_type: d.discount?.type ?? 'percent',
-
       tax: {
         tax_value: d.tax?.tax_rate ?? 0
       }
     }))
+
     /* ===== ADJUSTMENTS ===== */
     adjustments.value = p.adjustments.map((a: any) => ({
       id: a.id,
@@ -273,7 +292,7 @@ const submitRows = async () => {
       details: selectedProducts.value.map(p => ({
         product_id: p.id,
         quantity: p.qty,
-        unit_price: p.cost_price,
+        unit_price: p.sale_price,
         tax_rate: p.tax?.tax_value || 0,
         discount_value: p.discount_value || 0,
         discount_type: p.discount_type || 'percent',
@@ -324,6 +343,13 @@ onMounted(async () => {
   await loadadjustmentHeads()
   await fetchSale()
 })
+
+
+import { useCustomerPriceGroup } from '@/composables/useCustomerPriceGroup'
+const { watchCustomerAndProducts } = useCustomerPriceGroup()
+watchCustomerAndProducts(row, customers, selectedProducts)
+
+
 </script>
 
 <template>
@@ -442,7 +468,7 @@ onMounted(async () => {
                   </div>
                 </td>
                 <td class="px-4 py-2">
-                  <input type="number" min="0" step="0.0001" v-model.number="p.cost_price" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
+                  <input type="number" min="0" step="0.0001" v-model.number="p.sale_price" @input="p.manual_sale_price = true" class="w-20 border p-1 focus:ring-2 focus:ring-gray-500" />
                 </td>
                 <td class="px-4 py-2">
                   <input type="number" min="0" step="0.0001" v-model.number="p.tax.tax_value" class="w-16 border p-1 focus:ring-2 focus:ring-gray-500" />

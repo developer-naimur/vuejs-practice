@@ -1,0 +1,1 @@
+<template>BankReport.vue</template>

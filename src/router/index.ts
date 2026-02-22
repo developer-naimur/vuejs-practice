@@ -151,6 +151,29 @@ import StockAdjustmentTrashed from '../views/Stock/Adjustment/Trashed.vue'
 // Reports
 //---------------------------------------------------
 import ReportHome from '../views/Report/Home.vue'
+import PurchaseSummary from '../views/Report/Purchase/PurchaseSummary.vue'
+import SupplierWisePurchase from '../views/Report/Purchase/SupplierWisePurchase.vue'
+import PurchaseReturn from '../views/Report/Purchase/PurchaseReturn.vue'
+
+import SaleSummary from '../views/Report/Sale/SaleSummary.vue'
+import CustomerWiseSale from '../views/Report/Sale/CustomerWiseSale.vue'
+import SaleReturn from '../views/Report/Sale/SaleReturn.vue'
+
+import CurrentStock from '../views/Report/Stock/CurrentStock.vue'
+import StockAdjustment from '../views/Report/Stock/StockAdjustment.vue'
+import DamageWastage from '../views/Report/Stock/DamageWastage.vue'
+
+import CashReport from '../views/Report/Account/CashReport.vue'
+import BankReport from '../views/Report/Account/BankReport.vue'
+import ProfitLoss from '../views/Report/Account/ProfitLoss.vue'
+
+import CustomerLedger from '../views/Report/Customer/CustomerLedger.vue'
+import CustomerDue from '../views/Report/Customer/CustomerDue.vue'
+import TopCustomer from '../views/Report/Customer/TopCustomer.vue'
+
+import SupplierLedger from '../views/Report/Supplier/SupplierLedger.vue'
+import SupplierDue from '../views/Report/Supplier/SupplierDue.vue'
+import TopSupplier from '../views/Report/Supplier/TopSupplier.vue'
 
 
 
@@ -1127,6 +1150,173 @@ const routes = [
       path: '/report/home',
       name: 'report-home',
       component: ReportHome,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/purchase-summary',
+      name: 'purchase-summary',
+      component: PurchaseSummary,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/supplier-purchase',
+      name: 'supplier-purchase',
+      component: SupplierWisePurchase,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/purchase-return',
+      name: 'purchase-return',
+      component: PurchaseReturn,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+
+    {
+      path: '/report/sales-summary',
+      name: 'sales-summary',
+      component: SaleSummary,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/customer-sale',
+      name: 'customer-sale',
+      component: CustomerWiseSale,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/sales-return',
+      name: 'sales-return',
+      component: SaleReturn,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+
+    {
+      path: '/report/current-stock',
+      name: 'current-stock',
+      component: CurrentStock,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/stock-adjustment',
+      name: 'stock-adjustment',
+      component: StockAdjustment,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/damage-wastage',
+      name: 'damage-wastage',
+      component: DamageWastage,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+
+    {
+      path: '/report/cash-report',
+      name: 'cash-report',
+      component: CashReport,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/bank-report',
+      name: 'bank-report',
+      component: BankReport,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/profit-loss',
+      name: 'profit-loss',
+      component: ProfitLoss,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+
+    {
+      path: '/report/customer-ledger',
+      name: 'customer-ledger',
+      component: CustomerLedger,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/customer-due',
+      name: 'customer-due',
+      component: CustomerDue,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/top-customer',
+      name: 'top-customer',
+      component: TopCustomer,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+
+    {
+      path: '/report/supplier-ledger',
+      name: 'supplier-ledger',
+      component: SupplierLedger,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/supplier-due',
+      name: 'supplier-due',
+      component: SupplierDue,
+      meta: {
+        requiresAuth: true, 
+        permission: ''
+      }
+    },
+    {
+      path: '/report/top-supplier',
+      name: 'top-supplier',
+      component: TopSupplier,
       meta: {
         requiresAuth: true, 
         permission: ''

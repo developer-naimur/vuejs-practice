@@ -12,52 +12,52 @@ const menus = ref([
       {
         label: 'Purchase Reports',
         children: [
-          { label: 'Purchase Summary', to: '/reports/purchase-summary' },
-          { label: 'Supplier Wise Purchase', to: '/reports/supplier-purchase' },
-          { label: 'Purchase Return', to: '/reports/purchase-return' }
+          { label: 'Purchase Summary', to: '/report/purchase-summary' },
+          { label: 'Supplier Wise Purchase', to: '/report/supplier-purchase' },
+          { label: 'Purchase Return', to: '/report/purchase-return' }
         ]
       },
       {
         label: 'Sales Reports',
         children: [
-          { label: 'Sales Summary', to: '/reports/sales-summary' },
-          { label: 'Customer Wise Sales', to: '/reports/customer-sales' },
-          { label: 'Sales Return', to: '/reports/sales-return' },
-          { label: 'Top Selling Products', to: '/reports/top-products' }
+          { label: 'Sales Summary', to: '/report/sales-summary' },
+          { label: 'Customer Wise Sales', to: '/report/customer-sale' },
+          { label: 'Sales Return', to: '/report/sales-return' },
+          // { label: 'Top Selling Products', to: '/report/top-products' }
         ]
       },
       {
         label: 'Stock Reports',
         children: [
-          { label: 'Current Stock', to: '/reports/current-stock' },
-          { label: 'Stock Movement', to: '/reports/stock-movement' },
-          { label: 'Stock Adjustment', to: '/reports/stock-adjustment' },
-          { label: 'Damage / Wastage', to: '/reports/damage-wastage' }
+          { label: 'Current Stock', to: '/report/current-stock' },
+          // { label: 'Stock Movement', to: '/report/stock-movement' },
+          { label: 'Stock Adjustment', to: '/report/stock-adjustment' },
+          { label: 'Damage / Wastage', to: '/report/damage-wastage' }
         ]
       },
       {
         label: 'Accounts Reports',
         children: [
-          { label: 'Cash Report', to: '/reports/cash-report' },
-          { label: 'Bank Report', to: '/reports/bank-report' },
-          { label: 'Profit & Loss', to: '/reports/profit-loss' },
-          { label: 'Balance Sheet', to: '/reports/balance-sheet' }
+          { label: 'Cash Report', to: '/report/cash-report' },
+          { label: 'Bank Report', to: '/report/bank-report' },
+          { label: 'Profit & Loss', to: '/report/profit-loss' },
+          // { label: 'Balance Sheet', to: '/report/balance-sheet' }
         ]
       },
       {
         label: 'Customer Reports',
         children: [
-          { label: 'Customer Ledger', to: '/reports/customer-ledger' },
-          { label: 'Customer Due', to: '/reports/customer-due' },
-          { label: 'Top Customers', to: '/reports/top-customers' }
+          { label: 'Customer Ledger', to: '/report/customer-ledger' },
+          { label: 'Customer Due', to: '/report/customer-due' },
+          { label: 'Top Customers', to: '/report/top-customer' }
         ]
       },
       {
         label: 'Supplier Reports',
         children: [
-          { label: 'Supplier Ledger', to: '/reports/supplier-ledger' },
-          { label: 'Supplier Due', to: '/reports/supplier-due' },
-          { label: 'Top Suppliers', to: '/reports/top-suppliers' }
+          { label: 'Supplier Ledger', to: '/report/supplier-ledger' },
+          { label: 'Supplier Due', to: '/report/supplier-due' },
+          { label: 'Top Suppliers', to: '/report/top-supplier' }
         ]
       }
     ]

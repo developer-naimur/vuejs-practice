@@ -1,0 +1,1 @@
+<template>SupplierLedger.vue</template>

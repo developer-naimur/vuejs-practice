@@ -1,0 +1,1 @@
+<template>StockAdjustment.vue</template>

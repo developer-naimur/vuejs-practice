@@ -161,7 +161,6 @@ import SaleReturn from '../views/Report/Sale/SaleReturn.vue'
 
 import CurrentStock from '../views/Report/Stock/CurrentStock.vue'
 import StockAdjustment from '../views/Report/Stock/StockAdjustment.vue'
-import DamageWastage from '../views/Report/Stock/DamageWastage.vue'
 
 import CashReport from '../views/Report/Account/CashReport.vue'
 import BankReport from '../views/Report/Account/BankReport.vue'
@@ -1229,15 +1228,7 @@ const routes = [
         permission: ''
       }
     },
-    {
-      path: '/report/damage-wastage',
-      name: 'damage-wastage',
-      component: DamageWastage,
-      meta: {
-        requiresAuth: true, 
-        permission: ''
-      }
-    },
+    
 
     {
       path: '/report/cash-report',

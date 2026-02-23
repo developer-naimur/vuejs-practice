@@ -32,7 +32,7 @@ const menus = ref([
           { label: 'Current Stock', to: '/report/current-stock' },
           // { label: 'Stock Movement', to: '/report/stock-movement' },
           { label: 'Stock Adjustment', to: '/report/stock-adjustment' },
-          { label: 'Damage / Wastage', to: '/report/damage-wastage' }
+          // { label: 'Damage / Wastage', to: '/report/damage-wastage' }
         ]
       },
       {

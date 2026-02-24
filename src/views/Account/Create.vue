@@ -32,6 +32,7 @@ const breadcrumbs = [
 ===================================================== */
 const newRows = ref([
   {
+    date: '',
     payment_method_id: '',
     account_name: '',
     account_number: '',
@@ -42,6 +43,7 @@ const newRows = ref([
 ])
 const addField = () => {
   newRows.value.push({
+    date: '',
     payment_method_id: '',
     account_name: '',
     account_number: '',
@@ -95,6 +97,7 @@ const submitRows = async () => {
     messageStore.showSuccess('Data has been created successfully!');
 
     newRows.value = [{
+      date: '',
       payment_method_id: '',
       account_name: '',
       account_number: '',
@@ -195,6 +198,18 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
 
+        <!-- Date -->
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">
+            Date <span class="text-red-600">*</span>
+          </label>
+          <input
+            v-model="row.date"
+            type="date"
+            class="w-full border p-3"
+          />
+        </div>
+
         <div>
           <label class="block text-sm text-gray-600 mb-1">
             Payment Method <span class="text-red-600">*</span>
@@ -210,6 +225,7 @@ onMounted(() => {
             </option>
           </select>
         </div>
+
 
           <!-- Account Name -->
           <div>
@@ -250,11 +266,6 @@ onMounted(() => {
             />
           </div>
 
-        </div>
-
-        <!-- Row 2 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
           <div>
             <label class="block text-sm text-gray-600 mb-1">
               Branch
@@ -281,6 +292,7 @@ onMounted(() => {
           </div>
 
         </div>
+
 
         <!-- ACTION BUTTONS (SVG SAME AS BEFORE) -->
         <div class="w-36 flex gap-2">

@@ -235,6 +235,7 @@ onMounted(() => {
         <thead class="bg-gray-100">
           <tr>
             <th class="px-4 py-2 text-left">#</th>
+            <th class="px-4 py-2 text-left">Date</th>
             <th class="px-4 py-2 text-left">Method</th>
             <th class="px-4 py-2 text-left">Ac. Name</th>
             <th class="px-4 py-2 text-left">Ac. Number</th>
@@ -249,6 +250,7 @@ onMounted(() => {
           
           <tr v-if="loading == false" v-for="(row, index) in rows" :key="row.id" class="hover:bg-gray-50">
             <td class="px-4 py-2">{{ (currentPage-1)*perPage + index + 1 }}</td>
+            <td class="px-4 py-2">{{ row.date }}</td>
             <td class="px-4 py-2">{{ row.method.method_name }}</td>
             <td class="px-4 py-2">{{ row.account_name }}</td>
             <td class="px-4 py-2">{{ row.account_number }}</td>

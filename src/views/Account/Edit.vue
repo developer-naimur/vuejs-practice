@@ -37,6 +37,7 @@ const fetchRow = async () => {
     const res = await axiosInstance.get(`/accounts/${rowId}`)
     const data = res.data.data
     row.value = {
+      date: data.date,
       payment_method_id: data.payment_method_id,
       account_name: data.account_name,
       account_number: data.account_number,
@@ -133,6 +134,18 @@ onMounted(() => {
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
 
 
+        <!-- Date -->
+        <div>
+          <label class="block text-sm text-gray-600 mb-1">
+            Date <span class="text-red-600">*</span>
+          </label>
+          <input
+            v-model="row.date"
+            type="date"
+            class="w-full border p-3"
+          />
+        </div>
+
         <div>
           <label class="block text-sm text-gray-600 mb-1">
             Payment Method <span class="text-red-600">*</span>
@@ -188,12 +201,7 @@ onMounted(() => {
             />
           </div>
 
-        </div>
-
-        <!-- Row 2 -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-
-          <div>
+           <div>
             <label class="block text-sm text-gray-600 mb-1">
               Branch
             </label>
@@ -218,7 +226,9 @@ onMounted(() => {
             ></textarea>
           </div>
 
+
         </div>
+
 
       <button
         type="submit"

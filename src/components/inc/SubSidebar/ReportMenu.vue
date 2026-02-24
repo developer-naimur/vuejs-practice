@@ -38,8 +38,7 @@ const menus = ref([
       {
         label: 'Accounts Reports',
         children: [
-          { label: 'Cash Report', to: '/report/cash-report' },
-          { label: 'Bank Report', to: '/report/bank-report' },
+          { label: 'Cash/Bank Report', to: '/report/account-report' },
           { label: 'Profit & Loss', to: '/report/profit-loss' },
           // { label: 'Balance Sheet', to: '/report/balance-sheet' }
         ]

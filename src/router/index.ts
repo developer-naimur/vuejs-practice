@@ -162,8 +162,7 @@ import SaleReturn from '../views/Report/Sale/SaleReturn.vue'
 import CurrentStock from '../views/Report/Stock/CurrentStock.vue'
 import StockAdjustment from '../views/Report/Stock/StockAdjustment.vue'
 
-import CashReport from '../views/Report/Account/CashReport.vue'
-import BankReport from '../views/Report/Account/BankReport.vue'
+import AccountReport from '../views/Report/Account/AccountReport.vue'
 import ProfitLoss from '../views/Report/Account/ProfitLoss.vue'
 
 import CustomerLedger from '../views/Report/Customer/CustomerLedger.vue'
@@ -1231,18 +1230,9 @@ const routes = [
     
 
     {
-      path: '/report/cash-report',
-      name: 'cash-report',
-      component: CashReport,
-      meta: {
-        requiresAuth: true, 
-        permission: ''
-      }
-    },
-    {
-      path: '/report/bank-report',
-      name: 'bank-report',
-      component: BankReport,
+      path: '/report/account-report',
+      name: 'account-report',
+      component: AccountReport,
       meta: {
         requiresAuth: true, 
         permission: ''

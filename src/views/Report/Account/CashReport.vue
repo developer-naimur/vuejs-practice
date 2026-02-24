@@ -1,1 +1,0 @@
-<template>CashReport.vue</template>

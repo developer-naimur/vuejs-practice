@@ -46,7 +46,7 @@ const menus = ref([
       {
         label: 'Customer Reports',
         children: [
-          { label: 'Customer Ledger', to: '/report/customer-ledger' },
+          { label: 'Transaction History', to: '/report/customer-ledger' },
           { label: 'Customer Due', to: '/report/customer-due' },
           { label: 'Top Customers', to: '/report/top-customer' }
         ]
@@ -54,7 +54,7 @@ const menus = ref([
       {
         label: 'Supplier Reports',
         children: [
-          { label: 'Supplier Ledger', to: '/report/supplier-ledger' },
+          { label: 'Transaction History', to: '/report/supplier-ledger' },
           { label: 'Supplier Due', to: '/report/supplier-due' },
           { label: 'Top Suppliers', to: '/report/top-supplier' }
         ]

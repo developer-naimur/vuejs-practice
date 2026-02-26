@@ -311,7 +311,7 @@ const routes = [
       component: ProductIndex,
       meta: {
         requiresAuth: true, 
-        permission: 'product.read'
+        permission: 'products.read'
       }
     },
     {
@@ -320,7 +320,7 @@ const routes = [
       component: ProductCreate,
       meta: {
         requiresAuth: true, 
-        permission: 'product.create'
+        permission: 'products.create'
       }
     },
     {
@@ -329,7 +329,7 @@ const routes = [
       component: ProductTrashed,
       meta: {
         requiresAuth: true, 
-        permission: 'product.read'
+        permission: 'products.read'
       }
     },
     {
@@ -338,7 +338,7 @@ const routes = [
       component: ProductEdit,
       meta: {
         requiresAuth: true, 
-        permission: 'product.update'
+        permission: 'products.update'
       }
     },
     {
@@ -347,7 +347,7 @@ const routes = [
       component: ProductShow,
       meta: {
         requiresAuth: true, 
-        permission: 'product.read'
+        permission: 'products.read'
       }
     },
 
@@ -360,7 +360,7 @@ const routes = [
       component: BrandIndex,
       meta: {
         requiresAuth: true, 
-        permission: 'brand.read'
+        permission: 'brands.read'
       }
     },
     {
@@ -369,7 +369,7 @@ const routes = [
       component: BrandCreate,
       meta: {
         requiresAuth: true, 
-        permission: 'brand.create'
+        permission: 'brands.create'
       }
     },
     {
@@ -378,7 +378,7 @@ const routes = [
       component: BrandTrashed,
       meta: {
         requiresAuth: true, 
-        permission: 'brand.read'
+        permission: 'brands.read'
       }
     },
     {
@@ -387,7 +387,7 @@ const routes = [
       component: BrandEdit,
       meta: {
         requiresAuth: true, 
-        permission: 'brand.update'
+        permission: 'brands.update'
       }
     },
     {
@@ -396,7 +396,7 @@ const routes = [
       component: BrandShow,
       meta: {
         requiresAuth: true, 
-        permission: 'brand.read'
+        permission: 'brands.read'
       }
     },
 
@@ -409,7 +409,7 @@ const routes = [
       component: CategoryIndex,
       meta: {
         requiresAuth: true, 
-        permission: 'category.read'
+        permission: 'categories.read'
       }
     },
     {
@@ -418,7 +418,7 @@ const routes = [
       component: CategoryCreate,
       meta: {
         requiresAuth: true, 
-        permission: 'category.create'
+        permission: 'categories.create'
       }
     },
     {
@@ -427,7 +427,7 @@ const routes = [
       component: CategoryTrashed,
       meta: {
         requiresAuth: true, 
-        permission: 'category.read'
+        permission: 'categories.read'
       }
     },
     {
@@ -436,7 +436,7 @@ const routes = [
       component: CategoryEdit,
       meta: {
         requiresAuth: true, 
-        permission: 'category.update'
+        permission: 'categories.update'
       }
     },
     {
@@ -445,7 +445,7 @@ const routes = [
       component: CategoryShow,
       meta: {
         requiresAuth: true, 
-        permission: 'category.read'
+        permission: 'categories.read'
       }
     },
 
@@ -458,7 +458,7 @@ const routes = [
       component: UnitIndex,
       meta: {
         requiresAuth: true, 
-        permission: 'unit.read'
+        permission: 'units.read'
       }
     },
     {
@@ -467,7 +467,7 @@ const routes = [
       component: UnitCreate,
       meta: {
         requiresAuth: true, 
-        permission: 'unit.create'
+        permission: 'units.create'
       }
     },
     {
@@ -476,7 +476,7 @@ const routes = [
       component: UnitTrashed,
       meta: {
         requiresAuth: true, 
-        permission: 'unit.read'
+        permission: 'units.read'
       }
     },
     {
@@ -485,7 +485,7 @@ const routes = [
       component: UnitEdit,
       meta: {
         requiresAuth: true, 
-        permission: 'unit.update'
+        permission: 'units.update'
       }
     },
     {
@@ -494,7 +494,7 @@ const routes = [
       component: UnitShow,
       meta: {
         requiresAuth: true, 
-        permission: 'unit.read'
+        permission: 'units.read'
       }
     },
 
@@ -696,7 +696,7 @@ const routes = [
       component: SaleIndex,
       meta: {
         requiresAuth: true, 
-        permission: 'sale.read'
+        permission: 'sales.read'
       }
     },
     {
@@ -705,7 +705,7 @@ const routes = [
       component: SaleCreate,
       meta: {
         requiresAuth: true, 
-        permission: 'sale.read'
+        permission: 'sales.read'
       }
     },
     {
@@ -714,7 +714,7 @@ const routes = [
       component: SaleTrashed,
       meta: {
         requiresAuth: true, 
-        permission: 'sale.read'
+        permission: 'sales.read'
       }
     },
     {
@@ -723,7 +723,7 @@ const routes = [
       component: SaleEdit,
       meta: {
         requiresAuth: true, 
-        permission: 'sale.read'
+        permission: 'sales.read'
       }
     },
     {
@@ -732,7 +732,7 @@ const routes = [
       component: SaleShow,
       meta: {
         requiresAuth: true, 
-        permission: 'sale.read'
+        permission: 'sales.read'
       }
     },
     //Return
@@ -742,7 +742,7 @@ const routes = [
       component: SaleReturnIndex,
       meta: {
         requiresAuth: true, 
-        permission: 'sale_return.read'
+        permission: 'sales_return.read'
       }
     },
     {
@@ -751,7 +751,7 @@ const routes = [
       component: SaleReturnCreate,
       meta: {
         requiresAuth: true, 
-        permission: 'sale_return.create'
+        permission: 'sales_return.create'
       }
     },
     {
@@ -760,7 +760,7 @@ const routes = [
       component: SaleReturnTrashed,
       meta: {
         requiresAuth: true, 
-        permission: 'sale_return.read'
+        permission: 'sales_return.read'
       }
     },
     {
@@ -769,7 +769,7 @@ const routes = [
       component: SaleReturnEdit,
       meta: {
         requiresAuth: true, 
-        permission: 'sale_return.update'
+        permission: 'sales_return.update'
       }
     },
     {
@@ -778,7 +778,7 @@ const routes = [
       component: SaleReturnShow,
       meta: {
         requiresAuth: true, 
-        permission: 'sale_return.read'
+        permission: 'sales_return.read'
       }
     },
 
@@ -1803,7 +1803,7 @@ router.beforeEach(async (to, from, next) => {
       return next('/login')
     }
   }
-
+  console.log(userStore)
   // 🚀 Permission check
   if (to.meta.permission) {
     if (!userStore.userCan(to.meta.permission as string)) {

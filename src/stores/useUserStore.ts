@@ -3,8 +3,13 @@ import { defineStore } from 'pinia'
 interface Permission {
   id: number;
   name: string;
+  pivot?: {
+    c?: boolean;
+    r?: boolean;
+    u?: boolean;
+    d?: boolean;
+  };
 }
-
 interface Role {
   id: number;
   name: string;
@@ -50,12 +55,26 @@ export const useUserStore = defineStore('user', {
      */
     permissions: (state) => {
       if (!state.user) return [];
+
       const roles = state.user.roles ?? [];
+
       if (roles.length === 0) {
-        return ['*']; // allow all if no role assigned
+        return ['*'];
       }
-      return roles.flatMap(role => role.permissions.map(p => p.name));
-    },
+
+      const perms: string[] = [];
+
+      roles.forEach(role => {
+        role.permissions.forEach((p: any) => {
+          if (p.pivot?.c) perms.push(`${p.name}.c`);
+          if (p.pivot?.r) perms.push(`${p.name}.r`);
+          if (p.pivot?.u) perms.push(`${p.name}.u`);
+          if (p.pivot?.d) perms.push(`${p.name}.d`);
+        });
+      });
+
+      return perms;
+    }
 
   },
   actions: {
@@ -86,10 +105,23 @@ export const useUserStore = defineStore('user', {
     userCan(permissionName: string): boolean {
       if (!this.user) return false;
 
+      // SuperAdmin → allow all
       if (this.permissions.includes('*')) {
         return true;
       }
-      return this.permissions.includes(permissionName);
-    },
+
+      const [base, action] = permissionName.split('.');
+
+      const actionMap: Record<string, string> = {
+        create: 'c',
+        read: 'r',
+        update: 'u',
+        delete: 'd',
+      };
+
+      const shortAction = actionMap[action] ?? action;
+
+      return this.permissions.includes(`${base}.${shortAction}`);
+    }
   },
 });

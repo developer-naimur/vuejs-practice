@@ -56,7 +56,9 @@ const permissions = ref({
   units: { c: false, r: false, u: false, d: false },
 
   customer: { c: false, r: false, u: false, d: false },
+  customer_payment_and_receive: { c: false, r: false, u: false, d: false },
   supplier: { c: false, r: false, u: false, d: false },
+  supplier_payment_and_receive: { c: false, r: false, u: false, d: false },
 
   stock_operation: { c: false, r: false, u: false, d: false },
   opening_accounts: { c: false, r: false, u: false, d: false },
@@ -76,15 +78,49 @@ const permissions = ref({
 // ------------------------
 // Modal Actions
 // ------------------------
-const openPermissionModal = (role) => {
+const openPermissionModal = async (role) => {
   selectedRole.value = role
   showPermissionModal.value = true
+
+  try {
+    const res = await axiosInstance.get(`/roles/${role.id}/permissions`);
+    // Reset first
+    Object.keys(permissions.value).forEach(menu => {
+      permissions.value[menu] = { c:false, r:false, u:false, d:false }
+    });
+    res.data.forEach(item => {
+      if (permissions.value[item.menu]) {
+        permissions.value[item.menu] = {
+          c: item.c,
+          r: item.r,
+          u: item.u,
+          d: item.d,
+        }
+      }
+    });
+
+  } catch (err) {
+    messageStore.showError('Failed to load permissions')
+  }
 }
 
 const closePermissionModal = () => {
   showPermissionModal.value = false
 }
+const savePermissions = async () => {
+  try {
+    await axiosInstance.post(
+      `/roles/${selectedRole.value.id}/permissions`,
+      { permissions: permissions.value }
+    );
 
+    messageStore.showSuccess('Permissions saved successfully')
+    closePermissionModal()
+
+  } catch (err) {
+    messageStore.showError('Failed to save permissions')
+  }
+}
 
 /* ===============================
    GLOBAL SELECT ALL
@@ -555,6 +591,7 @@ onMounted(fetchRows)
             Cancel
           </button>
           <button
+            @click="savePermissions"
             class="px-5 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition cursor-pointer">
             Save Permissions
           </button>
